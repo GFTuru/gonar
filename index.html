@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8"/>
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>The Vault — Arsip</title>
+  <title>The Vault — Arsip Web</title>
   <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;0,600;1,300;1,400&family=DM+Mono:ital,wght@0,300;0,400;1,300&family=Playfair+Display:ital,wght@1,400;1,700&display=swap" rel="stylesheet"/>
   <style>
     *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
@@ -530,7 +530,7 @@
       border-radius: 12px;
       padding: 36px 32px 28px;
       width: 100%;
-      max-width: 500px; /* Dipersempit agar lebih rapih tanpa input text */
+      max-width: 500px;
       max-height: 90vh;
       overflow-y: auto;
       box-shadow: 0 40px 80px rgba(107,45,62,0.25), 0 0 0 1px rgba(201,122,138,0.15);
@@ -908,7 +908,11 @@
         const d = partsData[i] || { locked: true, subtitle: p.subtitle };
         const locked = d.locked === undefined ? true : d.locked;
         const subtitle = d.subtitle || p.subtitle;
-        const targetUrl = 'thevault' + (i + 1) + '.html'; // Link otomatis: thevault1.html s/d thevault9.html
+
+        // ── TARGET URL FOLDER PART ──
+        // Ubah ini jika kamu ingin menaruhnya di folder lain.
+        // Saat ini akan mengarah ke "part1/thevault1.html", "part2/thevault2.html", dst.
+        const targetUrl = 'part' + (i + 1) + '/thevault' + (i + 1) + '.html';
         
         const delay = (0.15 + i * 0.1).toFixed(2);
         const isLast = i === PARTS.length - 1;
@@ -1060,7 +1064,6 @@
       overlay.classList.remove('open'); 
     }
 
-    adminClose.addEventListener('click', closeAdmin);
     adminClose.addEventListener('click', closeAdmin);
     overlay.addEventListener('click', e => { if (e.target === overlay) closeAdmin(); });
 
