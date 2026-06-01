@@ -1,0 +1,935 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Our Starry Memories</title>
+    <!-- Import Font Estetik -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,600;1,400&family=Montserrat:wght@300;400&display=swap" rel="stylesheet">
+    <!-- Confetti Library untuk hari ke-31 -->
+    <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0/dist/confetti.browser.min.js"></script>
+
+    <style>
+        :root {
+            --bg-color: #0b0d17;
+            --star-color: #ffffff;
+            --gold: #f2d785;
+            --glass: rgba(255, 255, 255, 0.05);
+            --glass-border: rgba(255, 255, 255, 0.1);
+            --text-main: #e0e0e0;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            background-color: var(--bg-color);
+            color: var(--text-main);
+            font-family: 'Montserrat', sans-serif;
+            overflow-x: hidden;
+            min-height: 100vh;
+            position: relative;
+        }
+
+        h1, h2, h3 {
+            font-family: 'Cormorant Garamond', serif;
+        }
+
+        /* --- Canvas Background (Stars) --- */
+        #star-canvas {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            z-index: -1;
+            pointer-events: none;
+        }
+
+        /* --- Opening Section --- */
+        #opening {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: var(--bg-color);
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            z-index: 100;
+            transition: opacity 1.5s ease-in-out;
+        }
+
+        .title-wrapper {
+            text-align: center;
+            opacity: 0;
+            animation: fadeIn 2s forwards 0.5s;
+        }
+
+        .main-title {
+            font-size: 3.5rem;
+            color: var(--gold);
+            margin-bottom: 10px;
+            font-style: italic;
+            text-shadow: 0 0 20px rgba(242, 215, 133, 0.3);
+        }
+
+        .subtitle {
+            font-size: 1.1rem;
+            letter-spacing: 4px;
+            margin-bottom: 40px;
+            color: rgba(255,255,255,0.7);
+        }
+
+        .enter-btn {
+            padding: 15px 45px;
+            background: transparent;
+            border: 1px solid var(--gold);
+            color: var(--gold);
+            border-radius: 50px;
+            cursor: pointer;
+            font-family: 'Montserrat', sans-serif;
+            font-size: 1rem;
+            letter-spacing: 2px;
+            transition: all 0.4s ease;
+            opacity: 0;
+            animation: fadeIn 2s forwards 1.5s;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .enter-btn:hover {
+            background: var(--gold);
+            color: var(--bg-color);
+            box-shadow: 0 0 30px rgba(242, 215, 133, 0.6);
+            transform: scale(1.05);
+        }
+
+        /* --- Main Gallery --- */
+        #gallery-section {
+            opacity: 0;
+            display: none;
+            padding: 40px 20px;
+            max-width: 1200px;
+            margin: 0 auto;
+            transition: opacity 1s ease;
+        }
+
+        .header {
+            text-align: center;
+            margin-bottom: 30px;
+            margin-top: 20px;
+        }
+
+        .header h2 {
+            font-size: 3rem;
+            margin-bottom: 10px;
+            background: linear-gradient(to right, #fff, var(--gold));
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+
+        /* --- Progress Bar --- */
+        .progress-wrapper {
+            max-width: 600px;
+            margin: 0 auto 40px auto;
+            text-align: center;
+        }
+
+        .progress-text {
+            font-size: 0.9rem;
+            letter-spacing: 2px;
+            margin-bottom: 10px;
+            color: var(--gold);
+        }
+
+        .progress-bar-container {
+            width: 100%;
+            height: 6px;
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 10px;
+            overflow: hidden;
+        }
+
+        .progress-fill {
+            height: 100%;
+            width: 0%;
+            background: var(--gold);
+            box-shadow: 0 0 10px var(--gold);
+            transition: width 1s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+
+        .completion-msg {
+            display: none;
+            color: var(--gold);
+            font-family: 'Cormorant Garamond', serif;
+            font-size: 1.5rem;
+            margin-top: 15px;
+            font-style: italic;
+            animation: fadeIn 1s forwards;
+        }
+
+        .timeline-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(140px, 1fr));
+            gap: 20px;
+        }
+
+        /* --- Star/Day Card --- */
+        .day-card {
+            background: var(--glass);
+            border: 1px solid var(--glass-border);
+            border-radius: 15px;
+            padding: 25px 15px;
+            text-align: center;
+            cursor: pointer;
+            transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+            backdrop-filter: blur(5px);
+            position: relative;
+            overflow: hidden;
+        }
+
+        .day-card:hover {
+            transform: translateY(-8px);
+            background: rgba(255, 255, 255, 0.1);
+            border-color: rgba(255, 255, 255, 0.3);
+            box-shadow: 0 10px 30px rgba(0,0,0,0.4);
+        }
+
+        /* State Saat Hari Sudah Dibuka */
+        .day-card.opened {
+            border-color: rgba(242, 215, 133, 0.5);
+            background: linear-gradient(135deg, rgba(255,255,255,0.05) 0%, rgba(242, 215, 133, 0.05) 100%);
+        }
+
+        .day-card.opened::before {
+            color: var(--gold);
+            text-shadow: 0 0 15px var(--gold);
+        }
+
+        .day-card.opened .date-text {
+            color: var(--gold);
+        }
+
+        .day-card::before {
+            content: '★';
+            display: block;
+            font-size: 1.5rem;
+            color: rgba(255, 255, 255, 0.3);
+            margin-bottom: 10px;
+            transition: all 0.3s ease;
+        }
+
+        .date-text {
+            font-size: 1.5rem;
+            font-weight: 600;
+            font-family: 'Cormorant Garamond', serif;
+            transition: color 0.3s ease;
+        }
+
+        .month-text {
+            font-size: 0.75rem;
+            text-transform: uppercase;
+            letter-spacing: 2px;
+            opacity: 0.6;
+            margin-top: 5px;
+        }
+
+        /* --- Video Modal --- */
+        #modal {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.85);
+            backdrop-filter: blur(15px);
+            z-index: 200;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            opacity: 0;
+            pointer-events: none;
+            transition: opacity 0.4s ease;
+        }
+
+        #modal.active {
+            opacity: 1;
+            pointer-events: all;
+        }
+
+        .modal-content {
+            width: 90%;
+            max-width: 800px;
+            background: rgba(15, 15, 20, 0.8);
+            border: 1px solid rgba(242, 215, 133, 0.2);
+            border-radius: 20px;
+            padding: 30px;
+            position: relative;
+            transform: scale(0.95) translateY(20px);
+            transition: all 0.5s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+            box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.8), 0 0 30px rgba(242, 215, 133, 0.1);
+        }
+
+        #modal.active .modal-content {
+            transform: scale(1) translateY(0);
+        }
+
+        .close-btn {
+            position: absolute;
+            top: 20px;
+            right: 25px;
+            font-size: 2.5rem;
+            color: rgba(255,255,255,0.5);
+            cursor: pointer;
+            line-height: 1;
+            z-index: 10;
+            transition: color 0.3s;
+        }
+
+        .close-btn:hover {
+            color: var(--gold);
+        }
+
+        .modal-date-title {
+            text-align: center;
+            font-size: 2.2rem;
+            margin-bottom: 5px;
+            color: var(--gold);
+        }
+
+        /* --- Quotes --- */
+        .quote-text {
+            text-align: center;
+            font-size: 1rem;
+            font-style: italic;
+            color: rgba(255,255,255,0.7);
+            margin-bottom: 25px;
+            min-height: 24px;
+            transition: opacity 0.3s ease;
+        }
+
+        /* --- Video Controls & Player --- */
+        .video-container {
+            width: 100%;
+            aspect-ratio: 16/9;
+            background: #000;
+            border-radius: 12px;
+            overflow: hidden;
+            margin-bottom: 25px;
+            position: relative;
+            transition: transform 0.4s ease, opacity 0.4s ease;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.5);
+        }
+
+        /* Loading Spinner */
+        .loading-overlay {
+            position: absolute;
+            top: 0; left: 0; width: 100%; height: 100%;
+            background: rgba(0,0,0,0.8);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            z-index: 5;
+            transition: opacity 0.4s ease;
+            opacity: 0;
+            pointer-events: none;
+        }
+
+        .loading-overlay.active {
+            opacity: 1;
+            pointer-events: all;
+        }
+
+        .spinner {
+            width: 40px;
+            height: 40px;
+            border: 3px solid rgba(255,255,255,0.1);
+            border-top-color: var(--gold);
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+        }
+
+        @keyframes spin { 100% { transform: rotate(360deg); } }
+
+        video, iframe {
+            width: 100%;
+            height: 100%;
+            border: none;
+            display: none;
+            position: absolute;
+            top: 0; left: 0;
+            transition: opacity 0.5s ease;
+            opacity: 0;
+        }
+
+        video { object-fit: contain; }
+
+        /* Transisi Player */
+        .video-container.switching {
+            transform: scale(0.98);
+            opacity: 0.8;
+        }
+
+        /* --- Tabs --- */
+        .category-tabs {
+            display: flex;
+            justify-content: center;
+            gap: 15px;
+            flex-wrap: wrap;
+        }
+
+        .tab-btn {
+            background: transparent;
+            border: 1px solid rgba(255,255,255,0.2);
+            color: #fff;
+            padding: 10px 30px;
+            border-radius: 30px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            font-family: 'Montserrat', sans-serif;
+            font-size: 0.9rem;
+            letter-spacing: 1px;
+            position: relative;
+        }
+
+        .tab-btn:hover {
+            background: rgba(255,255,255,0.1);
+            border-color: rgba(255,255,255,0.5);
+        }
+
+        .tab-btn.active {
+            background: rgba(242, 215, 133, 0.1);
+            color: var(--gold);
+            border-color: var(--gold);
+            box-shadow: 0 0 20px rgba(242, 215, 133, 0.2);
+            text-shadow: 0 0 10px rgba(242, 215, 133, 0.5);
+        }
+
+        /* --- Music Control --- */
+        .music-control {
+            position: fixed;
+            bottom: 30px;
+            right: 30px;
+            width: 50px;
+            height: 50px;
+            background: rgba(11, 13, 23, 0.8);
+            border: 1px solid var(--gold);
+            border-radius: 50%;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            cursor: pointer;
+            z-index: 150;
+            transition: all 0.3s;
+            box-shadow: 0 0 15px rgba(242, 215, 133, 0.2);
+        }
+
+        .music-control:hover {
+            background: var(--gold);
+            color: var(--bg-color);
+            transform: scale(1.1);
+        }
+
+        .music-icon {
+            font-size: 1.5rem;
+            color: inherit;
+        }
+
+        @keyframes fadeIn {
+            to { opacity: 1; }
+        }
+
+        /* Mobile Adjustments */
+        @media (max-width: 768px) {
+            .timeline-grid { grid-template-columns: repeat(3, 1fr); gap: 15px; }
+            .main-title { font-size: 2.5rem; }
+            .modal-content { width: 95%; padding: 25px 15px; }
+            .tab-btn { padding: 8px 20px; font-size: 0.8rem; }
+            .quote-text { font-size: 0.9rem; }
+        }
+        
+        @media (max-width: 480px) {
+             .timeline-grid { grid-template-columns: repeat(2, 1fr); }
+             .header h2 { font-size: 2rem; }
+        }
+    </style>
+</head>
+<body>
+
+    <!-- Background Music -->
+    <audio id="bgm" loop>
+        <source src="bgm.mp3" type="audio/mp3">
+    </audio>
+
+    <!-- Starry Background -->
+    <canvas id="star-canvas"></canvas>
+
+    <!-- Opening Screen -->
+    <section id="opening">
+        <div class="title-wrapper">
+            <h1 class="main-title">31 Hari Bintang Jatuh</h1>
+            <p class="subtitle">Koleksi isi hatimu</p>
+            <button class="enter-btn" onclick="enterGallery()">MULAI PERJALANAN</button>
+        </div>
+    </section>
+
+    <!-- Main Gallery Section -->
+    <section id="gallery-section">
+        <div class="header">
+            <h2>Timeline Kenangan</h2>
+            <p style="font-style: italic; opacity: 0.7;">28 Januari — 27 Februari</p>
+        </div>
+
+        <!-- Progress Tracker -->
+        <div class="progress-wrapper">
+            <div class="progress-text">Perjalanan Kita: <span id="progress-count">0</span> / 31 Hari Terbuka</div>
+            <div class="progress-bar-container">
+                <div class="progress-fill" id="progress-fill"></div>
+            </div>
+            <div id="completion-msg" class="completion-msg">Kamu sudah melihat semuanya. Terima kasih telah bertahan sejauh ini ✨</div>
+        </div>
+
+        <div class="timeline-grid" id="grid-container"></div>
+    </section>
+
+    <!-- Video Modal -->
+    <div id="modal">
+        <div class="modal-content">
+            <span class="close-btn" onclick="closeModal()">&times;</span>
+            <h2 class="modal-date-title" id="modal-date">Tanggal</h2>
+            <p class="quote-text" id="modal-quote">"Sebuah kenangan untuk hari ini..."</p>
+            
+            <div class="video-container" id="video-wrapper">
+                <div class="loading-overlay" id="loading-overlay">
+                    <div class="spinner"></div>
+                </div>
+                
+                <video id="local-video" controls controlsList="nodownload">
+                    <source src="" type="video/mp4">
+                </video>
+                <iframe id="drive-frame" src="" allow="autoplay"></iframe>
+            </div>
+
+            <div class="category-tabs" id="category-tabs">
+                <button class="tab-btn active" onclick="changeCategory('pagi')">Pagi ☀️</button>
+                <button class="tab-btn" onclick="changeCategory('mlm')">Malam 🌙</button>
+                <button class="tab-btn" onclick="changeCategory('rdm')">Random ✨</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Music Control -->
+    <div class="music-control" onclick="toggleMusic()">
+        <span class="music-icon" id="music-icon">♪</span>
+    </div>
+
+    <script>
+        // --- Data Link Google Drive ---
+        const apologyLink = "https://drive.google.com/file/d/1nlLeZIFt1f2Qv3OJYszpFTDF1-8y6UUY/preview";
+        const openingLink = "https://drive.google.com/file/d/18E4qm5Mlu5skuB-ezW0Z5-YA2AtcQ3Ul/preview";
+        
+        const driveLinks = {
+            1: { pagi: "https://drive.google.com/file/d/1wPMrrS7n4wx5EvKFKHOHwf3GYmbpNi63/preview", mlm: "https://drive.google.com/file/d/1b44HYpw1zh-KTcpkkOoW6EYC3p0A5A9F/preview", rdm: "https://drive.google.com/file/d/1p4Zk3QOSVlDtKRPlR8hVMz1OhM_zyaj2/preview" },
+            2: { pagi: "https://drive.google.com/file/d/1RG228jum5_6b58NP_F-kIgl3khj3sAxO/preview", mlm: "https://drive.google.com/file/d/1Gp8AVZfp4AhmLnD9rEBZ7YiZSOAjXwuK/preview", rdm: "https://drive.google.com/file/d/16fkz0Si_qU0XIlUoVtYQx6-vnVeFNlOg/preview" },
+            3: { pagi: "https://drive.google.com/file/d/1l2r2xF0YoD_ngkAf8ZPCvhOuxAGh3uOc/preview", mlm: "https://drive.google.com/file/d/164jHxNzWqxTi7HZ8_abaRHVKAaXo742y/preview", rdm: "https://drive.google.com/file/d/1c_V0tmeJxo4CMAhfPPYO2jViU-7pMdg2/preview" },
+            4: { pagi: "https://drive.google.com/file/d/1SFdxpdvlejXJe1gC0egGTMx9lxJQZW_b/preview", mlm: "https://drive.google.com/file/d/1S6HtUuxHKR8GKA_1G6SkBIpLcqr7eYHA/preview", rdm: "https://drive.google.com/file/d/1_BjTwdbLghHE5CFCfZ9vZf82k3AZWn5b/preview" },
+            5: { pagi: "https://drive.google.com/file/d/1uOMQG5IDenZKp_9VAJPx9JRRXpnRoeDL/preview", mlm: "https://drive.google.com/file/d/1pjiG68xINXZW_dfGJdcR6QtEftT5s1BS/preview", rdm: "https://drive.google.com/file/d/1DKHqeaACQdkQk2DPRVUf244gxIn8Ystz/preview" },
+            6: { pagi: "https://drive.google.com/file/d/1JsaU7ARvxbBnr3pm3tkCK97o3gJI65yr/preview", mlm: "https://drive.google.com/file/d/1OURDt82RZ3gLwLKUVe9b2_iRXeUTzij1/preview", rdm: "https://drive.google.com/file/d/1hdgrUzbnfHN84PZmeKwv9Mj_5RVr4BAB/preview" },
+            7: { pagi: "https://drive.google.com/file/d/1of8FH0iuOdvB4ErjCzOy17ZvJKSz1oWA/preview", mlm: "https://drive.google.com/file/d/1Lki2LjEnGFe8S_11Nlp0xPlu1XdRFx9I/preview", rdm: "https://drive.google.com/file/d/169HAXqzkjJPV4fTOy4YUPMNfnSvLUMZK/preview" },
+            8: { pagi: "https://drive.google.com/file/d/1oNpAmnD3-JfTXkdqTdibeEE28yTskU3U/preview", mlm: "https://drive.google.com/file/d/1vtzOgfJQEZNFomHj2BTRhLVCSgrP7H9h/preview", rdm: "https://drive.google.com/file/d/1heCWTwXYt8kkv8D4oLw9lTlxH3MCJHou/preview" },
+            9: { pagi: "https://drive.google.com/file/d/1aLS-X_VBFOecRIkYBoj4M0fWlAd7yv37/preview", mlm: "https://drive.google.com/file/d/1jS1PPHovHIu-nyiZN4CC2KvtaB3JrQTX/preview", rdm: "https://drive.google.com/file/d/14wBxIKYu1V88e0r22tQhIhvC4OYvXJ0j/preview" },
+            10: { pagi: "https://drive.google.com/file/d/146gMH78YusXz-nYWk4RxybJ0JtAk2VRi/preview", mlm: "https://drive.google.com/file/d/1TPhOPpVMAW-qanb_hGHO1CdxZ0kQRR2y/preview", rdm: "https://drive.google.com/file/d/1K3FvZMAA638kNQrHfcPB501yGZ-twZwt/preview" },
+            11: { pagi: "https://drive.google.com/file/d/1UdBB1X8HSHHpGnSVlwm3dvyDz2nuRjlv/preview", mlm: "https://drive.google.com/file/d/1Kp1n1gOLc7aFF1dAl1bf0EeA5_ws4h_z/preview", rdm: "https://drive.google.com/file/d/1wynBrwsm0ifT55-wUpEN9QtHvIj2lP66/preview" },
+            12: { pagi: "https://drive.google.com/file/d/14FPjny4ajr-LGOAJwlvHNsHxJ_bgX2lR/preview", mlm: "https://drive.google.com/file/d/1b17vPs2HEMHaxd_pPmC1FJXP5etlgY3x/preview", rdm: "https://drive.google.com/file/d/1qAVSJntITLY9DY4BTLMDui9PuB_K8LzO/preview" },
+            13: { pagi: "https://drive.google.com/file/d/1M6FQU4TYGRwFPdvy1YWeRYbEKmbL-_x6/preview", mlm: "https://drive.google.com/file/d/19Br9BCrZr4Ds7TSJKmqY_J2e_LnI7K3x/preview", rdm: "https://drive.google.com/file/d/1uHFKpPePj7tT2zYKa3KHc7m7D-a13bpY/preview" },
+            14: { pagi: "https://drive.google.com/file/d/1Rw7PjeGQUYBlCnIEmXPNssy3ls1DyF_I/preview", mlm: "https://drive.google.com/file/d/1Gwn7w0FQDv1TxKo6XEDwxXMXmrP0x6Kq/preview", rdm: "https://drive.google.com/file/d/1uD3gbAVmF3WkNKsOJwvaMqGkwz_bpiRY/preview" },
+            15: { pagi: "https://drive.google.com/file/d/1jK04yqfCsuCicqSacDLwfGPeSzU5V93w/preview", mlm: "https://drive.google.com/file/d/1ruKz329B7hfaY3KoNZBqSUEGcbB1F8kq/preview", rdm: "https://drive.google.com/file/d/1_XOTzi0RF7w3WUi7bjCp-AHfaBtfR3R7/preview" },
+            16: { pagi: "https://drive.google.com/file/d/1iA99qHFA0z27_WX6UhjzEdA704HF6P3P/preview", mlm: "https://drive.google.com/file/d/12RXkvg3DWeE41EyBnINjbsa-y12ukgst/preview", rdm: "https://drive.google.com/file/d/18vEFRlmu4TPnAVYGKzcOdfFdjoMf7tID/preview" },
+            17: { pagi: "https://drive.google.com/file/d/1RPnTZo2Oxg1eyu3oWGzYCN5LEiNfP5h6/preview", mlm: "https://drive.google.com/file/d/15ns_L6SLZztAEsosKa92L6bvYyYN8ypp/preview", rdm: "https://drive.google.com/file/d/17Lbyr9mp6QtXjxT8xaIn5L8Z256q2YNw/preview" },
+            18: { pagi: "https://drive.google.com/file/d/1Unhh19Af0ScVE2K5PjKZQ6fGc2t7P5rE/preview", mlm: "https://drive.google.com/file/d/19RpXV0QWlkZkI638spGtJUE1lp6h10bK/preview", rdm: "https://drive.google.com/file/d/1jn_wZC8qdF6c-vyJc_euvcIkcYiHdDpM/preview" },
+            19: { pagi: "https://drive.google.com/file/d/1BenQj9Kw62gPIBN46zDBkwcVElDDEDSL/preview", mlm: "https://drive.google.com/file/d/11mFoUndy4_7PrjC0XQQhEa3BVUBBSfwp/preview", rdm: "https://drive.google.com/file/d/1f73dbkDAN6H2XKZvYBmfbkgcO9JR7_DG/preview" },
+            20: { pagi: "https://drive.google.com/file/d/1OnWSMfWpqjMemESAyK2fMMBMBvwY27lS/preview", mlm: "https://drive.google.com/file/d/1B4DUDtO3YLiMSV8dcOGe2HBpmj4llYa2/preview", rdm: "https://drive.google.com/file/d/18YKC_sb9bvfexF6ns9AyVAu43-8oYg2i/preview" },
+            21: { pagi: "https://drive.google.com/file/d/1c_15WTytkgJk1LdZEuA9y4BgBbc96LlU/preview", mlm: "https://drive.google.com/file/d/1eEd5CyssvCRWwwlA8lRTkfW_Ph2iL3ms/preview", rdm: "https://drive.google.com/file/d/1z6rdx83gL5svf6wwl-PQDHjJCt2JmHIU/preview" },
+            22: { pagi: "https://drive.google.com/file/d/1Uoc8Sh7POQohX_TY7wLolyMDWC6oXRbn/preview", mlm: "https://drive.google.com/file/d/1NPS7bqiA5kNDaf7jSAOLguyveGOCyVMe/preview", rdm: "https://drive.google.com/file/d/1qbXresTA9UT8gG7FzWSc_VtQdruDYPs0/preview" },
+            23: { pagi: "https://drive.google.com/file/d/1RQFdFtB0HiFDFD2tvPcTGO0cPtbvBsue/preview", mlm: "https://drive.google.com/file/d/1ByuFiqWR3l1PHZ4sn-dJMdO6qNmHCwr0/preview", rdm: "https://drive.google.com/file/d/1Cm101UapCdOIM1Y3Rz0HAGNoF-qvHP--/preview" },
+            24: { pagi: "https://drive.google.com/file/d/17WNrdEbLcbxD6o2aE25qJDYaxsR0gJUH/preview", mlm: "https://drive.google.com/file/d/1RKTOSaN-GeVDPmETqB5W_Ro3EPDBs9ZS/preview", rdm: "https://drive.google.com/file/d/1UlmqPbT9BPEqmxmjUcMvUWxYbEXi_eBY/preview" },
+            25: { pagi: "https://drive.google.com/file/d/1pcVv2iDxFUSwgR7KJGd6AMcNhDPV5UUA/preview", mlm: "https://drive.google.com/file/d/1634Bekh418_25PQpsCby8u4YyieaySxI/preview", rdm: "https://drive.google.com/file/d/1oRLisMHC6WFepB7ktInDiZLk0YqbtYmb/preview" },
+            26: { pagi: "https://drive.google.com/file/d/1Hu-wm41qPRUBU60IV7ya7bIJH2dKt1j4/preview", mlm: "https://drive.google.com/file/d/1Vep0EhJW10S0B-xNtoz4FFr3PkWHVZYn/preview", rdm: "https://drive.google.com/file/d/1LNgHI0nKtIrooM94k05d-NmSKWyopaL5/preview" },
+            27: { pagi: "https://drive.google.com/file/d/1--v90acJX68YokD26Gzewb0K8kguS1cN/preview", mlm: "https://drive.google.com/file/d/1F5EyCsk46cW8uyreOqRIypyghU4XUj2R/preview", rdm: "https://drive.google.com/file/d/1-63UEyjFSMJXOI7aWlKRu6nRreBoJmX9/preview" },
+            28: { pagi: "https://drive.google.com/file/d/1w2I6iOuS2NPjVU9roh-MVx1pHi2rIFFQ/preview", mlm: "https://drive.google.com/file/d/1uZDW9N7_1TupOKVNCJB7KGUwj3JAucsX/preview", rdm: "https://drive.google.com/file/d/12u9VQtNUIJ_2mCVX6hD-iwaNkcI7XAKe/preview" },
+            29: { pagi: "https://drive.google.com/file/d/11vGXM0j0hQSZxLYKQF4bMnVwowwNIjoa/preview", mlm: "https://drive.google.com/file/d/1HQ0AxeKGIwbR75Hs7KdndaY-Px9f6sC_/preview", rdm: "https://drive.google.com/file/d/1C6ddQ4HA7c87M8IKdhfLGpjneFMjxL8H/preview" },
+            30: { pagi: "https://drive.google.com/file/d/1Rc47TCjJddf5Kmw6dN4-GTBPaZmBuk7S/preview", mlm: "https://drive.google.com/file/d/1OxVZP8anKBNomq0kXVaj7yA1tXiyemoZ/preview", rdm: "https://drive.google.com/file/d/12z5iHAkrE25A5u90DNgwLY8g3ESZf9Q9/preview" }
+        };
+
+        // --- Data & Quotes ---
+        const startDate = new Date(2024, 0, 28);
+        const totalDays = 31;
+        let currentIndex = 0;
+        let currentCategory = 'pagi';
+        let openedDays = JSON.parse(localStorage.getItem('starryMemoriesProgress')) || [];
+
+        const categoryQuotes = {
+            pagi: [
+                "Selamat pagi, ini semangat untuk awal harimu ☀️",
+                "Matahari terbit, senyummu yang terbayang pertama kali.",
+                "Semoga harimu secerah senyummu hari ini."
+            ],
+            mlm: [
+                "Bintang malam ini kalah cantik darimu 🌙",
+                "Sebelum terlelap, ada pesan kecil untukmu.",
+                "Penutup hari yang manis, selamat istirahat."
+            ],
+            rdm: [
+                "Sesuatu yang random, tapi tulus dari hati ✨",
+                "Isi kepalaku hari ini, hanya untukmu.",
+                "Kejutan kecil, semoga kamu suka."
+            ]
+        };
+        
+        // --- Referensi DOM ---
+        const gridContainer = document.getElementById('grid-container');
+        const modal = document.getElementById('modal');
+        const localVideo = document.getElementById('local-video');
+        const driveFrame = document.getElementById('drive-frame');
+        const videoWrapper = document.getElementById('video-wrapper');
+        const loadingOverlay = document.getElementById('loading-overlay');
+        const modalDateTitle = document.getElementById('modal-date');
+        const modalQuote = document.getElementById('modal-quote');
+        const tabsContainer = document.getElementById('category-tabs');
+        const tabButtons = document.querySelectorAll('.tab-btn');
+        const bgm = document.getElementById('bgm');
+
+        // --- Progress Tracking ---
+        function updateProgress() {
+            const countStr = document.getElementById('progress-count');
+            const fill = document.getElementById('progress-fill');
+            const msg = document.getElementById('completion-msg');
+            
+            countStr.innerText = openedDays.length;
+            fill.style.width = `${(openedDays.length / totalDays) * 100}%`;
+
+            if (openedDays.length === totalDays) {
+                msg.style.display = 'block';
+            }
+        }
+
+        function markDayAsOpened(index) {
+            if (!openedDays.includes(index)) {
+                openedDays.push(index);
+                localStorage.setItem('starryMemoriesProgress', JSON.stringify(openedDays));
+                
+                // Update UI Card
+                const card = document.getElementById(`card-${index}`);
+                if(card) card.classList.add('opened');
+                
+                updateProgress();
+
+                // Spesial Hari Terakhir (Index 30)
+                if (index === 30) {
+                    triggerConfetti();
+                }
+            }
+        }
+
+        // --- Generate Timeline Grid ---
+        function generateGrid() {
+            for (let i = 0; i < totalDays; i++) {
+                let date = new Date(startDate);
+                date.setDate(startDate.getDate() + i);
+                
+                const day = date.getDate();
+                const month = date.toLocaleString('en-US', { month: 'long' }).toUpperCase();
+
+                const card = document.createElement('div');
+                card.id = `card-${i}`;
+                card.className = `day-card ${openedDays.includes(i) ? 'opened' : ''}`;
+                card.style.animation = `fadeIn 0.5s forwards ${i * 0.05}s`;
+                card.style.opacity = '0'; 
+                
+                card.innerHTML = `
+                    <div class="date-text">${day}</div>
+                    <div class="month-text">${month}</div>
+                `;
+                
+                card.onclick = () => openModal(i, `${day} ${month}`);
+                
+                gridContainer.appendChild(card);
+            }
+            updateProgress();
+        }
+
+        // --- Logic UI Modal & Transisi ---
+        function getRandomQuote(category) {
+            const quotesArr = categoryQuotes[category];
+            return quotesArr[Math.floor(Math.random() * quotesArr.length)];
+        }
+
+        function openModal(index, dateString) {
+            currentIndex = index;
+            modalDateTitle.innerText = dateString;
+            markDayAsOpened(index);
+            
+            if (currentIndex === 0) {
+                tabsContainer.style.display = 'none';
+                modalQuote.innerText = "Sebuah awalan, gerbang menuju kenangan kita...";
+            } else {
+                tabsContainer.style.display = 'flex';
+                currentCategory = 'pagi';
+                updateActiveTab(0); 
+                modalQuote.innerText = getRandomQuote('pagi');
+            }
+            
+            loadVideo();
+            modal.classList.add('active');
+        }
+
+        function closeModal() {
+            modal.classList.remove('active');
+            setTimeout(() => {
+                localVideo.pause();
+                localVideo.src = "";
+                driveFrame.src = "about:blank";
+                localVideo.style.opacity = 0;
+                driveFrame.style.opacity = 0;
+            }, 400); // Tunggu transisi modal selesai
+        }
+
+        function changeCategory(category) {
+            if(currentCategory === category) return; // Cegah reload jika tab sama
+            
+            currentCategory = category;
+            
+            // Animasi Quote
+            modalQuote.style.opacity = 0;
+            setTimeout(() => {
+                modalQuote.innerText = getRandomQuote(category);
+                modalQuote.style.opacity = 1;
+            }, 300);
+            
+            // Update Tab UI
+            tabButtons.forEach(btn => btn.classList.remove('active'));
+            if(category === 'pagi') tabButtons[0].classList.add('active');
+            if(category === 'mlm') tabButtons[1].classList.add('active');
+            if(category === 'rdm') tabButtons[2].classList.add('active');
+
+            loadVideo();
+        }
+
+        function updateActiveTab(index) {
+            tabButtons.forEach(btn => btn.classList.remove('active'));
+            tabButtons[index].classList.add('active');
+        }
+
+        // --- Optimasi Load Video ---
+        function loadVideo() {
+            // Mulai Transisi: Tampilkan Spinner, kecilkan container, hilangkan video
+            videoWrapper.classList.add('switching');
+            loadingOverlay.classList.add('active');
+            localVideo.style.opacity = 0;
+            driveFrame.style.opacity = 0;
+            
+            // Jeda sejenak untuk efek visual
+            setTimeout(() => {
+                localVideo.pause();
+                localVideo.style.display = 'none';
+                driveFrame.style.display = 'none';
+                driveFrame.src = "about:blank"; // Reset iframe
+
+                let sourceUrl = "";
+                let isDrive = false;
+
+                // Set Source URL
+                if (currentIndex === 0) {
+                    sourceUrl = openingLink;
+                    isDrive = true;
+                } else if (driveLinks[currentIndex]) {
+                    if (driveLinks[currentIndex][currentCategory]) {
+                        sourceUrl = driveLinks[currentIndex][currentCategory];
+                        isDrive = true;
+                    } else if (currentCategory === 'rdm') {
+                        sourceUrl = apologyLink;
+                        isDrive = true;
+                    } else {
+                        sourceUrl = `${currentCategory}${currentIndex}.mp4`;
+                        isDrive = false;
+                    }
+                } else {
+                     if (currentCategory === 'rdm') {
+                         sourceUrl = apologyLink;
+                         isDrive = true;
+                     } else {
+                         sourceUrl = `${currentCategory}${currentIndex}.mp4`;
+                         isDrive = false;
+                     }
+                }
+
+                // Render & Mainkan
+                if (isDrive) {
+                    driveFrame.src = sourceUrl;
+                    driveFrame.style.display = 'block';
+                    
+                    // Deteksi Iframe Load
+                    driveFrame.onload = () => {
+                        finishLoading(driveFrame);
+                    };
+                    
+                    // Fallback jika onload lama/gagal cross-origin
+                    setTimeout(() => finishLoading(driveFrame), 2000); 
+
+                } else {
+                    localVideo.src = sourceUrl;
+                    localVideo.style.display = 'block';
+                    
+                    localVideo.oncanplay = () => {
+                        finishLoading(localVideo);
+                    };
+                    // Fallback local
+                    setTimeout(() => finishLoading(localVideo), 1000);
+                    
+                    localVideo.play().catch(e => console.log("Autoplay blocked"));
+                }
+            }, 400); // Waktu yang pas untuk animasi zoom out
+        }
+
+        function finishLoading(element) {
+            loadingOverlay.classList.remove('active');
+            videoWrapper.classList.remove('switching');
+            element.style.opacity = 1;
+        }
+
+        // --- Fitur Emosional: Confetti ---
+        function triggerConfetti() {
+            const duration = 3000;
+            const end = Date.now() + duration;
+
+            (function frame() {
+                confetti({
+                    particleCount: 5,
+                    angle: 60,
+                    spread: 55,
+                    origin: { x: 0 },
+                    colors: ['#f2d785', '#ffffff']
+                });
+                confetti({
+                    particleCount: 5,
+                    angle: 120,
+                    spread: 55,
+                    origin: { x: 1 },
+                    colors: ['#f2d785', '#ffffff']
+                });
+
+                if (Date.now() < end) {
+                    requestAnimationFrame(frame);
+                }
+            }());
+        }
+
+        // --- Navigasi Halaman ---
+        function enterGallery() {
+            const openingSection = document.getElementById('opening');
+            const gallerySection = document.getElementById('gallery-section');
+            
+            openingSection.style.opacity = '0';
+            setTimeout(() => {
+                openingSection.style.display = 'none';
+                gallerySection.style.display = 'block';
+                void gallerySection.offsetWidth; 
+                gallerySection.style.opacity = '1';
+                
+                bgm.volume = 0.4;
+                bgm.play().catch(e => console.log("Music interaction required"));
+            }, 1000);
+        }
+
+        // --- Musik Control ---
+        function toggleMusic() {
+            const icon = document.getElementById('music-icon');
+            if (bgm.paused) {
+                bgm.play();
+                icon.innerText = '♪';
+                icon.style.opacity = '1';
+            } else {
+                bgm.pause();
+                icon.innerText = '✕';
+                icon.style.opacity = '0.5';
+            }
+        }
+
+        // --- Canvas Bintang (Background) ---
+        const canvas = document.getElementById('star-canvas');
+        const ctx = canvas.getContext('2d');
+        let width, height;
+        let stars = [];
+
+        function resize() {
+            width = window.innerWidth;
+            height = window.innerHeight;
+            canvas.width = width;
+            canvas.height = height;
+        }
+
+        class Star {
+            constructor() {
+                this.x = Math.random() * width;
+                this.y = Math.random() * height;
+                this.size = Math.random() * 2;
+                this.speedX = (Math.random() - 0.5) * 0.15;
+                this.speedY = (Math.random() - 0.5) * 0.15;
+                this.brightness = Math.random();
+            }
+            update() {
+                this.x += this.speedX;
+                this.y += this.speedY;
+                if (this.x < 0) this.x = width;
+                if (this.x > width) this.x = 0;
+                if (this.y < 0) this.y = height;
+                if (this.y > height) this.y = 0;
+                
+                this.brightness += (Math.random() - 0.5) * 0.05;
+                if(this.brightness > 1) this.brightness = 1;
+                if(this.brightness < 0.2) this.brightness = 0.2;
+            }
+            draw() {
+                ctx.fillStyle = `rgba(255, 255, 255, ${this.brightness})`;
+                ctx.beginPath();
+                ctx.arc(this.x, this.y, this.size, 0, Math.PI * 2);
+                ctx.fill();
+            }
+        }
+
+        function initStars() {
+            stars = [];
+            const starCount = window.innerWidth < 768 ? 40 : 100;
+            for (let i = 0; i < starCount; i++) {
+                stars.push(new Star());
+            }
+        }
+
+        function animateStars() {
+            ctx.clearRect(0, 0, width, height);
+            stars.forEach(star => { star.update(); star.draw(); });
+            requestAnimationFrame(animateStars);
+        }
+
+        window.addEventListener('resize', () => { resize(); initStars(); });
+        resize();
+        initStars();
+        animateStars();
+        generateGrid();
+
+        window.onclick = function(event) {
+            if (event.target == modal) closeModal();
+        }
+    </script>
+</body>
+</html>
+
+
