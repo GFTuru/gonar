@@ -1,4 +1,3 @@
-
 <!DOCTYPE html>
 <html lang="id">
 <head>
@@ -715,6 +714,61 @@
       .card-final-inner { padding: 28px 24px 24px 28px; }
     }
 
+    /* ── FILE UPLOAD IN ADMIN ── */
+    .file-upload-wrap {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      padding: 9px 12px;
+      border: 1px solid rgba(201,122,138,0.3);
+      border-radius: 6px;
+      background: rgba(255,249,247,0.9);
+      transition: border-color 0.2s, opacity 0.2s;
+    }
+    .file-upload-wrap.disabled {
+      opacity: 0.4;
+      pointer-events: none;
+    }
+    .file-upload-wrap:not(.disabled):hover {
+      border-color: var(--rose);
+    }
+    .file-status {
+      flex: 1;
+      font-family: 'DM Mono', monospace;
+      font-size: 11px;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+    }
+    .file-none { color: var(--muted); font-style: italic; }
+    .file-exists { color: var(--code-green); }
+    .file-pending { color: var(--rose-deep); }
+    .file-btn {
+      flex-shrink: 0;
+      padding: 5px 12px;
+      background: rgba(201,122,138,0.1);
+      border: 1px solid rgba(201,122,138,0.3);
+      border-radius: 4px;
+      font-family: 'DM Mono', monospace;
+      font-size: 10px;
+      letter-spacing: 0.1em;
+      color: var(--rose-deep);
+      cursor: pointer;
+      transition: background 0.2s;
+      white-space: nowrap;
+    }
+    .file-btn:hover { background: rgba(201,122,138,0.25); }
+    .file-input-hidden { display: none; }
+    .file-size-warn {
+      font-family: 'DM Mono', monospace;
+      font-size: 9px;
+      color: #c97a5a;
+      letter-spacing: 0.1em;
+      margin-top: 4px;
+      display: none;
+    }
+    .file-size-warn.show { display: block; }
+
     /* ID Hati click hint */
     .strip-value.clickable { cursor: pointer; user-select: none; }
     .strip-value.clickable:hover { color: var(--rose-deep); }
@@ -886,7 +940,7 @@
 
       PARTS.forEach((p, i) => {
         const d = partsData[i] || { url: '', locked: true, subtitle: p.subtitle };
-        const locked = d.locked || !d.url;
+        const locked = d.locked || (!d.fileData && !d.url);
         const subtitle = d.subtitle || p.subtitle;
         const delay = (0.15 + i * 0.1).toFixed(2);
         const isLast = i === PARTS.length - 1;
@@ -897,9 +951,9 @@
 
         if (isLast) {
           // ── PART 9 SPECIAL ──
-          const el = locked ? document.createElement('div') : document.createElement('a');
+          const el = locked ? document.createElement('div') : document.createElement('div');
           el.className = locked ? 'card card-final locked' : 'card card-final unlocked';
-          if (!locked) { el.href = d.url; el.target = '_blank'; el.rel = 'noopener'; }
+          if (!locked) { el.style.cursor = 'pointer'; el.addEventListener('click', () => openFile(d)); }
           el.style.animationDelay = delay + 's';
           if (!locked) {
             el.innerHTML = `
@@ -947,12 +1001,11 @@
 
         // ── PART 1–8 ──
         if (!locked) {
-          const card = document.createElement('a');
+          const card = document.createElement('div');
           card.className = 'card unlocked';
-          card.href = d.url;
-          card.target = '_blank';
-          card.rel = 'noopener';
+          card.style.cursor = 'pointer';
           card.style.animationDelay = delay + 's';
+          card.addEventListener('click', () => openFile(d));
           card.innerHTML = `
             <div class="card-accent"></div>
             <div class="card-inner">
@@ -1005,10 +1058,21 @@
     const adminStatus = document.getElementById('adminStatus');
     const adminClose = document.getElementById('adminClose');
 
+    // Temporary storage untuk file yang baru dipilih sebelum disimpan
+    const pendingFiles = new Map();
+
+    const MAX_FILE_MB = 8;
+    const MAX_FILE_BYTES = MAX_FILE_MB * 1024 * 1024;
+
     function openAdmin() {
       adminRows.innerHTML = '';
+      pendingFiles.clear();
+
       PARTS.forEach((p, i) => {
-        const d = partsData[i] || { url: '', locked: true, subtitle: p.subtitle };
+        const d = partsData[i] || { fileData: '', fileName: '', locked: true, subtitle: p.subtitle };
+        const hasFile = !!(d.fileData && d.fileData.length > 0);
+        const isLocked = d.locked !== false;
+
         const row = document.createElement('div');
         row.className = 'admin-row';
         row.innerHTML = `
@@ -1017,20 +1081,87 @@
             <div class="toggle-wrap">
               <span class="toggle-label">Buka</span>
               <label class="toggle">
-                <input type="checkbox" id="lock${i}" ${!d.locked ? 'checked' : ''}>
+                <input type="checkbox" id="lock${i}" ${!isLocked ? 'checked' : ''}>
                 <span class="toggle-slider"></span>
               </label>
             </div>
           </div>
           <input class="admin-input" type="text" id="sub${i}" placeholder="Judul bagian..." value="${d.subtitle || p.subtitle}" style="margin-bottom:8px;">
-          <input class="admin-input" type="url" id="url${i}" placeholder="https://..." value="${d.url || ''}" ${d.locked ? 'disabled' : ''}>`;
+          <div class="file-upload-wrap ${isLocked ? 'disabled' : ''}" id="fileWrap${i}">
+            <div class="file-status" id="fileStatus${i}">
+              ${hasFile
+                ? `<span class="file-exists">✓ ${escHtml(d.fileName || 'File tersimpan')}</span>`
+                : `<span class="file-none">Belum ada file</span>`}
+            </div>
+            <label class="file-btn" for="file${i}">${hasFile ? '↺ Ganti File' : '+ Upload File'}</label>
+            <input type="file" id="file${i}" class="file-input-hidden"
+              accept=".html,.htm,.pdf,.jpg,.jpeg,.png,.gif,.mp4,.webp,.txt"
+              ${isLocked ? 'disabled' : ''}>
+          </div>
+          <div class="file-size-warn" id="sizeWarn${i}">⚠ File terlalu besar (maks ${MAX_FILE_MB}MB)</div>`;
+
         adminRows.appendChild(row);
 
-        row.querySelector(`#lock${i}`).addEventListener('change', function() {
-          row.querySelector(`#url${i}`).disabled = !this.checked;
+        const lockToggle = row.querySelector(`#lock${i}`);
+        const fileWrap   = row.querySelector(`#fileWrap${i}`);
+        const fileInput  = row.querySelector(`#file${i}`);
+
+        lockToggle.addEventListener('change', function() {
+          fileWrap.classList.toggle('disabled', !this.checked);
+          fileInput.disabled = !this.checked;
+        });
+
+        fileInput.addEventListener('change', function() {
+          const warn = document.getElementById(`sizeWarn${i}`);
+          if (!this.files || !this.files[0]) return;
+          const file = this.files[0];
+
+          if (file.size > MAX_FILE_BYTES) {
+            warn.classList.add('show');
+            this.value = '';
+            return;
+          }
+          warn.classList.remove('show');
+
+          const reader = new FileReader();
+          reader.onload = (e) => {
+            pendingFiles.set(i, { data: e.target.result, name: file.name, type: file.type });
+            const statusEl = document.getElementById(`fileStatus${i}`);
+            const btnEl    = fileWrap.querySelector('.file-btn');
+            statusEl.innerHTML = `<span class="file-pending">📎 ${escHtml(file.name)}</span>`;
+            btnEl.textContent  = '↺ Ganti File';
+          };
+          reader.readAsDataURL(file);
         });
       });
+
       overlay.classList.add('open');
+    }
+
+    function escHtml(str) {
+      return String(str).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+    }
+
+    function openFile(d) {
+      const src = d.fileData || d.url || '';
+      if (!src) return;
+      if (src.startsWith('data:')) {
+        // Buat blob URL dari base64
+        try {
+          const [header, b64] = src.split(',');
+          const mime = header.split(':')[1].split(';')[0];
+          const binary = atob(b64);
+          const bytes = new Uint8Array(binary.length);
+          for (let j = 0; j < binary.length; j++) bytes[j] = binary.charCodeAt(j);
+          const blob = new Blob([bytes], { type: mime });
+          const blobUrl = URL.createObjectURL(blob);
+          window.open(blobUrl, '_blank');
+        } catch(err) {
+          console.error('Gagal buka file:', err);
+        }
+      } else {
+        window.open(src, '_blank');
+      }
     }
 
     function closeAdmin() { overlay.classList.remove('open'); }
@@ -1042,11 +1173,16 @@
       adminSave.disabled = true;
       showStatus('Menyimpan...', false);
 
-      const newParts = PARTS.map((p, i) => ({
-        url: document.getElementById(`url${i}`).value.trim(),
-        locked: !document.getElementById(`lock${i}`).checked,
-        subtitle: document.getElementById(`sub${i}`).value.trim() || p.subtitle
-      }));
+      const newParts = PARTS.map((p, i) => {
+        const existing = partsData[i] || {};
+        const pending  = pendingFiles.get(i);
+        return {
+          fileData: pending ? pending.data : (existing.fileData || existing.url || ''),
+          fileName: pending ? pending.name : (existing.fileName || ''),
+          locked:   !document.getElementById(`lock${i}`).checked,
+          subtitle: document.getElementById(`sub${i}`).value.trim() || p.subtitle
+        };
+      });
 
       try {
         const res = await fetch(FB_URL, {
