@@ -1,0 +1,604 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Untuk Kamu</title>
+<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;0,500;1,300;1,400&family=EB+Garamond:ital,wght@0,400;1,400&family=Petit+Formal+Script&display=swap" rel="stylesheet">
+<style>
+  *, *::before, *::after { margin: 0; padding: 0; box-sizing: border-box; }
+
+  :root {
+    --cream: #f5efe6;
+    --warm: #ede0ce;
+    --parchment: #e8d9c0;
+    --ink: #2a1f14;
+    --ink-light: #4a3728;
+    --rose: #c9736a;
+    --rose-dark: #a05850;
+    --gold: #b8965a;
+    --gold-light: #d4b07a;
+    --shadow: rgba(42, 31, 20, 0.12);
+  }
+
+  html { scroll-behavior: smooth; }
+
+  body {
+    background: #1a1008;
+    font-family: 'EB Garamond', serif;
+    color: var(--ink);
+    min-height: 100vh;
+    overflow-x: hidden;
+  }
+
+  /* BACKGROUND TEXTURE */
+  body::before {
+    content: '';
+    position: fixed;
+    inset: 0;
+    background:
+      radial-gradient(ellipse at 20% 20%, rgba(180, 120, 60, 0.08) 0%, transparent 60%),
+      radial-gradient(ellipse at 80% 80%, rgba(180, 80, 60, 0.06) 0%, transparent 60%),
+      radial-gradient(ellipse at 50% 50%, rgba(30, 15, 5, 1) 0%, #1a1008 100%);
+    z-index: 0;
+    pointer-events: none;
+  }
+
+  /* STARS / PARTICLES */
+  .stars {
+    position: fixed;
+    inset: 0;
+    z-index: 0;
+    pointer-events: none;
+    overflow: hidden;
+  }
+  .star {
+    position: absolute;
+    width: 2px;
+    height: 2px;
+    border-radius: 50%;
+    background: rgba(255,220,160,0.6);
+    animation: twinkle var(--dur, 3s) ease-in-out infinite var(--delay, 0s);
+  }
+  @keyframes twinkle {
+    0%, 100% { opacity: 0.1; transform: scale(1); }
+    50% { opacity: 0.9; transform: scale(1.4); }
+  }
+
+  /* ENVELOPE INTRO */
+  .envelope-wrap {
+    position: fixed;
+    inset: 0;
+    z-index: 100;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: #0e0804;
+    transition: opacity 0.8s ease, visibility 0.8s ease;
+  }
+  .envelope-wrap.hidden {
+    opacity: 0;
+    visibility: hidden;
+    pointer-events: none;
+  }
+  .envelope {
+    width: min(320px, 80vw);
+    cursor: pointer;
+    transform: translateY(10px);
+    animation: floatEnv 3s ease-in-out infinite;
+  }
+  @keyframes floatEnv {
+    0%, 100% { transform: translateY(10px); }
+    50% { transform: translateY(-10px); }
+  }
+  .envelope svg { width: 100%; filter: drop-shadow(0 20px 40px rgba(180,100,60,0.4)); }
+  .envelope-hint {
+    text-align: center;
+    margin-top: 24px;
+    font-family: 'Cormorant Garamond', serif;
+    font-size: 14px;
+    color: rgba(212,176,122,0.7);
+    letter-spacing: 0.2em;
+    text-transform: uppercase;
+    animation: pulse 2s ease-in-out infinite;
+  }
+  @keyframes pulse { 0%, 100% { opacity: 0.4; } 50% { opacity: 1; } }
+
+  /* MAIN LETTER */
+  .letter-outer {
+    position: relative;
+    z-index: 1;
+    min-height: 100vh;
+    display: flex;
+    align-items: flex-start;
+    justify-content: center;
+    padding: 60px 20px 100px;
+    opacity: 0;
+    transform: translateY(30px);
+    transition: opacity 1.2s ease 0.3s, transform 1.2s ease 0.3s;
+  }
+  .letter-outer.visible {
+    opacity: 1;
+    transform: translateY(0);
+  }
+
+  .paper {
+    width: min(680px, 100%);
+    background: var(--cream);
+    border-radius: 2px;
+    padding: 80px 72px 100px;
+    box-shadow:
+      0 2px 4px var(--shadow),
+      0 8px 24px rgba(42,31,20,0.2),
+      0 32px 80px rgba(10,6,2,0.5),
+      inset 0 0 120px rgba(180,140,80,0.04);
+    position: relative;
+    overflow: hidden;
+  }
+
+  /* paper texture lines */
+  .paper::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background-image: repeating-linear-gradient(
+      transparent,
+      transparent 31px,
+      rgba(180,140,80,0.07) 31px,
+      rgba(180,140,80,0.07) 32px
+    );
+    background-size: 100% 32px;
+    background-position: 0 80px;
+    pointer-events: none;
+    z-index: 0;
+  }
+  /* left margin line */
+  .paper::after {
+    content: '';
+    position: absolute;
+    top: 0; bottom: 0;
+    left: 68px;
+    width: 1px;
+    background: rgba(200,130,110,0.15);
+    pointer-events: none;
+    z-index: 0;
+  }
+
+  .paper > * { position: relative; z-index: 1; }
+
+  /* DECORATIVE HEADER */
+  .letter-deco-top {
+    text-align: center;
+    margin-bottom: 48px;
+  }
+  .deco-divider {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    margin: 0 auto;
+    width: fit-content;
+  }
+  .deco-line {
+    height: 1px;
+    width: 60px;
+    background: linear-gradient(90deg, transparent, var(--gold));
+  }
+  .deco-line.r { background: linear-gradient(90deg, var(--gold), transparent); }
+  .deco-rose { font-size: 20px; color: var(--rose); }
+
+  .letter-date {
+    font-family: 'Cormorant Garamond', serif;
+    font-size: 13px;
+    color: var(--gold);
+    letter-spacing: 0.2em;
+    text-transform: uppercase;
+    text-align: right;
+    margin-bottom: 40px;
+    font-style: italic;
+  }
+
+  /* SALUTATION */
+  .salutation {
+    font-family: 'Petit Formal Script', cursive;
+    font-size: clamp(28px, 5vw, 42px);
+    color: var(--rose-dark);
+    margin-bottom: 36px;
+    line-height: 1.3;
+  }
+
+  /* BODY TEXT */
+  .letter-body p {
+    font-size: clamp(15px, 2.2vw, 17px);
+    line-height: 2;
+    color: var(--ink-light);
+    margin-bottom: 28px;
+    font-weight: 400;
+    text-align: justify;
+    hyphens: auto;
+  }
+
+  .letter-body p:first-child::first-letter {
+    font-family: 'Cormorant Garamond', serif;
+    font-size: 4em;
+    font-weight: 300;
+    float: left;
+    line-height: 0.75;
+    margin: 8px 8px 0 0;
+    color: var(--rose);
+  }
+
+  .letter-body .highlight {
+    font-style: italic;
+    color: var(--rose-dark);
+  }
+
+  .letter-body .gold-text {
+    color: var(--gold);
+    font-style: italic;
+  }
+
+  /* SECTION BREAK */
+  .section-break {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin: 40px 0;
+    gap: 16px;
+  }
+  .section-break span {
+    font-size: 12px;
+    color: var(--rose);
+    opacity: 0.6;
+  }
+  .section-break::before,
+  .section-break::after {
+    content: '';
+    flex: 1;
+    height: 1px;
+    background: linear-gradient(90deg, transparent, rgba(180,100,80,0.3), transparent);
+  }
+
+  /* PULL QUOTE */
+  .pull-quote {
+    margin: 48px -20px;
+    padding: 32px 48px;
+    border-left: 3px solid var(--rose);
+    background: rgba(201,115,106,0.04);
+    position: relative;
+  }
+  .pull-quote::before {
+    content: '\201C';
+    font-family: 'Cormorant Garamond', serif;
+    font-size: 80px;
+    color: var(--rose);
+    opacity: 0.2;
+    position: absolute;
+    top: -10px;
+    left: 12px;
+    line-height: 1;
+  }
+  .pull-quote p {
+    font-family: 'Cormorant Garamond', serif;
+    font-size: clamp(18px, 3vw, 24px) !important;
+    font-style: italic;
+    color: var(--rose-dark) !important;
+    line-height: 1.7 !important;
+    text-align: left !important;
+    margin-bottom: 0 !important;
+  }
+  .pull-quote p::first-letter { all: unset !important; }
+
+  /* POEM SECTION */
+  .poem-block {
+    margin: 48px auto;
+    text-align: center;
+    padding: 40px 20px;
+    border-top: 1px solid rgba(184,150,90,0.2);
+    border-bottom: 1px solid rgba(184,150,90,0.2);
+  }
+  .poem-block .poem-title {
+    font-family: 'Cormorant Garamond', serif;
+    font-size: 11px;
+    letter-spacing: 0.3em;
+    text-transform: uppercase;
+    color: var(--gold);
+    margin-bottom: 24px;
+  }
+  .poem-block p {
+    font-family: 'Cormorant Garamond', serif;
+    font-size: clamp(16px, 2.5vw, 20px) !important;
+    font-style: italic;
+    line-height: 2.2 !important;
+    color: var(--ink) !important;
+    text-align: center !important;
+    margin-bottom: 0 !important;
+  }
+  .poem-block p::first-letter { all: unset !important; }
+
+  /* CLOSING */
+  .letter-closing {
+    margin-top: 60px;
+    text-align: right;
+  }
+  .letter-closing .closing-line {
+    font-family: 'Cormorant Garamond', serif;
+    font-size: 16px;
+    color: var(--ink-light);
+    font-style: italic;
+    margin-bottom: 20px;
+  }
+  .letter-closing .signature {
+    font-family: 'Petit Formal Script', cursive;
+    font-size: clamp(26px, 4vw, 36px);
+    color: var(--rose-dark);
+    display: block;
+  }
+
+  /* POSTSCRIPT */
+  .ps-block {
+    margin-top: 48px;
+    padding-top: 32px;
+    border-top: 1px dashed rgba(184,150,90,0.2);
+  }
+  .ps-block .ps-label {
+    font-family: 'Cormorant Garamond', serif;
+    font-size: 13px;
+    font-style: italic;
+    color: var(--gold);
+    margin-bottom: 12px;
+    letter-spacing: 0.1em;
+  }
+  .ps-block p {
+    font-size: 14px !important;
+    font-style: italic;
+    color: rgba(74,55,40,0.7) !important;
+    line-height: 1.9 !important;
+    text-align: left !important;
+    margin-bottom: 12px !important;
+  }
+  .ps-block p::first-letter { all: unset !important; }
+
+  /* CORNER ORNAMENTS */
+  .corner {
+    position: absolute;
+    width: 50px;
+    height: 50px;
+    opacity: 0.25;
+    pointer-events: none;
+  }
+  .corner.tl { top: 20px; left: 20px; }
+  .corner.tr { top: 20px; right: 20px; transform: scaleX(-1); }
+  .corner.bl { bottom: 20px; left: 20px; transform: scaleY(-1); }
+  .corner.br { bottom: 20px; right: 20px; transform: scale(-1); }
+
+  /* PETAL DECO */
+  .petal-row {
+    display: flex;
+    justify-content: center;
+    gap: 8px;
+    margin: 20px 0;
+    font-size: 14px;
+    opacity: 0.5;
+  }
+
+  /* SCROLL REVEAL */
+  .reveal {
+    opacity: 0;
+    transform: translateY(20px);
+    transition: opacity 0.8s ease, transform 0.8s ease;
+  }
+  .reveal.in-view {
+    opacity: 1;
+    transform: translateY(0);
+  }
+
+  /* RESPONSIVE */
+  @media (max-width: 600px) {
+    .paper { padding: 48px 32px 64px; }
+    .paper::after { left: 28px; }
+    .pull-quote { margin: 32px -8px; padding: 24px 24px; }
+  }
+</style>
+</head>
+<body>
+
+<!-- STARS -->
+<div class="stars" id="stars"></div>
+
+<!-- ENVELOPE INTRO -->
+<div class="envelope-wrap" id="envelopeWrap">
+  <div>
+    <div class="envelope" id="envelopeBtn" title="Buka suratnya">
+      <svg viewBox="0 0 320 220" fill="none" xmlns="http://www.w3.org/2000/svg">
+        <!-- envelope body -->
+        <rect x="10" y="50" width="300" height="160" rx="6" fill="#2a1a0e" stroke="#b8965a" stroke-width="1.5"/>
+        <!-- envelope flap -->
+        <path d="M10 50 L160 140 L310 50 Z" fill="#3a2410" stroke="#b8965a" stroke-width="1.5" stroke-linejoin="round"/>
+        <!-- envelope bottom folds -->
+        <path d="M10 210 L100 130 M310 210 L220 130" stroke="#b8965a" stroke-width="1" opacity="0.5"/>
+        <!-- wax seal -->
+        <circle cx="160" cy="140" r="22" fill="#a05850" opacity="0.9"/>
+        <circle cx="160" cy="140" r="18" fill="#c9736a" opacity="0.7"/>
+        <text x="160" y="146" text-anchor="middle" font-size="16" fill="#f5efe6" font-family="serif">♥</text>
+        <!-- ribbon lines on seal -->
+        <path d="M148 128 L172 152 M172 128 L148 152" stroke="#f5efe6" stroke-width="0.8" opacity="0.4"/>
+      </svg>
+    </div>
+    <div class="envelope-hint">ketuk untuk membuka</div>
+  </div>
+</div>
+
+<!-- LETTER -->
+<div class="letter-outer" id="letterOuter">
+  <div class="paper">
+
+    <!-- corner ornaments -->
+    <svg class="corner tl" viewBox="0 0 50 50" fill="none">
+      <path d="M5 45 L5 5 L45 5" stroke="#b8965a" stroke-width="1.5" fill="none"/>
+      <path d="M5 5 L15 15" stroke="#b8965a" stroke-width="1" opacity="0.5"/>
+      <circle cx="5" cy="5" r="2" fill="#b8965a"/>
+    </svg>
+    <svg class="corner tr" viewBox="0 0 50 50" fill="none">
+      <path d="M5 45 L5 5 L45 5" stroke="#b8965a" stroke-width="1.5" fill="none"/>
+      <circle cx="5" cy="5" r="2" fill="#b8965a"/>
+    </svg>
+    <svg class="corner bl" viewBox="0 0 50 50" fill="none">
+      <path d="M5 45 L5 5 L45 5" stroke="#b8965a" stroke-width="1.5" fill="none"/>
+      <circle cx="5" cy="5" r="2" fill="#b8965a"/>
+    </svg>
+    <svg class="corner br" viewBox="0 0 50 50" fill="none">
+      <path d="M5 45 L5 5 L45 5" stroke="#b8965a" stroke-width="1.5" fill="none"/>
+      <circle cx="5" cy="5" r="2" fill="#b8965a"/>
+    </svg>
+
+    <!-- header deco -->
+    <div class="letter-deco-top reveal">
+      <div class="deco-divider">
+        <div class="deco-line"></div>
+        <span class="deco-rose">✦</span>
+        <span class="deco-rose" style="font-size:14px">♥</span>
+        <span class="deco-rose">✦</span>
+        <div class="deco-line r"></div>
+      </div>
+    </div>
+
+    <div class="letter-date reveal">20 April 2026</div>
+
+    <div class="salutation reveal">Sayang,</div>
+
+    <div class="letter-body">
+
+      <p class="reveal">
+        Dua hari ini kerasa beda banget. Sepi tapi bukan sepi yang biasa, sepi yang kerasa berat di dada, sepi yang tiap kali aku liat hape aku ngarep ada nama kamu di sana. Dan setiap kali ga ada, aku ngerasa sesuatu yang susah banget aku jelasin pake kata-kata.
+      </p>
+
+      <p class="reveal">
+        Aku ga mau buru-buru kamu. Aku tau kamu lagi butuh waktu, dan aku mau ngehormatin itu sepenuhnya. Tapi aku juga ga bisa pura-pura baik-baik aja karena jujur, aku kangen. Kangen yang bukan cuma kangen ngobrol, tapi kangen hal-hal kecil yang mungkin kamu sendiri ga sadar betapa berharganya buat aku.
+      </p>
+
+      <div class="section-break reveal"><span>✦</span></div>
+
+      <p class="reveal">
+        Kangen suara kamu waktu cerita hal yang bikin kamu excited cara kamu ngomong makin cepet, makin bersemangat. Kangen cara kamu ketawa waktu ada yang lucu, meskipun cuma hal kecil yang orang lain mungkin ga notice. Kangen hal-hal kecil yang cuma kita berdua yang ngerti inside joke yang kalau aku jelasin ke orang lain pasti ga lucu, tapi di antara kita selalu berhasil bikin satu sama lain senyum.
+      </p>
+
+      <p class="reveal">
+        Dan itu yang bikin aku makin sadar betapa berharganya kamu di hidup aku, bahkan di tengah diam yang kayak gini.
+      </p>
+
+      <div class="pull-quote reveal">
+        <p>Kita udah lewatin banyak momen bareng meskipun belum lama. Dan aku percaya, hubungan yang punya kenangan seindah itu layak diperjuangin bahkan di momen yang paling susah sekalipun.</p>
+      </div>
+
+      <p class="reveal">
+        Aku inget momen-momen itu satu per satu. Bukan cuma yang besar dan berkesan tapi yang kecil-kecil juga. Yang mungkin kita lewatin begitu aja waktu itu, tapi sekarang, di tengah jarak yang cuma dua hari ini, terasa sangat berarti. Aku inget cara kamu ngebalas chat aku tengah malem padahal udah ngantuk. Aku inget kamu tetep dengerin waktu aku cerita hal yang bahkan aku sendiri ga yakin penting. Hal-hal kayak gitu yang keliatan biasa sebenernya ga biasa sama sekali.
+      </p>
+
+      <div class="section-break reveal"><span>✦</span></div>
+
+      <p class="reveal">
+        Aku tau ada luka yang lagi kamu rasain sekarang, dan aku ga mau kecilkan itu. Aku ga dateng ke sini buat bilang perasaan kamu salah karena ga ada yang salah dari ngerasa sakit. Yang aku mau kamu tau cuma satu: aku ga pernah, dan ga akan pernah, mau nyakitin kamu dengan sengaja. Kata-kata yang keluar waktu itu bukan cerminan dari apa yang aku rasain ke kamu itu cuma kelepasan, dan aku menyesal dari lubuk hati yang paling dalam.
+      </p>
+
+      <p class="reveal">
+        Karena orang yang bener-bener berarti buat aku orang yang aku sayangi ga akan pernah aku sakitin dengan sengaja. Dan kamu adalah orang itu.
+      </p>
+
+      <div class="poem-block reveal">
+        <div class="poem-title">— sepenggal rasa —</div>
+        <p>
+          Di antara semua momen yang pernah kita lewatin,<br>
+          aku selalu akan pilih yang ada kamu di dalamnya.<br>
+          Di antara semua kata yang pernah aku ucapkan,<br>
+          yang paling aku percaya adalah: <span class="highlight">aku sayang kamu.</span><br>
+          Dan di antara semua hal yang bisa hilang,<br>
+          aku paling takut kehilangan kamu.
+        </p>
+      </div>
+
+      <p class="reveal">
+        Kita emang baru beberapa bulan. Tapi aku ga pernah ngukur sesuatu dari lamanya waktu aku ngukurnya dari dalamnya rasa. Dan apa yang aku rasain ke kamu, dari pertama kita deket sampai sekarang, udah lebih dalam dari yang bisa aku jelasin. Momen-momen yang kita bangun bersama itu nyata. Tawa yang kita bagi itu nyata. Dan rasa yang aku punya buat kamu itu nyata banget.
+      </p>
+
+      <p class="reveal">
+        Krisis kayak gini bukan tanda bahwa kita ga cocok. Kadang justru ini tanda bahwa kita lagi tumbuh tumbuh jadi lebih ngerti satu sama lain, lebih tau batas masing-masing, lebih belajar cara cinta yang lebih baik. Dan aku mau tumbuh itu bareng kamu, bukan tanpa kamu.
+      </p>
+
+      <div class="section-break reveal"><span>✦</span></div>
+
+      <p class="reveal">
+        Apapun keputusan kamu nanti aku mau kamu tau satu hal. Di balik semua yang pernah terjadi, ada <span class="gold-text">jauh lebih banyak hal baik</span> di antara kita daripada yang satu itu. Ada momen-momen yang aku simpan dalam-dalam, yang selalu bikin aku senyum kalau aku inget. Ada versi kamu yang selalu aku lihat dengan penuh kekaguman cara kamu jadi diri sendiri, cara kamu peduli, cara kamu ada.
+      </p>
+
+      <p class="reveal">
+        Dan aku minta satu hal itu: sebelum kamu memutuskan apapun, inget juga semua hal baik itu. Inget semua yang udah kita lewatin bersama. Timbang dengan adil bukan cuma dari lukanya, tapi juga dari indahnya.
+      </p>
+
+      <p class="reveal">
+        Karena aku percaya, kalau kamu inget semuanya dengan jujur, kamu akan ngerasa hal yang sama yang aku rasain sekarang: bahwa ini terlalu berharga untuk dilepaskan begitu saja.
+      </p>
+
+      <div class="petal-row reveal">
+        <span>🌹</span><span>·</span><span>♥</span><span>·</span><span>🌹</span>
+      </div>
+
+      <p class="reveal">
+        Aku di sini. Nunggu kamu. Ga kemana-mana.
+      </p>
+
+    </div><!-- end letter-body -->
+
+    <div class="letter-closing reveal">
+      <div class="closing-line">Dengan seluruh rasa yang aku punya,</div>
+      <span class="signature">Aku</span>
+    </div>
+
+    <div class="ps-block reveal">
+      <div class="ps-label">P.S.</div>
+      <p>Kalau kamu lagi baca ini dan masih ragu itu wajar. Kamu ga harus langsung punya jawaban. Aku cuma mau kamu tau, whatever it takes, aku mau ada buat kamu.</p>
+      <p>P.P.S. — Ily</p>
+    </div>
+
+  </div><!-- end paper -->
+</div><!-- end letter-outer -->
+
+<script>
+  // Generate stars
+  const starsContainer = document.getElementById('stars');
+  for (let i = 0; i < 80; i++) {
+    const star = document.createElement('div');
+    star.className = 'star';
+    star.style.cssText = `
+      left: ${Math.random() * 100}%;
+      top: ${Math.random() * 100}%;
+      --dur: ${2 + Math.random() * 4}s;
+      --delay: ${Math.random() * 4}s;
+      width: ${1 + Math.random() * 2}px;
+      height: ${1 + Math.random() * 2}px;
+    `;
+    starsContainer.appendChild(star);
+  }
+
+  // Envelope open
+  document.getElementById('envelopeBtn').addEventListener('click', () => {
+    document.getElementById('envelopeWrap').classList.add('hidden');
+    document.getElementById('letterOuter').classList.add('visible');
+    setTimeout(initReveal, 400);
+  });
+
+  // Scroll reveal
+  function initReveal() {
+    const reveals = document.querySelectorAll('.reveal');
+    const io = new IntersectionObserver((entries) => {
+      entries.forEach((e, i) => {
+        if (e.isIntersecting) {
+          setTimeout(() => e.target.classList.add('in-view'), i * 60);
+          io.unobserve(e.target);
+        }
+      });
+    }, { threshold: 0.1 });
+    reveals.forEach(el => io.observe(el));
+  }
+</script>
+</body>
+</html>
