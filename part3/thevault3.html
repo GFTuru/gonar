@@ -1,0 +1,758 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Spesial Buat Dinar ❤️</title>
+    
+    <!-- LIBRARIES GABUNGAN -->
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Lucide Icons -->
+    <script src="https://unpkg.com/lucide@latest"></script>
+    <!-- Swiper CSS -->
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/swiper@11/swiper-bundle.min.css" />
+    
+    <!-- FONTS GABUNGAN -->
+    <link href="https://fonts.googleapis.com/css2?family=Pacifico&family=Poppins:wght@300;400;600&family=Quicksand:wght@300;400;500;600;700&family=Dancing+Script:wght@700&display=swap" rel="stylesheet">
+    
+    <style>
+        /* --- STYLE GLOBAL & TRANSISI --- */
+        body {
+            /* Default pakai font File 1 dulu */
+            font-family: 'Poppins', sans-serif; 
+            background-color: #fce7f3;
+            /* Default overflow buat File 1 */
+            overflow-x: hidden; 
+            transition: background-color 0.5s ease;
+        }
+
+        /* --- STYLE DARI FILE 1 (PRANK/QUIZ) --- */
+        .font-hand { font-family: 'Pacifico', cursive; }
+        
+        .floating-heart {
+            position: absolute;
+            color: #ec4899;
+            animation: float 6s linear infinite;
+            opacity: 0.7;
+            z-index: 0;
+        }
+        @keyframes float {
+            0% { transform: translateY(100vh) scale(0.5); opacity: 0; }
+            50% { opacity: 0.8; }
+            100% { transform: translateY(-10vh) scale(1.2); opacity: 0; }
+        }
+        
+        /* Transisi antar section di Bagian 1 */
+        .section {
+            display: none;
+            opacity: 0;
+            transition: opacity 0.5s ease-in-out;
+        }
+        .section.active {
+            display: flex;
+            opacity: 1;
+        }
+        /* Tombol lari */
+        #btn-no-prank {
+            transition: all 0.1s ease;
+            position: relative; 
+        }
+
+        /* --- STYLE DARI FILE 2 (SWIPER/GALLERY) --- */
+        .font-romance { font-family: 'Dancing Script', cursive; }
+        .font-quicksand { font-family: 'Quicksand', sans-serif; }
+
+        .swiper {
+            width: 100%;
+            height: 100vh;
+        }
+        .swiper-slide {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+            box-sizing: border-box;
+            background: #fff5f5;
+        }
+        .polaroid {
+            background: white;
+            padding: 10px 10px 30px 10px;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+            transform: rotate(-2deg);
+            transition: transform 0.3s;
+            display: inline-block;
+        }
+        .polaroid:hover {
+            transform: rotate(0deg) scale(1.05);
+            z-index: 10;
+        }
+        .modal {
+            display: none;
+            position: fixed;
+            top: 0; left: 0; width: 100%; height: 100%;
+            background: rgba(0,0,0,0.7);
+            backdrop-filter: blur(8px);
+            z-index: 999;
+            align-items: center;
+            justify-content: center;
+        }
+        .modal.active { display: flex; }
+
+        .custom-scroll::-webkit-scrollbar { width: 5px; }
+        .custom-scroll::-webkit-scrollbar-track { background: #f1f1f1; }
+        .custom-scroll::-webkit-scrollbar-thumb { background: #fbcfe8; border-radius: 10px; }
+
+        #music-control {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            z-index: 1000;
+            background: white;
+            width: 45px;
+            height: 45px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border-radius: 50%;
+            box-shadow: 0 4px 10px rgba(0,0,0,0.1);
+            cursor: pointer;
+            font-size: 20px;
+        }
+        
+        /* Helper untuk menyembunyikan container utama */
+        .hidden-container {
+            display: none !important;
+        }
+    </style>
+</head>
+<body>
+
+    <!-- AUDIO (Dari File 2, tapi ditaruh global biar bisa nyala dari awal kalo mau) -->
+    <audio id="bg-music" loop>
+        <source src="musik.mp3" type="audio/mpeg">
+    </audio>
+    <div id="music-control" onclick="toggleMusic()">🎵</div>
+
+    <!-- ================================================== -->
+    <!-- BAGIAN 1: INTERACTIVE (Dari 27an3.html)            -->
+    <!-- ================================================== -->
+    <div id="part-1-interactive" class="min-h-screen flex items-center justify-center relative w-full">
+        
+        <!-- Background Hearts Animation -->
+        <div id="hearts-container" class="absolute inset-0 pointer-events-none overflow-hidden"></div>
+
+        <!-- Main Container Part 1 -->
+        <div class="w-full max-w-md bg-white/80 backdrop-blur-sm p-6 rounded-3xl shadow-xl border-2 border-pink-200 z-10 mx-4">
+            
+            <!-- SECTION 0: QR CODE FOUND (NEW) -->
+            <div id="sec-qr" class="section active flex-col items-center text-center space-y-6">
+                <h1 class="text-3xl font-bold text-pink-600 font-hand">Wah Ketemu! 🎉</h1>
+                <div class="bg-pink-100 p-4 rounded-full animate-bounce">
+                    <i data-lucide="qr-code" class="w-16 h-16 text-pink-500"></i>
+                </div>
+                <div class="space-y-2">
+                    <p class="text-lg text-gray-800 font-semibold">Ciee, kamu berhasil scan QR-nya!</p>
+                    <p class="text-sm text-gray-500">Berarti kamu emang kepo sama aku ya? 😜<br>Yaudah, karena udah terlanjur masuk, yuk lanjut!</p>
+                </div>
+                
+                <button onclick="nextSection('sec-qr', 'sec-intro')" class="bg-gradient-to-r from-pink-500 to-purple-500 text-white font-bold py-3 px-10 rounded-full shadow-lg transform transition hover:scale-105 hover:shadow-xl mt-4">
+                    Lanjut Dong! 🚀
+                </button>
+            </div>
+
+            <!-- SECTION 1: INTRO (CUMA TANYA NAMA) -->
+            <div id="sec-intro" class="section flex-col items-center text-center space-y-6">
+                <h1 class="text-3xl font-bold text-pink-600 font-hand">Halo Manis!</h1>
+                <div class="bg-pink-100 p-4 rounded-full">
+                    <i data-lucide="user-check" class="w-12 h-12 text-pink-500 fill-pink-500 animate-pulse"></i>
+                </div>
+                <p class="text-lg text-gray-700">Aku mau mastiin sesuatu dulu nih...</p>
+                <h2 class="text-2xl font-semibold text-gray-800">Apakah benar kamu Dinar?</h2>
+                
+                <button onclick="nextSection('sec-intro', 'sec-prank')" class="bg-pink-500 hover:bg-pink-600 text-white font-bold py-3 px-10 rounded-full shadow-lg transform transition hover:scale-105 mt-4">
+                    Iya, Aku Dinar 🙋‍♀️
+                </button>
+            </div>
+
+            <!-- SECTION 2: PRANK (SAYANG GAK?) -->
+            <div id="sec-prank" class="section flex-col items-center text-center space-y-6">
+                <h1 class="text-2xl font-bold text-pink-600">Pertanyaan Penting!</h1>
+                <div class="bg-pink-100 p-4 rounded-full">
+                    <i data-lucide="heart-crack" class="w-12 h-12 text-pink-500"></i>
+                </div>
+                <h2 class="text-2xl font-semibold text-gray-800">Kamu sayang ga sama aku?</h2>
+                
+                <div class="flex flex-col gap-4 w-full mt-4 h-40 relative items-center justify-center">
+                    <!-- Tombol Ya -->
+                    <button id="btn-yes-prank" onclick="nextSection('sec-prank', 'sec-basic')" class="hidden bg-pink-500 hover:bg-pink-600 text-white font-bold py-2 px-8 rounded-full shadow-lg transform transition hover:scale-105 z-20">
+                        Sayang Banget Dong! ❤️
+                    </button>
+                    <!-- Tombol Tidak -->
+                    <button id="btn-no-prank" class="bg-gray-300 hover:bg-gray-400 text-gray-700 font-bold py-2 px-8 rounded-full shadow-lg z-10">
+                        ngga 😝
+                    </button>
+                </div>
+                <p class="text-xs text-gray-400 mt-4 italic">*Coba aja klik kalau bisa wleee 😜</p>
+            </div>
+
+            <!-- SECTION 3: BASIC QUESTIONS -->
+            <div id="sec-basic" class="section flex-col items-center space-y-6">
+                <h2 class="text-2xl font-bold text-pink-600 text-center">Verifikasi Data Dulu 😜</h2>
+                <p class="text-sm text-gray-500 text-center">Oke karena sayang, coba isi data pacar kamu.</p>
+                
+                <div class="w-full space-y-4">
+                    <div>
+                        <label class="block text-gray-700 text-sm font-bold mb-2">Nama Lengkap Pacar Kamu:</label>
+                        <input type="text" id="input-nama-pacar" class="w-full px-3 py-2 border border-pink-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-pink-500" placeholder="Ayo isi nama aku...">
+                    </div>
+                    <div>
+                        <label class="block text-gray-700 text-sm font-bold mb-2">Tanggal Jadian Kita:</label>
+                        <input type="date" id="input-jadian" class="w-full px-3 py-2 border border-pink-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-pink-500">
+                    </div>
+                    <div>
+                        <label class="block text-gray-700 text-sm font-bold mb-2">Panggilan Sayang ke Aku:</label>
+                        <input type="text" id="input-panggilan" class="w-full px-3 py-2 border border-pink-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-pink-500" placeholder="Biasanya manggil apa?">
+                    </div>
+                </div>
+
+                <button onclick="saveBasicInfo()" class="w-full bg-pink-500 text-white font-bold py-3 rounded-xl shadow-md hover:bg-pink-600 transition">
+                    Lanjut Dong!
+                </button>
+            </div>
+
+            <!-- SECTION 4: MINI GAME (QUIZ) -->
+            <div id="sec-game" class="section flex-col items-center space-y-6">
+                <h2 class="text-xl font-bold text-pink-600 text-center">Ujian Nasional Bucin 📝</h2>
+                <p class="text-center text-gray-600 text-sm">Seberapa kenal kamu sama aku?</p>
+
+                <!-- Wadah Pertanyaan -->
+                <div id="quiz-container" class="w-full bg-pink-50 p-4 rounded-xl border border-pink-200">
+                    <p id="question-text" class="text-lg font-semibold text-gray-800 text-center mb-4">Loading...</p>
+                    <div id="options-container" class="space-y-2">
+                        <!-- Opsi jawaban muncul di sini -->
+                    </div>
+                </div>
+
+                <div class="w-full bg-gray-200 rounded-full h-2.5">
+                    <div id="progress-bar" class="bg-pink-500 h-2.5 rounded-full" style="width: 0%"></div>
+                </div>
+            </div>
+
+            <!-- SECTION 5: REVIEW JAWABAN -->
+            <div id="sec-review" class="section flex-col items-center space-y-4">
+                <h2 class="text-2xl font-bold text-pink-600 text-center font-hand">Review Jawaban</h2>
+                <p class="text-gray-600 text-center text-sm">Coba kita lihat hasil kamu...</p>
+
+                <div class="w-full bg-white border border-pink-200 rounded-xl p-4 max-h-60 overflow-y-auto space-y-3 shadow-inner">
+                    <div class="border-b pb-2">
+                        <p class="text-xs text-gray-400">Nama Pacar:</p>
+                        <p id="review-nama" class="font-semibold text-gray-800">-</p>
+                    </div>
+                    <div class="border-b pb-2">
+                        <p class="text-xs text-gray-400">Tanggal Jadian:</p>
+                        <p id="review-jadian" class="font-semibold text-gray-800">-</p>
+                    </div>
+                    <div class="border-b pb-2">
+                        <p class="text-xs text-gray-400">Panggilan Sayang:</p>
+                        <p id="review-panggilan" class="font-semibold text-gray-800">-</p>
+                    </div>
+                    <!-- GANTI LABEL DI SINI -->
+                    <div class="pt-2 text-center bg-pink-50 p-2 rounded-lg">
+                        <p class="text-xs text-gray-400 font-bold uppercase tracking-wider">Tingkat Kecintaan</p>
+                        <p id="review-skor" class="text-3xl font-bold text-pink-600 font-hand">-</p>
+                    </div>
+                </div>
+
+                <button onclick="nextSection('sec-review', 'sec-portal')" class="w-full bg-purple-500 text-white font-bold py-3 rounded-xl shadow-md hover:bg-purple-600 transition mt-4">
+                    Menuju Portal Rahasia 🗝️
+                </button>
+            </div>
+
+            <!-- SECTION 6: PASSWORD PORTAL -->
+            <div id="sec-portal" class="section flex-col items-center space-y-6 text-center">
+                <i data-lucide="lock" class="w-16 h-16 text-gray-400"></i>
+                <h2 class="text-2xl font-bold text-gray-800">Portal Rahasia</h2>
+                <p class="text-gray-600">Masukin kata sandi dulu.</p>
+                
+                <input type="password" id="input-password" class="w-full text-center text-2xl tracking-widest px-3 py-3 border-2 border-gray-300 rounded-xl focus:outline-none focus:border-pink-500" placeholder="******">
+                <p id="error-msg" class="text-red-500 text-sm hidden">Sandi salah! Coba ingat-ingat lagi 😤</p>
+
+                <button onclick="checkPassword()" class="w-full bg-gray-800 text-white font-bold py-3 rounded-xl shadow-md hover:bg-gray-900 transition">
+                    Buka Gembok
+                </button>
+            </div>
+
+            <!-- SECTION 7: SURPRISE (SURAT + VIDEO) -->
+            <div id="sec-surprise" class="section flex-col items-center space-y-6 text-center pb-8">
+                <h1 class="text-3xl font-bold text-pink-600 font-hand">Happy Anniversary!</h1>
+                
+
+                <!-- Surat Cinta -->
+                <div class="w-full bg-pink-50 p-6 rounded-xl border border-pink-200 text-left space-y-4 shadow-sm relative">
+                    <i data-lucide="quote" class="absolute top-2 right-2 w-8 h-8 text-pink-200 opacity-50"></i>
+                    <p class="text-gray-800 leading-relaxed">
+                        Hai Sayang, <br><br>
+                        Makasih ya udah mainin game aneh buatan aku ini. Aku cuma mau bilang makasih udah nemenin aku terus. 
+                        <br><br>
+                        Kamu itu orang yang paling spesial buat aku. Video di atas itu sedikit kenangan kita, semoga kamu suka ya.
+                        Aku sayang banget sama kamu, Dinar! ❤️
+                        <br><br>
+                        <i>Love, Pacarmu.</i>
+                    </p>
+                </div>
+                
+                <!-- TOMBOL PENGHUBUNG KE FILE 2 -->
+                <button onclick="switchToSwiper()" class="w-full bg-gradient-to-r from-pink-500 to-purple-500 text-white font-bold py-4 rounded-xl shadow-lg hover:scale-105 transition mt-6 animate-bounce">
+                    Masih ada kejutan lain loh! Klik sini ❤️
+                </button>
+
+                <button onclick="restart()" class="text-sm text-gray-400 underline hover:text-pink-500">Ulangi Kuis</button>
+            </div>
+
+        </div>
+    </div>
+
+
+    <!-- ================================================== -->
+    <!-- BAGIAN 2: SWIPER PRESENTATION (Dari index.html)    -->
+    <!-- ================================================== -->
+    <div id="part-2-swiper" class="hidden-container w-full h-screen font-quicksand text-gray-800">
+        <div class="swiper mySwiper">
+            <div class="swiper-wrapper">
+                
+                <!-- SLIDE 1: WELCOME & COUNTER -->
+                <div class="swiper-slide">
+                    <div class="text-center">
+                        <div class="animate-bounce mb-4 text-6xl">❤️</div>
+                        <h1 class="text-5xl md:text-7xl font-romance text-pink-600 mb-4">Happy 3 Months!</h1>
+                        <p class="text-lg md:text-xl text-gray-500 mb-8 italic">"Tiga bulan yang penuh warna, terima kasih sudah bertahan."</p>
+                        
+                        <div class="grid grid-cols-4 gap-3 bg-white p-6 rounded-3xl shadow-xl border border-pink-100 max-w-sm mx-auto">
+                            <div class="text-center">
+                                <span id="days" class="block text-2xl font-bold text-pink-500">00</span>
+                                <span class="text-[10px] uppercase text-gray-400 font-bold">Hari</span>
+                            </div>
+                            <div class="text-center">
+                                <span id="hours" class="block text-2xl font-bold text-pink-500">00</span>
+                                <span class="text-[10px] uppercase text-gray-400 font-bold">Jam</span>
+                            </div>
+                            <div class="text-center">
+                                <span id="minutes" class="block text-2xl font-bold text-pink-500">00</span>
+                                <span class="text-[10px] uppercase text-gray-400 font-bold">Menit</span>
+                            </div>
+                            <div class="text-center">
+                                <span id="seconds" class="block text-2xl font-bold text-pink-500">00</span>
+                                <span class="text-[10px] uppercase text-gray-400 font-bold">Detik</span>
+                            </div>
+                        </div>
+                        <div class="mt-12 text-pink-300 text-sm animate-pulse">Geser untuk melihat kejutan &rsaquo;</div>
+                    </div>
+                </div>
+
+                <!-- SLIDE 2: EVALUASI -->
+                <div class="swiper-slide">
+                    <div class="max-w-4xl w-full">
+                        <h2 class="text-3xl font-bold text-center mb-10 text-gray-700 font-romance">Evaluasi Buat Kamu</h2>
+                        <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+                            <button onclick="openModal('topic1')" class="bg-white p-8 rounded-2xl shadow-md border-b-4 border-pink-400 hover:bg-pink-50 transition text-center group">
+                                <div class="text-4xl mb-3 group-hover:scale-110 transition">📱</div>
+                                <h3 class="font-bold text-pink-600">Sering Mengabaikan</h3>
+                            </button>
+                            <button onclick="openModal('topic2')" class="bg-white p-8 rounded-2xl shadow-md border-b-4 border-blue-400 hover:bg-blue-50 transition text-center group">
+                                <div class="text-4xl mb-3 group-hover:scale-110 transition">😠</div>
+                                <h3 class="font-bold text-blue-600">Gak Nurut!</h3>
+                            </button>
+                            <button onclick="openModal('topic3')" class="bg-white p-8 rounded-2xl shadow-md border-b-4 border-purple-400 hover:bg-purple-50 transition text-center group">
+                                <div class="text-4xl mb-3 group-hover:scale-110 transition">📸</div>
+                                <h3 class="font-bold text-purple-600">Pap Random?</h3>
+                            </button>
+                        </div>
+                        <p class="text-center text-gray-400 text-xs mt-8 italic">*Klik kotak di atas untuk baca curhatan aku</p>
+                    </div>
+                </div>
+
+                <!-- SLIDE 3: MEMORY LANE -->
+                <div class="swiper-slide bg-pink-50">
+                    <div class="text-center w-full">
+                        <h2 class="text-3xl font-bold mb-10 text-gray-700 font-romance">Memory Lane</h2>
+                        <div class="flex flex-wrap justify-center gap-6 px-4">
+                            <!-- Ganti src dengan foto kamu -->
+                            <div class="polaroid">
+                                <img src="photo1.png" alt="Momen 1" class="max-w-[150px] md:max-w-[200px] max-h-[250px] w-auto h-auto block">
+                            </div>
+                            <div class="polaroid" style="transform: rotate(4deg);">
+                                <img src="photo2.png" alt="Momen 2" class="max-w-[150px] md:max-w-[200px] max-h-[250px] w-auto h-auto block">
+                            </div>
+                            <div class="polaroid" style="transform: rotate(-3deg);">
+                                <img src="photo3.png" alt="Momen 3" class="max-w-[150px] md:max-w-[200px] max-h-[250px] w-auto h-auto block">
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- SLIDE 4: VOICE MESSAGE -->
+                <div class="swiper-slide">
+                    <div class="max-w-md w-full bg-white p-10 rounded-3xl shadow-xl text-center border-2 border-pink-100">
+                        <div class="text-5xl mb-4">🎙️</div>
+                        <h2 class="text-2xl font-bold mb-2 text-pink-600 font-romance">Pesan Suara Untukmu</h2>
+                        <p class="text-gray-500 mb-8 italic text-sm">"Dengerin ini sebentar ya sayang..."</p>
+                        <div class="bg-pink-50 p-4 rounded-2xl">
+                            <audio controls class="w-full">
+                                <source src="voice.mp3" type="audio/mpeg">
+                                Browser kamu tidak mendukung audio.
+                            </audio>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- SLIDE 5: LOVE COUPONS -->
+                <div class="swiper-slide">
+                    <div class="max-w-lg w-full text-center">
+                        <h2 class="text-3xl font-bold mb-8 text-gray-700 font-romance">Digital Love Coupons</h2>
+                        <p class="text-gray-500 text-sm mb-6">Klaim kupon ini kapan saja kamu mau!</p>
+                        <div class="grid grid-cols-2 gap-4">
+                            <button onclick="redeemCoupon(this, 'Kupon Pelukan')" class="p-5 bg-white border-2 border-dashed border-pink-300 rounded-2xl hover:bg-pink-100 transition shadow-sm text-sm font-bold text-pink-600">
+                                🎟️ Kupon Pelukan
+                            </button>
+                            <button onclick="redeemCoupon(this, 'Kupon Kopi')" class="p-5 bg-white border-2 border-dashed border-pink-300 rounded-2xl hover:bg-pink-100 transition shadow-sm text-sm font-bold text-pink-600">
+                                🍦 Kupon Kopi
+                            </button>
+                            <button onclick="redeemCoupon(this, 'Kupon nurut 1 jam')" class="p-5 bg-white border-2 border-dashed border-pink-300 rounded-2xl hover:bg-pink-100 transition shadow-sm text-sm font-bold text-pink-600">
+                                🕊️ Nurut 1 jam
+                            </button>
+                            <button onclick="redeemCoupon(this, 'Kupon co barang, s&k berlaku')" class="p-5 bg-white border-2 border-dashed border-pink-300 rounded-2xl hover:bg-pink-100 transition shadow-sm text-sm font-bold text-pink-600">
+                                🍿 co barang, s&k berlaku
+                            </button>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- SLIDE 6: PROMISES & GOALS -->
+                <div class="swiper-slide bg-pink-50">
+                    <div class="max-w-md w-full bg-white p-8 rounded-3xl shadow-xl border-2 border-pink-200">
+                        <h2 class="text-3xl font-romance text-center text-pink-600 mb-4 font-bold">Our Future Goals</h2>
+                        <p class="text-center text-gray-500 text-xs mb-6 uppercase tracking-widest font-bold">Rencana kita kedepannya</p>
+                        
+                        <textarea id="futureGoals" rows="5" class="w-full p-4 rounded-2xl bg-pink-50 border-none focus:ring-2 focus:ring-pink-300 text-gray-700 text-sm" placeholder="Tulis janji atau rencana kita di sini..."></textarea>
+                        
+                        <button onclick="saveGoals()" class="w-full mt-4 bg-pink-500 hover:bg-pink-600 text-white font-bold py-4 rounded-2xl transition shadow-md">
+                            Simpan Rencana Kita ✨
+                        </button>
+                        <p class="text-[10px] text-gray-400 mt-4 text-center italic">*Teks ini akan tersimpan otomatis di browser ini</p>
+                    </div>
+                </div>
+
+                <!-- SLIDE 7: GREETING CARD (WHATSAPP) -->
+                <div class="swiper-slide">
+                    <div class="max-w-md w-full bg-white p-8 rounded-3xl shadow-2xl border-2 border-pink-100">
+                        <h2 class="text-3xl font-romance text-center text-pink-600 mb-2 font-bold">Tulis Pesan Untukku</h2>
+                        <p class="text-center text-gray-500 text-xs mb-6">Ketik pesanmu, nanti akan langsung terkirim ke WA-ku!</p>
+                        
+                        <textarea id="loveMessage" rows="5" class="w-full p-4 rounded-2xl bg-pink-50 border-none focus:ring-2 focus:ring-pink-300 text-gray-700" placeholder="Sayang, aku mau bilang..."></textarea>
+                        
+                        <button onclick="sendToWA()" class="w-full mt-6 bg-green-500 hover:bg-green-600 text-white font-bold py-4 rounded-2xl transition shadow-lg flex items-center justify-center gap-2">
+                            <span>Kirim via WhatsApp</span> 🚀
+                        </button>
+                    </div>
+                </div>
+
+                <!-- SLIDE 8: BTS VIDEO -->
+                <div class="swiper-slide bg-gray-900">
+                    <div class="max-w-2xl w-full text-center px-4">
+                        <h2 class="text-3xl font-bold mb-4 text-pink-400 font-romance">The Making Of</h2>
+                        <p class="text-gray-400 mb-8 italic text-sm">Sedikit cuplikan proses pembuatan website ini</p>
+                        <div class="rounded-3xl overflow-hidden shadow-2xl border-4 border-pink-600 bg-black aspect-video">
+                            <!-- Ganti Video -->
+                            <video class="w-full h-full object-cover" controls>
+                                <source src="video1.mp4" type="video/mp4">
+                                Browser kamu tidak mendukung pemutaran video ini.
+                            </video>
+                        </div>
+                        <p class="mt-8 text-gray-500 text-xs uppercase tracking-widest font-bold">I Love You to the Moon and Back 🌙</p>
+                    </div>
+                </div>
+
+            </div>
+            <!-- Pagination -->
+            <div class="swiper-pagination"></div>
+        </div>
+
+        <!-- Modal for Evaluation Detail -->
+        <div id="evalModal" class="modal px-4">
+            <div class="bg-white p-8 rounded-3xl max-w-lg w-full relative shadow-2xl">
+                <button onclick="closeModal()" class="absolute top-4 right-4 text-gray-400 hover:text-gray-600 text-xl">✕</button>
+                <div id="modalContent" class="text-left">
+                    <!-- Content Injected via JS -->
+                </div>
+            </div>
+        </div>
+    </div>
+
+
+    <!-- ================================================== -->
+    <!-- LOGIC / JAVASCRIPT GABUNGAN                        -->
+    <!-- ================================================== -->
+    <!-- Swiper JS -->
+    <script src="https://cdn.jsdelivr.net/npm/swiper@11/swiper-bundle.min.js"></script>
+
+    <script>
+        // --- 0. FUNGSI TRANSISI ANTAR FILE ---
+        function switchToSwiper() {
+            // Sembunyikan bagian Interactive (File 1)
+            const p1 = document.getElementById('part-1-interactive');
+            p1.classList.add('hidden-container');
+            p1.classList.remove('flex'); // Hapus flex biar bener-bener ilang
+
+            // Tampilkan bagian Swiper (File 2)
+            const p2 = document.getElementById('part-2-swiper');
+            p2.classList.remove('hidden-container');
+
+            // Ubah style body menyesuaikan File 2
+            document.body.style.overflow = 'hidden'; 
+            document.body.style.margin = '0';
+            document.body.style.height = '100vh';
+            document.body.style.backgroundColor = '#fff5f5'; // Ubah warna background
+
+            // Inisialisasi Ulang Swiper biar ukurannya pas
+            if (swiperInstance) {
+                swiperInstance.update();
+            }
+            
+            // Opsional: Play musik kalau belum nyala
+            const music = document.getElementById('bg-music');
+            if (music.paused) {
+                music.play().catch(e => console.log("Auto-play blocked", e));
+                document.getElementById('music-control').innerText = "⏸️";
+            }
+        }
+
+        // --- 1. LOGIKA FILE 1 (INTERACTIVE PRANK) ---
+        
+        // KONFIGURASI
+        const PASSWORD_RAHASIA = ["sayang", "010123", "iloveyou"]; 
+        const QUESTIONS = [
+            { q: "Apa makanan kesukaan aku?", options: ["Nasi Goreng", "Sate Padang", "Bakso", "Hati Kamu 🤣"], correct: 0 },
+            { q: "Ukuran sepatu aku berapa hayo?", options: ["39", "40", "41", "42"], correct: 2 },
+            { q: "Tempat kencan pertama kita?", options: ["Bioskop", "mixue", "Kafe Kopi", "Rumah Hantu"], correct: 1 },
+            { q: "Apa warna baju favorit aku?", options: ["Hitam", "Putih", "Merah", "Pink"], correct: 0 },
+            { q: "Kalau aku lagi ngambek, biasanya kenapa?", options: ["Laper", "Ngantuk", "Kangen", "Gabut"], correct: 0 },
+            { q: "Apa cita-cita aku waktu kecil?", options: ["Dokter", "Pilot", "Astronot", "Jadi Pacar Kamu"], correct: 0 },
+            { q: "Film genre apa yang paling aku suka?", options: ["Horor", "Romance", "Action", "Komedi"], correct: 0 },
+            { q: "Siapa penyanyi favorit aku?", options: ["Tulus", "juicy luicy", "Nadin Amizah", "feast"], correct: 0 },
+            { q: "Apa kebiasaan buruk aku?", options: ["Suka telat", "Gigit kuku", "Lupa naruh barang", "Begadang"], correct: 3 },
+            { q: "Terakhir, seberapa sayang aku sama kamu?", options: ["Biasa aja", "Dikit", "Sayang Banget Infinity!", "Lumayan"], correct: 2 }
+        ];
+
+        let correctAnswersCount = 0;
+        let currentQuestionIndex = 0;
+        let userData = {};
+
+        // Init File 1
+        lucide.createIcons();
+        createHearts();
+
+        const btnNoPrank = document.getElementById('btn-no-prank');
+        const btnYesPrank = document.getElementById('btn-yes-prank');
+        let prankAttempt = 0;
+
+        function moveButton() {
+            const maxX = window.innerWidth - btnNoPrank.offsetWidth - 20;
+            const maxY = window.innerHeight - btnNoPrank.offsetHeight - 20;
+            const randomX = Math.random() * maxX;
+            const randomY = Math.random() * maxY;
+            btnNoPrank.style.position = 'fixed';
+            btnNoPrank.style.left = `${randomX}px`;
+            btnNoPrank.style.top = `${randomY}px`;
+            prankAttempt++;
+            if (prankAttempt === 5) {
+                btnYesPrank.classList.remove('hidden');
+                btnYesPrank.classList.add('animate-bounce'); 
+            }
+        }
+        btnNoPrank.addEventListener('mouseover', moveButton);
+        btnNoPrank.addEventListener('touchstart', (e) => { e.preventDefault(); moveButton(); });
+        btnNoPrank.addEventListener('click', (e) => { e.preventDefault(); moveButton(); });
+
+        function nextSection(hideId, showId) {
+            document.getElementById(hideId).classList.remove('active');
+            setTimeout(() => {
+                document.getElementById(hideId).style.display = 'none';
+                const showEl = document.getElementById(showId);
+                showEl.style.display = 'flex';
+                void showEl.offsetWidth; 
+                showEl.classList.add('active');
+                if (showId === 'sec-game') loadQuestion();
+                if (showId === 'sec-review') renderReview();
+            }, 500);
+        }
+
+        function saveBasicInfo() {
+            const nama = document.getElementById('input-nama-pacar').value;
+            const jadian = document.getElementById('input-jadian').value;
+            const panggilan = document.getElementById('input-panggilan').value;
+            if (!nama || !jadian) { alert("Isi dulu dong sayang, jangan dikosongin :("); return; }
+            userData = { nama, jadian, panggilan };
+            nextSection('sec-basic', 'sec-game');
+        }
+
+        function loadQuestion() {
+            const qData = QUESTIONS[currentQuestionIndex];
+            const optionsContainer = document.getElementById('options-container');
+            document.getElementById('question-text').innerText = `${currentQuestionIndex + 1}. ${qData.q}`;
+            document.getElementById('progress-bar').style.width = `${((currentQuestionIndex) / QUESTIONS.length) * 100}%`;
+            optionsContainer.innerHTML = '';
+            qData.options.forEach((opt, index) => {
+                const btn = document.createElement('button');
+                btn.className = "w-full text-left px-4 py-2 bg-white border border-pink-200 rounded-lg hover:bg-pink-100 transition text-gray-700";
+                btn.innerText = opt;
+                btn.onclick = () => checkAnswer(index);
+                optionsContainer.appendChild(btn);
+            });
+        }
+
+        function checkAnswer(selectedIndex) {
+            if (selectedIndex === QUESTIONS[currentQuestionIndex].correct) correctAnswersCount++;
+            currentQuestionIndex++;
+            if (currentQuestionIndex < QUESTIONS.length) {
+                loadQuestion();
+            } else {
+                userData.score = Math.round((correctAnswersCount / QUESTIONS.length) * 100);
+                nextSection('sec-game', 'sec-review');
+            }
+        }
+
+        function renderReview() {
+            document.getElementById('review-nama').innerText = userData.nama;
+            document.getElementById('review-jadian').innerText = userData.jadian;
+            document.getElementById('review-panggilan').innerText = userData.panggilan || "Sayang";
+            document.getElementById('review-skor').innerText = `${userData.score}%`;
+            if (userData.score === 100) document.getElementById('review-skor').innerHTML += " <br><span class='text-sm text-green-500 font-normal'>Perfect! Jodoh fix! ❤️</span>";
+            else if (userData.score >= 70) document.getElementById('review-skor').innerHTML += " <br><span class='text-sm text-blue-500 font-normal'>Lumayan lah ya 😘</span>";
+            else document.getElementById('review-skor').innerHTML += " <br><span class='text-sm text-red-500 font-normal'>Parah, kenalan lagi yuk? 😤</span>";
+        }
+
+        function checkPassword() {
+            const input = document.getElementById('input-password').value.toLowerCase().replace(/\s/g, '');
+            if (PASSWORD_RAHASIA.includes(input)) {
+                document.getElementById('error-msg').classList.add('hidden');
+                nextSection('sec-portal', 'sec-surprise');
+            } else {
+                document.getElementById('error-msg').classList.remove('hidden');
+                const inputEl = document.getElementById('input-password');
+                inputEl.classList.add('border-red-500');
+                setTimeout(() => inputEl.classList.remove('border-red-500'), 500);
+            }
+        }
+
+        function restart() { location.reload(); }
+
+        function createHearts() {
+            const container = document.getElementById('hearts-container');
+            for(let i=0; i<15; i++) {
+                const heart = document.createElement('div');
+                heart.innerHTML = '❤️';
+                heart.className = 'floating-heart text-2xl';
+                heart.style.left = Math.random() * 100 + 'vw';
+                heart.style.animationDuration = (Math.random() * 3 + 3) + 's';
+                heart.style.animationDelay = Math.random() * 5 + 's';
+                container.appendChild(heart);
+            }
+        }
+
+        // --- 2. LOGIKA FILE 2 (SWIPER & UTILS) ---
+        
+        // Music Logic (Bisa dipakai di kedua bagian)
+        const music = document.getElementById('bg-music');
+        function toggleMusic() {
+            if (music.paused) {
+                music.play();
+                document.getElementById('music-control').innerText = "⏸️";
+            } else {
+                music.pause();
+                document.getElementById('music-control').innerText = "🎵";
+            }
+        }
+
+        // Load Goals
+        const savedGoals = localStorage.getItem('ourAnniversaryGoals');
+        if (savedGoals) document.getElementById('futureGoals').value = savedGoals;
+
+        function saveGoals() {
+            const val = document.getElementById('futureGoals').value;
+            localStorage.setItem('ourAnniversaryGoals', val);
+            alert("Rencana kita sudah tersimpan dengan aman! ❤️");
+        }
+
+        // Swiper Init (Disimpan di var biar bisa di update saat transisi)
+        var swiperInstance = new Swiper(".mySwiper", {
+            direction: "horizontal",
+            pagination: { el: ".swiper-pagination", dynamicBullets: true },
+            keyboard: true,
+            mousewheel: true,
+            effect: "slide"
+        });
+
+        // Counter Logic
+        const startDate = new Date(2025, 10, 27); 
+        function updateCounter() {
+            const now = new Date();
+            const diff = now - startDate;
+            const d = Math.floor(diff / (1000 * 60 * 60 * 24));
+            const h = Math.floor((diff / (1000 * 60 * 60)) % 24);
+            const m = Math.floor((diff / (1000 * 60)) % 60);
+            const s = Math.floor((diff / 1000) % 60);
+            document.getElementById('days').innerText = d.toString().padStart(2, '0');
+            document.getElementById('hours').innerText = h.toString().padStart(2, '0');
+            document.getElementById('minutes').innerText = m.toString().padStart(2, '0');
+            document.getElementById('seconds').innerText = s.toString().padStart(2, '0');
+        }
+        setInterval(updateCounter, 1000);
+        updateCounter();
+
+        // Evaluation Modal Logic
+        const evalContent = {
+            topic1: { title: "📱 Sering Mengabaikan / Jarang Ngabarin", text: "gatau sekarang ni entah perasaaan aku doang atau gimana tapi kayaa kamu nii udaa ga kaya duluuu. kamu yang dulu tu seriing bangett ngabarin mau kemanapun tapi sekarang kaya mau tidur siang juga ngga ngabarin sampe harus aku cari cariin. ini ga sekali dua kali tapi lumayan banyak ini nii, pertama mungkin aku masi maklumii kamuu mungkinnn kamuu capee tapii makin kesini makin ngelunjak aku kira setelaah akuu maklumi kamuu bakal berubah tapiii ternyata engga. sebenernya banyak siii bukan cuma ini aja aku lupa bagian mana ajanya jadii yaaaa gituuu laaa" },
+            topic2: { title: "😠 Gak Nurut Sama Aku", text: "emmmm kamu nii dari duluu maa emang ga nurut sama aku tuu, pas demam aja kamu nii aduuhhhh susah bangett disuruh minum obat tuuu. kamu kalo disuruh minum obat adaaaaa ajaaa alasannyaa, kenapa siii kamuu nii? aku nyuruh kamuu buat minum obatr tu buat kebaikan kamu sendiri bukan buat kebaikan akuu tauuuuu, ngertii ngga siii kamuu niiii. awas aja kamuuu mulai hari iniii ngga nurut sama akuuu. kamu juga nii seringg bangett bandell ihhhhh, bikin akuu keselll ajaaa untung hati ku seluas samudra jadii ngga baper atau gimanaaaaa. tapi jujur aku juga gitu harusnya sii jadii yaudaaa yaaa sama aja inii maa 1-1 okeee. kamu juga kenapaa sii kalo aku minjem hp kamu kaya kamu nii harus ikut campur padahalkan kalo ngga ada apa apa tuu yauda ajaa gituuuu tapi ini maa harus banget ikut campur gabisa engga. padahal maa kalo kamuuu minjem hp akuu, aku nya biasa aja ngga kayaa ikut campur kecuali kamu mau apus poto kamuuu apapun ituu aku harus ikut campurrrr ngga bisaa enggaaa" },
+            topic3: { title: "📸 Pap Random Nya Mana?", text: "ihhh kamu niii akhir' ini jarang pap random bangett siii, kebanyakan bagus semua pap nya. apa lagi pas liburan kamu ngeppa tu dikit bangett kenapaaa siiii pelit bangettt ihhhh. yaaa tauuu aku juga jarang pap tapiii kan kaloo akuu pap tuu langsung banyakkk gituuuuuuuu jadii kamu tu di cicil aku tuu langsung lunasss. aku kalo pap tu 20 photo terus lahh kamuuu 1-3 kannn jadii kamuu niii harus tiap hariii pap ke akuuu harusss, apa kamu udaa ada yang harus dikirim pap selainn akuu??? hayooo siapaaaaaaaaaaaa jujur ajaaa" }
+        };
+
+        function openModal(key) {
+            const modal = document.getElementById('evalModal');
+            const content = document.getElementById('modalContent');
+            const data = evalContent[key];
+            content.innerHTML = `
+                <h3 class="text-xl font-bold text-pink-600 mb-4 border-b pb-2">${data.title}</h3>
+                <div class="max-h-64 overflow-y-auto pr-2 custom-scroll text-sm leading-relaxed text-gray-600 italic">"${data.text}"</div>
+                <button onclick="closeModal()" class="w-full mt-6 bg-pink-500 text-white py-2 rounded-full font-bold shadow-md hover:bg-pink-600 transition">Siaap Boss! 🫡</button>
+            `;
+            modal.classList.add('active');
+        }
+        function closeModal() { document.getElementById('evalModal').classList.remove('active'); }
+
+        // WhatsApp Logic
+        function sendToWA() {
+            const message = document.getElementById('loveMessage').value;
+            if (!message.trim()) { alert("Tulis pesanmu dulu ya sayang..."); return; }
+            const myNumber = "628123456789"; 
+            const encodedText = encodeURIComponent("Haii sayang! Aku barusan buka web 3-month anniversary kita, ini pesan buat kamu:\n\n" + message);
+            window.open(`https://wa.me/${myNumber}?text=${encodedText}`, '_blank');
+        }
+
+        // Coupon Logic
+        function redeemCoupon(btn, name) {
+            btn.innerHTML = "✅ SUDAH TERPAKAI!";
+            btn.classList.add('bg-gray-100', 'text-gray-400', 'border-gray-200');
+            btn.classList.remove('text-pink-600', 'hover:bg-pink-100');
+            btn.disabled = true;
+            const toast = document.createElement('div');
+            toast.className = "fixed bottom-10 left-1/2 -translate-x-1/2 bg-pink-600 text-white px-6 py-3 rounded-full shadow-lg z-[1000] text-sm font-bold";
+            toast.innerText = `${name} Berhasil Diklaim!`;
+            document.body.appendChild(toast);
+            setTimeout(() => { toast.style.opacity = '0'; setTimeout(() => toast.remove(), 500); }, 2000);
+        }
+    </script>
+</body>
+</html>
+
+
