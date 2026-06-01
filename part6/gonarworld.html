@@ -1,0 +1,1291 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Go & Nar — Our World</title>
+<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;0,500;1,300;1,400;1,500&family=Jost:wght@200;300;400;500&family=DM+Serif+Display:ital@0;1&display=swap" rel="stylesheet">
+<style>
+:root {
+  --blush: #f5e6e0;
+  --rose: #e8b4b8;
+  --dusty: #c9878d;
+  --wine: #8b4a52;
+  --deep: #5c2d35;
+  --cream: #faf6f0;
+  --warm: #f0e8df;
+  --text: #3a2a2e;
+  --muted: #9a7a80;
+  --locked: #d4bfc2;
+  --gold: #c9a96e;
+  --gold-light: #e8d5a3;
+}
+
+*{margin:0;padding:0;box-sizing:border-box;}
+
+body {
+  font-family:'Jost',sans-serif;
+  color:var(--text);
+  min-height:100vh;
+  overflow-x:hidden;
+  background: var(--cream);
+  cursor: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='20' height='20' viewBox='0 0 24 24' fill='%23c9878d'><path d='M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z'/></svg>") 10 10, auto;
+}
+
+a,button,.nav-item,.bucket-item,.song-card,.timeline-dot,.letter-seal,.anni-btn {
+  cursor: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='20' height='20' viewBox='0 0 24 24' fill='%238b4a52'><path d='M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z'/></svg>") 10 10, pointer !important;
+}
+
+/* ===== SCREENS ===== */
+.screen { display:none; min-height:100vh; flex-direction:column; position:relative; overflow-x:hidden; }
+.screen.active { display:flex; animation: screenIn 0.5s cubic-bezier(0.22,1,0.36,1); }
+@keyframes screenIn { from{opacity:0;transform:translateY(16px);} to{opacity:1;transform:translateY(0);} }
+@keyframes fadeUp { from{opacity:0;transform:translateY(24px);} to{opacity:1;transform:translateY(0);} }
+@keyframes fadeIn { from{opacity:0;} to{opacity:1;} }
+
+/* ===== PORTAL / HOME ===== */
+#portal {
+  background: radial-gradient(ellipse at 30% 20%, #f9ede8 0%, #f5e0e3 45%, #e8d0d8 100%);
+  align-items:center; justify-content:center;
+  padding:40px 20px;
+  position:relative; overflow:hidden;
+}
+#portal::before {
+  content:'';position:absolute;inset:0;
+  background: url("data:image/svg+xml,%3Csvg width='60' height='60' viewBox='0 0 60 60' xmlns='http://www.w3.org/2000/svg'%3E%3Cg fill='none' fill-rule='evenodd'%3E%3Cg fill='%23c9878d' fill-opacity='0.04'%3E%3Cpath d='M36 34v-4h-2v4h-4v2h4v4h2v-4h4v-2h-4zm0-30V0h-2v4h-4v2h4v4h2V6h4V4h-4zM6 34v-4H4v4H0v2h4v4h2v-4h4v-2H6zM6 4V0H4v4H0v2h4v4h2V6h4V4H6z'/%3E%3C/g%3E%3C/g%3E%3C/svg%3E");
+}
+
+.portal-title {
+  font-family:'DM Serif Display',serif;
+  font-size:clamp(36px,8vw,64px);
+  color:var(--wine);
+  letter-spacing:0.04em;
+  text-align:center;
+  line-height:1;
+  margin-bottom:6px;
+  position:relative; z-index:1;
+  animation: fadeUp 0.8s ease both;
+}
+.portal-sub {
+  font-size:10px; letter-spacing:0.45em; text-transform:uppercase;
+  color:var(--muted); text-align:center; margin-bottom:48px;
+  position:relative; z-index:1;
+  animation: fadeUp 0.8s 0.1s ease both;
+}
+
+.nav-grid {
+  display:grid; grid-template-columns:repeat(2,1fr);
+  gap:14px; width:100%; max-width:380px;
+  position:relative; z-index:1;
+  animation: fadeUp 0.8s 0.2s ease both;
+}
+
+.nav-item {
+  background:rgba(255,255,255,0.55);
+  backdrop-filter:blur(14px);
+  border:1px solid rgba(255,255,255,0.7);
+  border-radius:16px;
+  padding:22px 16px 18px;
+  display:flex; flex-direction:column;
+  align-items:center; gap:10px;
+  transition:transform 0.25s ease, box-shadow 0.25s ease;
+  box-shadow:0 4px 20px rgba(139,74,82,0.08);
+  position:relative; overflow:hidden;
+}
+.nav-item::before {
+  content:''; position:absolute;
+  top:0;left:0;right:0;height:3px;
+  background:linear-gradient(90deg, var(--rose), var(--dusty));
+  border-radius:16px 16px 0 0;
+}
+.nav-item:hover {
+  transform:translateY(-5px) scale(1.02);
+  box-shadow:0 12px 32px rgba(139,74,82,0.18);
+}
+.nav-item:active { transform:scale(0.97); }
+
+.nav-icon { font-size:28px; line-height:1; }
+.nav-label {
+  font-family:'Cormorant Garamond',serif;
+  font-size:18px; font-weight:500;
+  color:var(--wine); letter-spacing:0.04em;
+}
+.nav-desc {
+  font-size:9px; letter-spacing:0.2em;
+  text-transform:uppercase; color:var(--muted);
+  text-align:center; line-height:1.5;
+}
+
+.portal-footer {
+  margin-top:48px; text-align:center;
+  font-family:'Cormorant Garamond',serif;
+  font-style:italic; font-size:14px;
+  color:var(--muted); letter-spacing:0.04em;
+  position:relative; z-index:1;
+  animation: fadeUp 0.8s 0.3s ease both;
+}
+
+/* album link */
+.album-link-btn {
+  margin-top:20px; text-align:center; position:relative; z-index:1;
+  animation: fadeUp 0.8s 0.35s ease both;
+}
+.album-link-btn a {
+  font-size:10px; letter-spacing:0.3em; text-transform:uppercase;
+  color:var(--dusty); text-decoration:none;
+  border-bottom:1px solid rgba(201,135,141,0.4);
+  padding-bottom:2px; transition:color 0.2s;
+}
+.album-link-btn a:hover { color:var(--wine); }
+
+/* ===== SHARED NAV ===== */
+.top-nav {
+  display:flex; align-items:center; justify-content:space-between;
+  padding:18px 22px 12px;
+  position:sticky; top:0; z-index:50;
+  background:rgba(250,246,240,0.88);
+  backdrop-filter:blur(14px);
+  border-bottom:1px solid rgba(232,180,184,0.25);
+}
+.back-btn {
+  font-size:10px; letter-spacing:0.22em; text-transform:uppercase;
+  color:var(--wine); background:none; border:none;
+  font-family:'Jost',sans-serif; padding:4px 0;
+  transition:opacity 0.2s;
+}
+.back-btn:hover { opacity:0.6; }
+.nav-title {
+  font-family:'Cormorant Garamond',serif;
+  font-size:17px; font-style:italic;
+  color:var(--wine); letter-spacing:0.06em;
+}
+
+/* ===== LETTER SCREEN ===== */
+#letter-screen { background:linear-gradient(170deg,#fdf8f5 0%,#f5e8e8 100%); }
+
+.letter-envelope-wrap {
+  display:flex; flex-direction:column; align-items:center;
+  justify-content:center; flex:1; padding:30px 20px 60px;
+}
+
+.envelope {
+  width:min(320px,90vw);
+  position:relative;
+  animation: fadeUp 0.7s ease both;
+}
+
+.envelope-body {
+  background:#fff5f5;
+  border:1px solid rgba(232,180,184,0.5);
+  border-radius:4px 4px 8px 8px;
+  box-shadow:0 20px 60px rgba(139,74,82,0.15);
+  overflow:hidden;
+  position:relative;
+}
+
+/* Envelope flap */
+.envelope-flap {
+  position:relative; z-index:2;
+  width:100%;
+  clip-path: polygon(0 0, 100% 0, 50% 55%);
+  background:linear-gradient(160deg,#f8dde0,#efc4c8);
+  height:90px;
+  border-bottom:1px solid rgba(232,180,184,0.3);
+  display:flex; align-items:flex-start; justify-content:center;
+  padding-top:12px;
+  transform-origin:top center;
+  transition:transform 0.8s cubic-bezier(0.645,0.045,0.355,1);
+}
+.envelope.opened .envelope-flap {
+  transform:rotateX(-180deg);
+}
+
+/* Seal */
+.letter-seal {
+  position:absolute;
+  bottom:-18px; left:50%; transform:translateX(-50%);
+  width:36px; height:36px; border-radius:50%;
+  background:linear-gradient(135deg,var(--rose),var(--dusty));
+  display:flex; align-items:center; justify-content:center;
+  font-size:16px;
+  box-shadow:0 4px 12px rgba(139,74,82,0.3);
+  z-index:10; transition:transform 0.3s;
+}
+.letter-seal:hover { transform:translateX(-50%) scale(1.1); }
+
+.envelope-content {
+  padding:36px 28px 28px;
+  min-height:220px;
+}
+
+/* Letter paper */
+.letter-paper {
+  background:linear-gradient(180deg,#fffcfa,#fff8f5);
+  border:1px solid rgba(232,180,184,0.3);
+  border-radius:3px;
+  padding:28px 24px 24px;
+  box-shadow:0 4px 20px rgba(139,74,82,0.08), inset 0 1px 0 rgba(255,255,255,0.9);
+  position:relative;
+  max-height:0; overflow:hidden;
+  transition:max-height 1.2s cubic-bezier(0.4,0,0.2,1), opacity 0.6s ease;
+  opacity:0;
+}
+.letter-paper.revealed {
+  max-height:1200px;
+  opacity:1;
+}
+.letter-paper::before {
+  content:'';
+  position:absolute; top:0; left:0; right:0;
+  height:3px;
+  background:linear-gradient(90deg,transparent,var(--rose),transparent);
+}
+/* Lined paper effect */
+.letter-paper::after {
+  content:'';
+  position:absolute; inset:0;
+  background:repeating-linear-gradient(
+    transparent 0px, transparent 27px,
+    rgba(232,180,184,0.12) 27px, rgba(232,180,184,0.12) 28px
+  );
+  pointer-events:none;
+}
+
+.letter-date {
+  font-size:10px; letter-spacing:0.25em; text-transform:uppercase;
+  color:var(--muted); margin-bottom:20px; text-align:right;
+  position:relative; z-index:1;
+}
+.letter-salutation {
+  font-family:'Cormorant Garamond',serif;
+  font-size:20px; font-weight:400;
+  color:var(--wine); margin-bottom:16px;
+  position:relative; z-index:1;
+}
+.letter-body {
+  font-family:'Cormorant Garamond',serif;
+  font-size:15px; line-height:1.95;
+  color:var(--text); letter-spacing:0.02em;
+  position:relative; z-index:1;
+  opacity:0; transform:translateY(10px);
+  transition:opacity 0.8s 0.6s ease, transform 0.8s 0.6s ease;
+}
+.letter-paper.revealed .letter-body { opacity:1; transform:translateY(0); }
+
+.letter-closing {
+  margin-top:24px; text-align:right;
+  font-family:'Cormorant Garamond',serif;
+  font-style:italic; font-size:16px;
+  color:var(--wine);
+  position:relative; z-index:1;
+  opacity:0; transform:translateY(10px);
+  transition:opacity 0.8s 1.2s ease, transform 0.8s 1.2s ease;
+}
+.letter-paper.revealed .letter-closing { opacity:1; transform:translateY(0); }
+
+.open-letter-btn {
+  margin-top:20px; display:block; width:100%;
+  background:none; border:1px solid rgba(232,180,184,0.5);
+  border-radius:30px; padding:12px;
+  font-family:'Jost',sans-serif; font-size:10px;
+  letter-spacing:0.3em; text-transform:uppercase;
+  color:var(--wine); transition:all 0.3s;
+}
+.open-letter-btn:hover { background:rgba(232,180,184,0.15); }
+
+/* ===== TIMELINE SCREEN ===== */
+#timeline-screen { background:var(--cream); }
+
+.timeline-wrap {
+  padding:24px 0 80px;
+  flex:1;
+  position:relative;
+  max-width:500px; margin:0 auto; width:100%;
+}
+
+/* Vertical line */
+.timeline-wrap::before {
+  content:'';
+  position:absolute;
+  top:0; bottom:0; left:50%;
+  transform:translateX(-50%);
+  width:1px;
+  background:linear-gradient(180deg, transparent, var(--rose) 8%, var(--rose) 92%, transparent);
+  z-index:0;
+}
+
+.timeline-item {
+  display:flex; align-items:flex-start;
+  gap:16px; padding:0 16px 40px;
+  position:relative; z-index:1;
+  animation: fadeUp 0.6s ease both;
+}
+
+.timeline-item.right { flex-direction:row-reverse; }
+
+.timeline-dot {
+  flex-shrink:0; margin-top:4px;
+  position:relative;
+}
+.timeline-dot-inner {
+  width:14px; height:14px; border-radius:50%;
+  background:linear-gradient(135deg,var(--rose),var(--dusty));
+  box-shadow:0 0 0 3px var(--cream), 0 0 0 5px var(--rose);
+  position:relative; z-index:2;
+  transition:transform 0.3s;
+}
+.timeline-item:hover .timeline-dot-inner { transform:scale(1.3); }
+
+/* Connector line to center */
+.timeline-connector {
+  position:absolute; top:7px;
+  height:1px;
+  background:linear-gradient(90deg, var(--rose), transparent);
+  z-index:1;
+}
+.timeline-item.left .timeline-connector {
+  right:calc(50% - 16px); left:calc(50% + 16px);
+  background:linear-gradient(90deg, transparent, var(--rose));
+}
+.timeline-item.right .timeline-connector {
+  left:calc(50% - 16px); right:calc(50% + 16px);
+  background:linear-gradient(90deg, var(--rose), transparent);
+}
+
+.timeline-card {
+  flex:1; max-width:calc(50% - 30px);
+  background:rgba(255,255,255,0.7);
+  backdrop-filter:blur(10px);
+  border:1px solid rgba(255,255,255,0.8);
+  border-radius:10px; padding:14px;
+  box-shadow:0 4px 16px rgba(139,74,82,0.08);
+  transition:transform 0.25s, box-shadow 0.25s;
+}
+.timeline-card:hover {
+  transform:translateY(-3px);
+  box-shadow:0 10px 28px rgba(139,74,82,0.15);
+}
+.timeline-date {
+  font-size:8px; letter-spacing:0.3em; text-transform:uppercase;
+  color:var(--dusty); margin-bottom:5px;
+}
+.timeline-event {
+  font-family:'Cormorant Garamond',serif;
+  font-size:16px; font-weight:500;
+  color:var(--wine); margin-bottom:4px;
+}
+.timeline-desc {
+  font-size:11px; color:var(--muted);
+  line-height:1.5; letter-spacing:0.02em;
+}
+.timeline-emoji {
+  font-size:20px; margin-bottom:6px; display:block;
+}
+
+/* ===== PLAYLIST SCREEN ===== */
+#playlist-screen {
+  background:linear-gradient(160deg, #1a0d10 0%, #2d1520 40%, #1a0d10 100%);
+  color:#fff;
+}
+#playlist-screen .top-nav {
+  background:rgba(26,13,16,0.88);
+  border-bottom-color:rgba(232,180,184,0.15);
+}
+#playlist-screen .back-btn { color:var(--rose); }
+#playlist-screen .nav-title { color:var(--blush); }
+
+.playlist-header {
+  text-align:center; padding:32px 20px 24px;
+  position:relative;
+}
+.playlist-disc {
+  width:80px; height:80px; border-radius:50%;
+  background:linear-gradient(135deg,#3a2028,#5c3040);
+  margin:0 auto 16px;
+  display:flex; align-items:center; justify-content:center;
+  box-shadow:0 8px 32px rgba(0,0,0,0.5), inset 0 1px 0 rgba(255,255,255,0.1);
+  position:relative;
+  animation:spinDisc 8s linear infinite paused;
+}
+.playlist-disc.playing { animation-play-state:running; }
+@keyframes spinDisc { to{transform:rotate(360deg);} }
+.playlist-disc::before {
+  content:''; position:absolute;
+  width:18px; height:18px; border-radius:50%;
+  background:linear-gradient(135deg,#f5e0e3,#e8c4c8);
+}
+.playlist-disc-rings {
+  position:absolute; inset:8px; border-radius:50%;
+  border:1px solid rgba(232,180,184,0.15);
+}
+.playlist-title {
+  font-family:'DM Serif Display',serif;
+  font-size:24px; color:var(--blush); letter-spacing:0.04em;
+  margin-bottom:4px;
+}
+.playlist-sub {
+  font-size:9px; letter-spacing:0.35em; text-transform:uppercase;
+  color:rgba(232,180,184,0.5);
+}
+
+.songs-list {
+  padding:0 16px 80px;
+  display:flex; flex-direction:column; gap:10px;
+  max-width:480px; margin:0 auto; width:100%;
+}
+
+.song-card {
+  background:rgba(255,255,255,0.05);
+  border:1px solid rgba(232,180,184,0.12);
+  border-radius:10px; padding:14px 16px;
+  display:flex; align-items:center; gap:14px;
+  transition:all 0.25s ease;
+  position:relative; overflow:hidden;
+  animation: fadeUp 0.5s ease both;
+}
+.song-card::before {
+  content:''; position:absolute; inset:0;
+  background:linear-gradient(90deg,rgba(232,180,184,0.06),transparent);
+  opacity:0; transition:opacity 0.3s;
+}
+.song-card:hover { background:rgba(255,255,255,0.08); transform:translateX(4px); }
+.song-card:hover::before { opacity:1; }
+.song-card.active {
+  background:rgba(232,180,184,0.12);
+  border-color:rgba(232,180,184,0.3);
+}
+
+.song-num {
+  font-size:12px; color:rgba(232,180,184,0.35);
+  min-width:20px; font-weight:300;
+  font-variant-numeric:tabular-nums;
+}
+.song-card.active .song-num { color:var(--dusty); }
+
+.song-art {
+  width:44px; height:44px; border-radius:8px; flex-shrink:0;
+  background:linear-gradient(135deg, var(--wine), var(--deep));
+  display:flex; align-items:center; justify-content:center;
+  font-size:20px; box-shadow:0 4px 12px rgba(0,0,0,0.3);
+}
+
+.song-info { flex:1; min-width:0; }
+.song-name {
+  font-family:'Cormorant Garamond',serif;
+  font-size:16px; font-weight:500;
+  color:#fff; letter-spacing:0.02em;
+  white-space:nowrap; overflow:hidden; text-overflow:ellipsis;
+}
+.song-artist {
+  font-size:11px; color:rgba(232,180,184,0.55);
+  margin-top:2px; letter-spacing:0.05em;
+}
+.song-memory {
+  font-size:10px; color:rgba(232,180,184,0.4);
+  margin-top:4px; font-style:italic;
+  letter-spacing:0.02em;
+  white-space:nowrap; overflow:hidden; text-overflow:ellipsis;
+}
+.song-card.active .song-name { color:var(--rose); }
+
+.song-heart {
+  font-size:16px; flex-shrink:0; opacity:0.4;
+  transition:opacity 0.2s, transform 0.2s;
+}
+.song-card:hover .song-heart,
+.song-card.active .song-heart { opacity:1; transform:scale(1.2); }
+
+/* Waveform bars (active song) */
+.song-wave {
+  display:flex; align-items:center; gap:2px;
+  height:16px; flex-shrink:0;
+}
+.song-wave span {
+  width:2px; border-radius:1px;
+  background:var(--dusty);
+  animation:waveBar 0.8s ease infinite;
+}
+.song-wave span:nth-child(1){height:6px;animation-delay:0s;}
+.song-wave span:nth-child(2){height:12px;animation-delay:0.15s;}
+.song-wave span:nth-child(3){height:8px;animation-delay:0.3s;}
+.song-wave span:nth-child(4){height:14px;animation-delay:0.1s;}
+.song-wave span:nth-child(5){height:6px;animation-delay:0.25s;}
+@keyframes waveBar {
+  0%,100%{transform:scaleY(0.6);}
+  50%{transform:scaleY(1);}
+}
+
+/* ===== BUCKET LIST SCREEN ===== */
+#bucket-screen { background:var(--cream); }
+
+.bucket-header {
+  text-align:center; padding:28px 20px 20px;
+}
+.bucket-header h2 {
+  font-family:'DM Serif Display',serif;
+  font-size:28px; color:var(--wine); letter-spacing:0.04em;
+  margin-bottom:4px;
+}
+.bucket-header p {
+  font-size:10px; letter-spacing:0.3em; text-transform:uppercase;
+  color:var(--muted);
+}
+
+.bucket-progress-wrap {
+  padding:0 24px 20px; max-width:480px; margin:0 auto; width:100%;
+}
+.bucket-progress-bar {
+  height:4px; background:rgba(232,180,184,0.25);
+  border-radius:2px; overflow:hidden;
+}
+.bucket-progress-fill {
+  height:100%;
+  background:linear-gradient(90deg,var(--rose),var(--dusty));
+  border-radius:2px;
+  transition:width 0.6s ease;
+}
+.bucket-progress-text {
+  display:flex; justify-content:space-between;
+  font-size:9px; letter-spacing:0.2em; text-transform:uppercase;
+  color:var(--muted); margin-top:6px;
+}
+
+.bucket-categories {
+  padding:0 16px 80px;
+  display:flex; flex-direction:column; gap:24px;
+  max-width:480px; margin:0 auto; width:100%;
+}
+
+.bucket-category-title {
+  font-family:'Cormorant Garamond',serif;
+  font-size:18px; font-style:italic;
+  color:var(--wine); padding:0 8px 8px;
+  border-bottom:1px solid rgba(232,180,184,0.3);
+  margin-bottom:10px; letter-spacing:0.04em;
+}
+
+.bucket-item {
+  display:flex; align-items:center; gap:14px;
+  padding:12px 14px;
+  background:rgba(255,255,255,0.6);
+  backdrop-filter:blur(8px);
+  border:1px solid rgba(255,255,255,0.8);
+  border-radius:10px;
+  margin-bottom:8px;
+  transition:all 0.25s ease;
+  box-shadow:0 2px 8px rgba(139,74,82,0.05);
+  animation: fadeUp 0.5s ease both;
+}
+.bucket-item:hover {
+  transform:translateX(4px);
+  box-shadow:0 6px 20px rgba(139,74,82,0.1);
+}
+.bucket-item.done {
+  background:rgba(232,180,184,0.12);
+  border-color:rgba(232,180,184,0.3);
+}
+
+.bucket-check {
+  width:22px; height:22px; border-radius:50%; flex-shrink:0;
+  border:1.5px solid rgba(201,135,141,0.4);
+  display:flex; align-items:center; justify-content:center;
+  transition:all 0.3s;
+  background:transparent;
+}
+.bucket-item.done .bucket-check {
+  background:linear-gradient(135deg,var(--rose),var(--dusty));
+  border-color:transparent;
+}
+.bucket-check svg { width:11px; height:11px; stroke:#fff; opacity:0; transition:opacity 0.3s; }
+.bucket-item.done .bucket-check svg { opacity:1; }
+
+.bucket-emoji { font-size:18px; flex-shrink:0; }
+.bucket-text-wrap { flex:1; }
+.bucket-text {
+  font-size:13px; color:var(--text); letter-spacing:0.02em;
+  transition:all 0.3s;
+}
+.bucket-item.done .bucket-text {
+  color:var(--muted); text-decoration:line-through; text-decoration-color:var(--dusty);
+}
+.bucket-date {
+  font-size:9px; letter-spacing:0.15em; color:var(--dusty);
+  margin-top:2px; text-transform:uppercase;
+}
+
+/* ===== ANNIVERSARY SCREEN ===== */
+#anniversary-screen {
+  background:radial-gradient(ellipse at 50% 0%,#2a0d14 0%,#1a0a0e 60%,#0d0508 100%);
+  color:#fff;
+  align-items:center;
+  overflow:hidden;
+}
+#anniversary-screen .top-nav {
+  background:rgba(13,5,8,0.7);
+  border-bottom-color:rgba(232,180,184,0.1);
+  width:100%;
+}
+#anniversary-screen .back-btn { color:var(--rose); }
+#anniversary-screen .nav-title { color:var(--blush); }
+
+.anni-stars {
+  position:absolute; inset:0; pointer-events:none; z-index:0;
+}
+.star {
+  position:absolute; border-radius:50%;
+  background:#fff; animation:twinkle 3s ease-in-out infinite;
+}
+@keyframes twinkle {
+  0%,100%{opacity:0.2;transform:scale(1);}
+  50%{opacity:0.8;transform:scale(1.3);}
+}
+
+.anni-content {
+  flex:1; display:flex; flex-direction:column;
+  align-items:center; justify-content:center;
+  padding:20px 20px 60px;
+  position:relative; z-index:1;
+  gap:0; text-align:center;
+}
+
+.anni-label {
+  font-size:9px; letter-spacing:0.5em; text-transform:uppercase;
+  color:rgba(232,180,184,0.45); margin-bottom:12px;
+  animation: fadeUp 0.8s ease both;
+}
+.anni-names {
+  font-family:'DM Serif Display',serif;
+  font-size:clamp(36px,9vw,68px);
+  color:var(--blush); letter-spacing:0.06em;
+  line-height:1; margin-bottom:8px;
+  animation: fadeUp 0.8s 0.1s ease both;
+}
+.anni-heart-center {
+  font-size:28px; margin:0 8px;
+  animation: heartbeat 2.4s ease-in-out infinite;
+  display:inline-block;
+}
+@keyframes heartbeat {
+  0%,100%{transform:scale(1);}14%{transform:scale(1.15);}28%{transform:scale(1);}42%{transform:scale(1.08);}70%{transform:scale(1);}
+}
+
+.anni-date-start {
+  font-size:10px; letter-spacing:0.4em; text-transform:uppercase;
+  color:rgba(232,180,184,0.4); margin-bottom:32px;
+  animation: fadeUp 0.8s 0.15s ease both;
+}
+
+/* Big counter */
+.anni-counter-wrap {
+  display:flex; gap:16px; margin-bottom:32px;
+  animation: fadeUp 0.8s 0.2s ease both;
+}
+.anni-unit {
+  display:flex; flex-direction:column; align-items:center; gap:4px;
+}
+.anni-num {
+  font-family:'DM Serif Display',serif;
+  font-size:clamp(36px,9vw,64px);
+  color:var(--rose); line-height:1;
+  text-shadow:0 0 40px rgba(232,180,184,0.3);
+}
+.anni-unit-label {
+  font-size:8px; letter-spacing:0.35em; text-transform:uppercase;
+  color:rgba(232,180,184,0.35);
+}
+.anni-sep {
+  font-family:'DM Serif Display',serif;
+  font-size:48px; color:rgba(232,180,184,0.2);
+  align-self:flex-start; margin-top:4px;
+}
+
+/* Milestone ring */
+.anni-milestones {
+  display:flex; flex-wrap:wrap; gap:10px; justify-content:center;
+  margin-bottom:32px;
+  animation: fadeUp 0.8s 0.25s ease both;
+}
+.milestone-chip {
+  padding:6px 14px; border-radius:20px;
+  font-size:10px; letter-spacing:0.15em; text-transform:uppercase;
+  border:1px solid rgba(232,180,184,0.2);
+  color:rgba(232,180,184,0.5);
+  transition:all 0.3s;
+}
+.milestone-chip.reached {
+  background:rgba(232,180,184,0.1);
+  border-color:rgba(232,180,184,0.4);
+  color:var(--rose);
+}
+.milestone-chip.next {
+  border-color:var(--gold);
+  color:var(--gold); background:rgba(201,169,110,0.08);
+  animation:chipGlow 2s ease-in-out infinite;
+}
+@keyframes chipGlow {
+  0%,100%{box-shadow:none;}
+  50%{box-shadow:0 0 12px rgba(201,169,110,0.3);}
+}
+
+.anni-quote {
+  font-family:'Cormorant Garamond',serif;
+  font-style:italic; font-size:clamp(14px,3.5vw,17px);
+  color:rgba(232,180,184,0.55); letter-spacing:0.04em;
+  max-width:300px; line-height:1.7;
+  animation: fadeUp 0.8s 0.3s ease both;
+  margin-bottom:28px;
+}
+
+.anni-btn {
+  background:none; border:1px solid rgba(232,180,184,0.3);
+  border-radius:30px; padding:12px 28px;
+  font-family:'Jost',sans-serif; font-size:10px;
+  letter-spacing:0.3em; text-transform:uppercase;
+  color:var(--rose); transition:all 0.3s;
+  animation: fadeUp 0.8s 0.35s ease both;
+}
+.anni-btn:hover {
+  background:rgba(232,180,184,0.1);
+  box-shadow:0 0 20px rgba(232,180,184,0.15);
+}
+
+/* Petals floating */
+.anni-petal {
+  position:absolute; font-size:16px; pointer-events:none;
+  animation:petalFall linear infinite;
+  opacity:0.6; z-index:0;
+}
+@keyframes petalFall {
+  0%{transform:translateY(-20px) rotate(0deg); opacity:0;}
+  10%{opacity:0.6;}
+  90%{opacity:0.3;}
+  100%{transform:translateY(100vh) rotate(360deg); opacity:0;}
+}
+
+/* ===== TOAST ===== */
+.toast {
+  position:fixed; bottom:30px; left:50%; transform:translateX(-50%) translateY(20px);
+  background:rgba(30,10,15,0.9); color:#fff;
+  padding:10px 20px; border-radius:30px;
+  font-size:12px; letter-spacing:0.1em;
+  opacity:0; transition:all 0.3s;
+  z-index:999; pointer-events:none;
+  border:1px solid rgba(232,180,184,0.3);
+  white-space:nowrap;
+}
+.toast.show { opacity:1; transform:translateX(-50%) translateY(0); }
+
+@media(max-width:480px){
+  .nav-grid{grid-template-columns:repeat(2,1fr);}
+  .anni-counter-wrap{gap:10px;}
+  .anni-num{font-size:40px;}
+  .timeline-wrap::before{left:24px;}
+  .timeline-item{flex-direction:row!important;padding-left:50px;padding-right:16px;}
+  .timeline-card{max-width:100%;}
+  .timeline-connector{display:none;}
+  .timeline-dot{position:absolute;left:17px;}
+}
+</style>
+</head>
+<body>
+
+<!-- ===== PORTAL ===== -->
+<div id="portal" class="screen active">
+  <div class="portal-title">Go &amp; Nar</div>
+  <div class="portal-sub">our little world ♡</div>
+
+  <div class="nav-grid">
+    <div class="nav-item" onclick="showScreen('letter-screen')">
+      <div class="nav-icon">💌</div>
+      <div class="nav-label">Letter</div>
+      <div class="nav-desc">surat untukmu</div>
+    </div>
+    <div class="nav-item" onclick="showScreen('timeline-screen')">
+      <div class="nav-icon">🕰️</div>
+      <div class="nav-label">Timeline</div>
+      <div class="nav-desc">perjalanan kita</div>
+    </div>
+    <div class="nav-item" onclick="showScreen('playlist-screen')">
+      <div class="nav-icon">🎵</div>
+      <div class="nav-label">Playlist</div>
+      <div class="nav-desc">lagu-lagu kita</div>
+    </div>
+    <div class="nav-item" onclick="showScreen('bucket-screen')">
+      <div class="nav-icon">✨</div>
+      <div class="nav-label">Bucket List</div>
+      <div class="nav-desc">mimpi bareng</div>
+    </div>
+    <div class="nav-item" style="grid-column:span 2" onclick="showScreen('anniversary-screen')">
+      <div class="nav-icon">🌹</div>
+      <div class="nav-label">Anniversary</div>
+      <div class="nav-desc">hari-hari berharga kita</div>
+    </div>
+  </div>
+
+  <div class="portal-footer">"every day with you is my favourite."</div>
+  <div class="album-link-btn">
+    <a href="album_2.html">← Kembali ke Album</a>
+  </div>
+</div>
+
+<!-- ===== LETTER ===== -->
+<div id="letter-screen" class="screen">
+  <div class="top-nav">
+    <button class="back-btn" onclick="showScreen('portal')">← back</button>
+    <div class="nav-title">Surat Untukmu</div>
+    <div style="width:60px"></div>
+  </div>
+
+  <div class="letter-envelope-wrap">
+    <div class="envelope" id="envelope">
+      <div class="envelope-body">
+        <div class="envelope-flap">
+          <div class="letter-seal" onclick="openLetter()" title="Buka surat">💌</div>
+        </div>
+        <div class="envelope-content">
+          <div class="letter-paper" id="letterPaper">
+            <div class="letter-date" id="letterDate"></div>
+            <div class="letter-salutation">Nar yang tersayang,</div>
+            <div class="letter-body">
+              Kalau kamu lagi baca ini, itu berarti aku udah nulis sesuatu yang udah lama aku pengen bilang — tapi entah kenapa selalu lebih gampang ditulis daripada diucapkan.<br><br>
+              Aku bersyukur banget kamu ada. Bukan cuma karena hal-hal besar, tapi justru karena hal-hal kecil yang mungkin kamu sendiri lupa — senyum kamu waktu nemu hal baru yang kamu suka, cara kamu cerita dengan mata yang bercahaya, cara kamu ada tanpa harus selalu bilang apa-apa.<br><br>
+              Setiap hari sama kamu ngerasa kayak halaman baru yang aku selalu excited buat baca. Dan aku nggak sabar buat tau cerita kita berakhir — atau mungkin, nggak berakhir.<br><br>
+              Makasih udah milih aku, tiap hari.
+            </div>
+            <div class="letter-closing">
+              Selalu,<br>
+              <em>Go ♡</em>
+            </div>
+          </div>
+          <button class="open-letter-btn" id="openLetterBtn" onclick="openLetter()">Buka Surat ✦</button>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ===== TIMELINE ===== -->
+<div id="timeline-screen" class="screen">
+  <div class="top-nav">
+    <button class="back-btn" onclick="showScreen('portal')">← back</button>
+    <div class="nav-title">Our Timeline</div>
+    <div style="width:60px"></div>
+  </div>
+  <div class="timeline-wrap" id="timelineWrap"></div>
+</div>
+
+<!-- ===== PLAYLIST ===== -->
+<div id="playlist-screen" class="screen">
+  <div class="top-nav">
+    <button class="back-btn" onclick="showScreen('portal')">← back</button>
+    <div class="nav-title">Our Playlist</div>
+    <div style="width:60px"></div>
+  </div>
+
+  <div class="playlist-header">
+    <div class="playlist-disc" id="playlistDisc">
+      <div class="playlist-disc-rings"></div>
+    </div>
+    <div class="playlist-title">Go &amp; Nar</div>
+    <div class="playlist-sub">lagu-lagu yang menemani kita</div>
+  </div>
+
+  <div class="songs-list" id="songsList"></div>
+</div>
+
+<!-- ===== BUCKET LIST ===== -->
+<div id="bucket-screen" class="screen">
+  <div class="top-nav">
+    <button class="back-btn" onclick="showScreen('portal')">← back</button>
+    <div class="nav-title">Bucket List</div>
+    <div style="width:60px"></div>
+  </div>
+
+  <div class="bucket-header">
+    <h2>Dream Together</h2>
+    <p>hal-hal yang mau kita lakuin bareng</p>
+  </div>
+
+  <div class="bucket-progress-wrap">
+    <div class="bucket-progress-bar">
+      <div class="bucket-progress-fill" id="bucketFill" style="width:0%"></div>
+    </div>
+    <div class="bucket-progress-text">
+      <span id="bucketDone">0 selesai</span>
+      <span id="bucketTotal">0 total</span>
+    </div>
+  </div>
+
+  <div class="bucket-categories" id="bucketCategories"></div>
+</div>
+
+<!-- ===== ANNIVERSARY ===== -->
+<div id="anniversary-screen" class="screen">
+  <div class="top-nav">
+    <button class="back-btn" onclick="showScreen('portal')">← back</button>
+    <div class="nav-title">Anniversary</div>
+    <div style="width:60px"></div>
+  </div>
+
+  <div class="anni-stars" id="anniStars"></div>
+
+  <div class="anni-content">
+    <div class="anni-label">together since</div>
+    <div class="anni-names">
+      Go <span class="anni-heart-center">♡</span> Nar
+    </div>
+    <div class="anni-date-start">1 Oktober 2025</div>
+
+    <div class="anni-counter-wrap">
+      <div class="anni-unit">
+        <div class="anni-num" id="anniYears">0</div>
+        <div class="anni-unit-label">tahun</div>
+      </div>
+      <div class="anni-sep">·</div>
+      <div class="anni-unit">
+        <div class="anni-num" id="anniMonths">0</div>
+        <div class="anni-unit-label">bulan</div>
+      </div>
+      <div class="anni-sep">·</div>
+      <div class="anni-unit">
+        <div class="anni-num" id="anniDays">0</div>
+        <div class="anni-unit-label">hari</div>
+      </div>
+    </div>
+
+    <div class="anni-milestones" id="anniMilestones"></div>
+
+    <div class="anni-quote">"i didn't know what home felt like until i found you."</div>
+    <button class="anni-btn" onclick="shower()">✨ Rayakan ✨</button>
+  </div>
+</div>
+
+<!-- Toast -->
+<div class="toast" id="toast"></div>
+
+<script>
+// ===== SCREEN NAV =====
+function showScreen(id) {
+  document.querySelectorAll('.screen').forEach(s=>s.classList.remove('active'));
+  document.getElementById(id).classList.add('active');
+  window.scrollTo({top:0});
+
+  if(id==='timeline-screen') buildTimeline();
+  if(id==='playlist-screen') buildPlaylist();
+  if(id==='bucket-screen') buildBucket();
+  if(id==='anniversary-screen') buildAnniversary();
+}
+
+// ===== LETTER =====
+let letterOpened = false;
+function openLetter() {
+  if(letterOpened) return;
+  letterOpened = true;
+
+  const env = document.getElementById('envelope');
+  const paper = document.getElementById('letterPaper');
+  const btn = document.getElementById('openLetterBtn');
+  const dateEl = document.getElementById('letterDate');
+
+  // set date
+  dateEl.textContent = new Date().toLocaleDateString('id-ID',{day:'numeric',month:'long',year:'numeric'});
+
+  env.classList.add('opened');
+  btn.style.display = 'none';
+
+  setTimeout(()=>{
+    paper.classList.add('revealed');
+  }, 700);
+}
+
+// ===== TIMELINE DATA =====
+const TIMELINE_EVENTS = [
+  { date:'Oktober 2025', event:'Hari Pertama', desc:'Awal dari cerita yang nggak pernah kita bayangkan.', emoji:'🌸', side:'left' },
+  { date:'November 2025', event:'Makin Deket', desc:'Mulai ngerasa nyaman satu sama lain — hal kecil mulai berasa besar.', emoji:'🍂', side:'right' },
+  { date:'Desember 2025', event:'Akhir Tahun Bareng', desc:'Tahun berakhir, tapi kita baru mulai. The best ending ever.', emoji:'🎄', side:'left' },
+  { date:'Januari 2026', event:'Tahun Baru', desc:'Resolusi pertama: selalu ada buat satu sama lain.', emoji:'🎉', side:'right' },
+  { date:'Februari 2026', event:'Valentine', desc:'Tiap hari berasa Valentine kalau sama kamu.', emoji:'💝', side:'left' },
+  { date:'Maret 2026', event:'Tumbuh Bareng', desc:'Belajar, tumbuh, dan jatuh cinta lagi setiap hari.', emoji:'🌱', side:'right' },
+  { date:'April 2026', event:'Mekar Bersama', desc:'Seperti bunga musim semi — kita terus mekar.', emoji:'🌷', side:'left' },
+  { date:'Dan seterusnya…', event:'Our Story Goes On', desc:'Masih banyak halaman yang belum ditulis.', emoji:'✨', side:'right' },
+];
+
+function buildTimeline() {
+  const wrap = document.getElementById('timelineWrap');
+  if(wrap.dataset.built) return;
+  wrap.dataset.built = '1';
+
+  TIMELINE_EVENTS.forEach((ev,i) => {
+    const item = document.createElement('div');
+    item.className = `timeline-item ${ev.side}`;
+    item.style.animationDelay = `${i*0.08}s`;
+
+    item.innerHTML = `
+      <div class="timeline-dot">
+        <div class="timeline-dot-inner"></div>
+      </div>
+      <div class="timeline-card">
+        <div class="timeline-date">${ev.date}</div>
+        <span class="timeline-emoji">${ev.emoji}</span>
+        <div class="timeline-event">${ev.event}</div>
+        <div class="timeline-desc">${ev.desc}</div>
+      </div>
+    `;
+    wrap.appendChild(item);
+  });
+}
+
+// ===== PLAYLIST DATA =====
+const SONGS = [
+  { name:'Perfect', artist:'Ed Sheeran', emoji:'🎸', memory:'lagu yang somehow selalu cocok', active:true },
+  { name:'A Thousand Years', artist:'Christina Perri', emoji:'🌹', memory:'kamu = selamanya' },
+  { name:'Can\'t Help Falling in Love', artist:'Elvis Presley', emoji:'✨', memory:'karena aku emang nggak bisa nahan' },
+  { name:'Lover', artist:'Taylor Swift', emoji:'💛', memory:'ini literally kita' },
+  { name:'All of Me', artist:'John Legend', emoji:'🎹', memory:'semua dari kamu' },
+  { name:'Bloom', artist:'The Paper Kites', emoji:'🌸', memory:'tenang seperti pagi sama kamu' },
+  { name:'You Are the Best Thing', artist:'Ray LaMontagne', emoji:'☀️', memory:'karena emang begitu' },
+  { name:'Lucky', artist:'Jason Mraz ft. Colbie Caillat', emoji:'🍀', memory:'lucky to be loving you' },
+  { name:'Die With A Smile', artist:'Lady Gaga & Bruno Mars', emoji:'🌙', memory:'yang ini mah ya' },
+  { name:'Stick Season', artist:'Noah Kahan', emoji:'🍁', memory:'nostalgia vibes' },
+];
+
+let activeSong = 0;
+function buildPlaylist() {
+  const list = document.getElementById('songsList');
+  if(list.dataset.built) return;
+  list.dataset.built = '1';
+
+  SONGS.forEach((song,i) => {
+    const card = document.createElement('div');
+    card.className = `song-card ${song.active ? 'active' : ''}`;
+    card.style.animationDelay = `${i*0.06}s`;
+
+    card.innerHTML = `
+      <div class="song-num">${String(i+1).padStart(2,'0')}</div>
+      <div class="song-art">${song.emoji}</div>
+      <div class="song-info">
+        <div class="song-name">${song.name}</div>
+        <div class="song-artist">${song.artist}</div>
+        <div class="song-memory">${song.memory}</div>
+      </div>
+      ${song.active
+        ? `<div class="song-wave"><span></span><span></span><span></span><span></span><span></span></div>`
+        : `<div class="song-heart">♡</div>`
+      }
+    `;
+
+    card.addEventListener('click', ()=>{
+      document.querySelectorAll('.song-card').forEach(c=>c.classList.remove('active'));
+      card.classList.add('active');
+      card.querySelector('.song-heart') && card.querySelector('.song-heart').replaceWith(Object.assign(document.createElement('div'),{className:'song-wave',innerHTML:'<span></span><span></span><span></span><span></span><span></span>'}));
+      document.getElementById('playlistDisc').classList.add('playing');
+      showToast(`♪ ${song.name} — ${song.artist}`);
+    });
+
+    list.appendChild(card);
+  });
+
+  document.getElementById('playlistDisc').classList.add('playing');
+}
+
+// ===== BUCKET LIST DATA =====
+const BUCKET_DATA = [
+  {
+    category: '🌏 Jalan-jalan',
+    items: [
+      { text:'Pergi ke Bali bareng', done:false, emoji:'🏝️' },
+      { text:'Road trip ke suatu tempat baru', done:false, emoji:'🚗' },
+      { text:'Nonton sunrise atau sunset bareng', done:true, date:'Nov 2025', emoji:'🌅' },
+      { text:'Pergi ke luar negeri bareng', done:false, emoji:'✈️' },
+      { text:'Staycation di hotel yang fancy', done:false, emoji:'🏨' },
+    ]
+  },
+  {
+    category: '🍽️ Makan & Eksplor',
+    items: [
+      { text:'Cobain restoran fine dining bareng', done:false, emoji:'🥂' },
+      { text:'Masak bareng di dapur', done:false, emoji:'👨‍🍳' },
+      { text:'Food crawl seharian penuh', done:false, emoji:'🍜' },
+      { text:'Nemu tempat makan hidden gem', done:true, date:'Des 2025', emoji:'💎' },
+    ]
+  },
+  {
+    category: '🎬 Experience',
+    items: [
+      { text:'Nonton bioskop midnight bareng', done:true, date:'Okt 2025', emoji:'🎥' },
+      { text:'Pergi ke konser atau festival musik', done:false, emoji:'🎶' },
+      { text:'Foto bareng di photobox', done:true, date:'Nov 2025', emoji:'📸' },
+      { text:'Buat sesuatu bareng (DIY/craft)', done:false, emoji:'🎨' },
+      { text:'Main wahana seru bareng', done:false, emoji:'🎡' },
+    ]
+  },
+  {
+    category: '💌 Hal Kecil yang Berarti',
+    items: [
+      { text:'Nulis surat tangan satu sama lain', done:false, emoji:'✍️' },
+      { text:'Hujan-hujanan bareng', done:false, emoji:'🌧️' },
+      { text:'Tidur sambil nonton film favorit', done:true, date:'Jan 2026', emoji:'🎞️' },
+      { text:'Buat playlist khusus buat satu sama lain', done:false, emoji:'🎵' },
+      { text:'Kasih hadiah surprise tanpa alasan', done:true, date:'Feb 2026', emoji:'🎁' },
+    ]
+  }
+];
+
+function buildBucket() {
+  const container = document.getElementById('bucketCategories');
+  if(container.dataset.built) return;
+  container.dataset.built='1';
+
+  let totalDone = 0;
+  let totalItems = 0;
+
+  BUCKET_DATA.forEach(cat=>{
+    totalItems += cat.items.length;
+    totalDone += cat.items.filter(i=>i.done).length;
+
+    const catDiv = document.createElement('div');
+    catDiv.innerHTML = `<div class="bucket-category-title">${cat.category}</div>`;
+
+    cat.items.forEach((item,i)=>{
+      const el = document.createElement('div');
+      el.className = `bucket-item ${item.done?'done':''}`;
+      el.style.animationDelay = `${i*0.06}s`;
+      el.innerHTML = `
+        <div class="bucket-check">
+          <svg viewBox="0 0 12 12" fill="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <polyline points="2,6 5,9 10,3"/>
+          </svg>
+        </div>
+        <div class="bucket-emoji">${item.emoji}</div>
+        <div class="bucket-text-wrap">
+          <div class="bucket-text">${item.text}</div>
+          ${item.done && item.date ? `<div class="bucket-date">✓ ${item.date}</div>` : ''}
+        </div>
+      `;
+
+      el.addEventListener('click',()=>{
+        const wasDone = el.classList.contains('done');
+        el.classList.toggle('done');
+        if(!wasDone){
+          showToast('✓ Ditandai selesai!');
+          totalDone++;
+        } else {
+          totalDone--;
+        }
+        updateBucketProgress(totalDone,totalItems);
+      });
+
+      catDiv.appendChild(el);
+    });
+
+    container.appendChild(catDiv);
+  });
+
+  updateBucketProgress(totalDone, totalItems);
+}
+
+function updateBucketProgress(done, total){
+  const pct = total ? Math.round(done/total*100) : 0;
+  document.getElementById('bucketFill').style.width = pct+'%';
+  document.getElementById('bucketDone').textContent = done+' selesai';
+  document.getElementById('bucketTotal').textContent = total+' total';
+}
+
+// ===== ANNIVERSARY =====
+const START_DATE = new Date('2025-10-01T00:00:00');
+const MILESTONES = [
+  {label:'1 Bulan', days:30},
+  {label:'100 Hari', days:100},
+  {label:'6 Bulan', days:182},
+  {label:'1 Tahun', days:365},
+  {label:'2 Tahun', days:730},
+  {label:'3 Tahun', days:1095},
+];
+
+function buildAnniversary() {
+  // Stars
+  const starsEl = document.getElementById('anniStars');
+  if(!starsEl.dataset.built){
+    starsEl.dataset.built='1';
+    for(let i=0;i<80;i++){
+      const s=document.createElement('div');
+      s.className='star';
+      const sz=Math.random()*2+1;
+      s.style.cssText=`width:${sz}px;height:${sz}px;top:${Math.random()*100}%;left:${Math.random()*100}%;animation-delay:${Math.random()*4}s;animation-duration:${2+Math.random()*3}s`;
+      starsEl.appendChild(s);
+    }
+    // Petals
+    const petalEmojis=['🌸','🌹','✨','💗'];
+    for(let i=0;i<8;i++){
+      const p=document.createElement('div');
+      p.className='anni-petal';
+      p.textContent=petalEmojis[i%petalEmojis.length];
+      p.style.cssText=`left:${Math.random()*100}%;animation-delay:${Math.random()*12}s;animation-duration:${10+Math.random()*8}s;font-size:${12+Math.random()*10}px`;
+      document.getElementById('anniversary-screen').appendChild(p);
+    }
+  }
+
+  // Counter
+  updateAnniCounter();
+  if(!window._anniInterval) window._anniInterval = setInterval(updateAnniCounter, 60000);
+
+  // Milestones
+  const mWrap = document.getElementById('anniMilestones');
+  if(!mWrap.dataset.built){
+    mWrap.dataset.built='1';
+    const today = new Date();
+    const elapsed = Math.floor((today-START_DATE)/86400000);
+    let nextFound=false;
+    MILESTONES.forEach(m=>{
+      const chip=document.createElement('div');
+      const reached = elapsed>=m.days;
+      const isNext = !reached && !nextFound;
+      if(isNext) nextFound=true;
+      chip.className=`milestone-chip ${reached?'reached':''} ${isNext?'next':''}`;
+      chip.textContent=(reached?'✓ ':isNext?'→ ':'')+m.label;
+      mWrap.appendChild(chip);
+    });
+  }
+}
+
+function updateAnniCounter(){
+  const now=new Date();
+  let y=now.getFullYear()-START_DATE.getFullYear();
+  let mo=now.getMonth()-START_DATE.getMonth();
+  let d=now.getDate()-START_DATE.getDate();
+  if(d<0){ mo--; d+=new Date(now.getFullYear(),now.getMonth(),0).getDate(); }
+  if(mo<0){ y--; mo+=12; }
+  document.getElementById('anniYears').textContent=y;
+  document.getElementById('anniMonths').textContent=mo;
+  document.getElementById('anniDays').textContent=d;
+}
+
+function shower(){
+  const emojis=['🌸','💗','✨','🌹','💖','⭐'];
+  for(let i=0;i<60;i++){
+    setTimeout(()=>{
+      const el=document.createElement('div');
+      el.style.cssText=`position:fixed;top:-20px;left:${Math.random()*100}vw;font-size:${14+Math.random()*14}px;pointer-events:none;z-index:999;transition:transform ${1.5+Math.random()*1.5}s ease,opacity ${1.5+Math.random()*1.5}s ease;`;
+      el.textContent=emojis[Math.floor(Math.random()*emojis.length)];
+      document.body.appendChild(el);
+      setTimeout(()=>{
+        el.style.transform=`translateY(110vh) rotate(${Math.random()*360}deg)`;
+        el.style.opacity='0';
+        setTimeout(()=>el.remove(),2000);
+      },50);
+    },i*40);
+  }
+  showToast('🌸 Selamat, sayang! ♡');
+}
+
+// ===== TOAST =====
+let toastTimer;
+function showToast(msg){
+  const t=document.getElementById('toast');
+  t.textContent=msg; t.classList.add('show');
+  clearTimeout(toastTimer);
+  toastTimer=setTimeout(()=>t.classList.remove('show'),2500);
+}
+</script>
+</body>
+</html>
