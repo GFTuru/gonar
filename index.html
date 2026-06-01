@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8"/>
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>The Vault — Arsip Hati untuk Dinnar</title>
+  <title>The Vault — Arsip</title>
   <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;0,600;1,300;1,400&family=DM+Mono:ital,wght@0,300;0,400;1,300&family=Playfair+Display:ital,wght@1,400;1,700&display=swap" rel="stylesheet"/>
   <style>
     *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
@@ -29,6 +29,15 @@
       font-family: 'Cormorant Garamond', serif;
       overflow-x: hidden;
       cursor: none;
+    }
+
+    /* Mengembalikan kursor normal saat admin terbuka */
+    body.admin-open {
+      cursor: auto;
+    }
+    body.admin-open .cursor,
+    body.admin-open .cursor-ring {
+      display: none !important;
     }
 
     /* Custom cursor */
@@ -521,7 +530,7 @@
       border-radius: 12px;
       padding: 36px 32px 28px;
       width: 100%;
-      max-width: 560px;
+      max-width: 500px; /* Dipersempit agar lebih rapih tanpa input text */
       max-height: 90vh;
       overflow-y: auto;
       box-shadow: 0 40px 80px rgba(107,45,62,0.25), 0 0 0 1px rgba(201,122,138,0.15);
@@ -557,7 +566,7 @@
     .admin-close:hover { background: var(--rose); color: white; }
 
     .admin-row {
-      margin-bottom: 18px;
+      margin-bottom: 12px;
       padding: 16px;
       background: rgba(247,232,232,0.3);
       border-radius: 8px;
@@ -567,7 +576,6 @@
       display: flex;
       align-items: center;
       justify-content: space-between;
-      margin-bottom: 10px;
     }
     .admin-part-label {
       font-family: 'DM Mono', monospace;
@@ -616,6 +624,7 @@
     .admin-input {
       width: 100%;
       padding: 9px 12px;
+      margin-top: 8px;
       border: 1px solid rgba(201,122,138,0.3);
       border-radius: 6px;
       background: rgba(255,249,247,0.9);
@@ -629,10 +638,6 @@
       border-color: var(--rose);
       box-shadow: 0 0 0 3px rgba(201,122,138,0.12);
     }
-    .admin-input:disabled {
-      opacity: 0.4;
-      cursor: not-allowed;
-    }
 
     .admin-footer {
       margin-top: 24px;
@@ -641,6 +646,20 @@
       justify-content: flex-end;
       align-items: center;
     }
+    .admin-lock-all {
+      padding: 10px 16px;
+      background: rgba(180,180,180,0.15);
+      color: var(--text);
+      border: 1px solid rgba(180,180,180,0.3);
+      border-radius: 6px;
+      font-family: 'DM Mono', monospace;
+      font-size: 10px;
+      letter-spacing: 0.1em;
+      text-transform: uppercase;
+      cursor: pointer;
+      transition: background 0.2s;
+    }
+    .admin-lock-all:hover { background: rgba(180,180,180,0.3); }
     .admin-save {
       padding: 10px 24px;
       background: var(--rose-deep);
@@ -712,22 +731,6 @@
     @media (max-width: 600px) {
       .card-final-title { font-size: 36px !important; }
       .card-final-inner { padding: 28px 24px 24px 28px; }
-    }
-
-    .admin-input-file {
-      padding-right: 120px;
-    }
-    .file-hint {
-      position: absolute;
-      right: 10px;
-      top: 50%;
-      transform: translateY(-50%);
-      font-family: 'DM Mono', monospace;
-      font-size: 9px;
-      letter-spacing: 0.15em;
-      color: var(--rose);
-      opacity: 0.5;
-      pointer-events: none;
     }
 
     /* ID Hati click hint */
@@ -823,7 +826,7 @@
     </div>
 
     <footer>
-      <div class="footer-quote">"Di antara setiap detak jantung, ada sebaris rasa. Di antara setiap baris, ada namau."</div>
+      <div class="footer-quote">"Di antara setiap detak jantung, ada sebaris rasa. Di antara setiap baris, ada namamu."</div>
       <div class="footer-code">© Milik Dinnar · Dirangkai dengan penuh cinta</div>
     </footer>
   </div>
@@ -842,6 +845,8 @@
         <!-- Rows rendered by JS -->
       </div>
       <div class="admin-footer">
+        <button class="admin-lock-all" id="adminLockAll">Kunci Semua</button>
+        <div style="flex:1;"></div>
         <span class="admin-status" id="adminStatus"></span>
         <button class="admin-save" id="adminSave">Simpan Perubahan</button>
       </div>
@@ -852,7 +857,7 @@
     // ── CONFIG FIREBASE ──
     const FB_URL = 'https://gf9-dn5-default-rtdb.asia-southeast1.firebasedatabase.app/vault.json';
 
-    // ── PART METADATA (konten statis, hanya link & locked dari JSONBin) ──
+    // ── PART METADATA (konten statis) ──
     const PARTS = [
       { num:'001', roman:'I',   subtitle:'Pertemuan',  code:'// awal_mula.init()',             desc:'Detak jantung pertama. Di mana semuanya bermula — buka arsip ini dan rasakan kembali momen itu.' },
       { num:'002', roman:'II',  subtitle:'Perasaan',   code:'// pulse.monitor(dinnar)',        desc:'Dosis rindu kedua diberikan. Cerita kita semakin dalam, sedalam tarikan napas panjang.' },
@@ -870,7 +875,7 @@
     const LOCKED_CODES  = ['// segera...','// segera...','// segera...','// segera...','// segera...','// segera...','// segera...','// segera...','// hanya_untuk_nanti...'];
 
     // ── STATE ──
-    let partsData = PARTS.map(p => ({ url: '', locked: true, subtitle: p.subtitle }));
+    let partsData = PARTS.map(p => ({ locked: true, subtitle: p.subtitle }));
 
     // ── LOADING BAR ──
     const loadingBar = document.getElementById('loadingBar');
@@ -900,13 +905,14 @@
       finalSlot.innerHTML = '';
 
       PARTS.forEach((p, i) => {
-        const d = partsData[i] || { url: '', locked: true, subtitle: p.subtitle };
-        const locked = d.locked || (!d.fileName && !d.url);
+        const d = partsData[i] || { locked: true, subtitle: p.subtitle };
+        const locked = d.locked === undefined ? true : d.locked;
         const subtitle = d.subtitle || p.subtitle;
+        const targetUrl = 'thevault' + (i + 1) + '.html'; // Link otomatis: thevault1.html s/d thevault9.html
+        
         const delay = (0.15 + i * 0.1).toFixed(2);
         const isLast = i === PARTS.length - 1;
 
-        const fileUrl = d.fileName ? ('./' + d.fileName) : (d.url || '');
         const ekgSvg = `<svg class="card-ekg" width="120" height="50" viewBox="0 0 120 50">
           <path d="M0,25 L20,25 L28,10 L34,40 L40,5 L46,45 L52,25 L120,25" stroke="var(--rose)" stroke-width="1.5" fill="none"/>
         </svg>`;
@@ -915,8 +921,9 @@
           // ── PART 9 SPECIAL ──
           const el = locked ? document.createElement('div') : document.createElement('a');
           el.className = locked ? 'card card-final locked' : 'card card-final unlocked';
-          if (!locked) { el.href = fileUrl; el.target = '_blank'; el.rel = 'noopener'; }
+          if (!locked) { el.href = targetUrl; el.target = '_blank'; el.rel = 'noopener'; }
           el.style.animationDelay = delay + 's';
+          
           if (!locked) {
             el.innerHTML = `
               <div class="card-accent"></div>
@@ -965,7 +972,7 @@
         if (!locked) {
           const card = document.createElement('a');
           card.className = 'card unlocked';
-          card.href = fileUrl;
+          card.href = targetUrl;
           card.target = '_blank';
           card.rel = 'noopener';
           card.style.animationDelay = delay + 's';
@@ -1024,7 +1031,10 @@
     function openAdmin() {
       adminRows.innerHTML = '';
       PARTS.forEach((p, i) => {
-        const d = partsData[i] || { url: '', locked: true, subtitle: p.subtitle };
+        const d = partsData[i] || { locked: true, subtitle: p.subtitle };
+        const locked = d.locked === undefined ? true : d.locked;
+        const subtitle = d.subtitle || p.subtitle;
+        
         const row = document.createElement('div');
         row.className = 'admin-row';
         row.innerHTML = `
@@ -1033,48 +1043,41 @@
             <div class="toggle-wrap">
               <span class="toggle-label">Buka</span>
               <label class="toggle">
-                <input type="checkbox" id="lock${i}" ${!d.locked ? 'checked' : ''}>
+                <input type="checkbox" id="lock${i}" ${!locked ? 'checked' : ''}>
                 <span class="toggle-slider"></span>
               </label>
             </div>
           </div>
-          <input class="admin-input" type="text" id="sub${i}" placeholder="Judul bagian..." value="${d.subtitle || p.subtitle}" style="margin-bottom:8px;">
-          <div style="position:relative;">
-            <input class="admin-input admin-input-file" type="text" id="url${i}"
-              placeholder="contoh: bagian-i.html"
-              value="${d.fileName || d.url || ''}"
-              ${d.locked ? 'disabled' : ''}>
-            <span class="file-hint">.html · root folder</span>
-          </div>`;
+          <input class="admin-input" type="text" id="sub${i}" value="${subtitle}" placeholder="Judul bagian...">`;
         adminRows.appendChild(row);
-
-        row.querySelector(`#lock${i}`).addEventListener('change', function() {
-          row.querySelector(`#url${i}`).disabled = !this.checked;
-        });
       });
+      document.body.classList.add('admin-open');
       overlay.classList.add('open');
     }
 
-    function closeAdmin() { overlay.classList.remove('open'); }
+    function closeAdmin() { 
+      document.body.classList.remove('admin-open');
+      overlay.classList.remove('open'); 
+    }
 
     adminClose.addEventListener('click', closeAdmin);
+    adminClose.addEventListener('click', closeAdmin);
     overlay.addEventListener('click', e => { if (e.target === overlay) closeAdmin(); });
+
+    document.getElementById('adminLockAll').addEventListener('click', () => {
+      PARTS.forEach((_, i) => {
+        document.getElementById(`lock${i}`).checked = false;
+      });
+    });
 
     adminSave.addEventListener('click', async () => {
       adminSave.disabled = true;
       showStatus('Menyimpan...', false);
 
-      const newParts = PARTS.map((p, i) => {
-        const raw = document.getElementById(`url${i}`).value.trim();
-        // Pastikan ekstensi .html ada
-        const fileName = raw && !raw.includes('://') ? raw : '';
-        return {
-          fileName,
-          url: fileName ? ('./' + fileName) : '',
-          locked: !document.getElementById(`lock${i}`).checked,
-          subtitle: document.getElementById(`sub${i}`).value.trim() || p.subtitle
-        };
-      });
+      const newParts = PARTS.map((p, i) => ({
+        locked: !document.getElementById(`lock${i}`).checked,
+        subtitle: document.getElementById(`sub${i}`).value.trim() || p.subtitle
+      }));
 
       try {
         const res = await fetch(FB_URL, {
