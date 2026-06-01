@@ -1,0 +1,886 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Happy Anniversary! 💖</title>
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Fonts -->
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;600&family=Sacramento&family=Permanent+Marker&display=swap" rel="stylesheet">
+    <!-- Libraries -->
+    <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.5.1/dist/confetti.browser.min.js"></script>
+    <script src="https://unpkg.com/@phosphor-icons/web"></script>
+    <script src="https://unpkg.com/typed.js@2.0.16/dist/typed.umd.js"></script>
+    <script src="https://unpkg.com/aos@2.3.1/dist/aos.js"></script>
+    <link href="https://unpkg.com/aos@2.3.1/dist/aos.css" rel="stylesheet">
+
+    <style>
+        :root {
+            --color-bg: #fff0f5;
+            --color-soft: #ffd6e8;
+            --color-accent: #ffb6c1;
+            --color-highlight: #ff9ecf;
+            --color-text: #865c6c;
+        }
+        
+        body {
+            font-family: 'Poppins', sans-serif;
+            background-image: url('https://i.ibb.co.com/nNQ9xG4k/IMG-20251108-WA0042.jpg');
+            background-size: cover;
+            background-position: center;
+            background-attachment: fixed;
+            color: var(--color-text);
+            overflow-x: hidden;
+            scroll-behavior: smooth;
+            -webkit-tap-highlight-color: transparent;
+        }
+
+        .bg-overlay {
+            position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+            background: rgba(255, 240, 245, 0.85); backdrop-filter: blur(5px); z-index: -2;
+        }
+
+        #bg-canvas {
+            position: fixed; top: 0; left: 0;
+            width: 100%; height: 100%;
+            pointer-events: none; z-index: -1;
+        }
+
+        h1, h2, .font-cute { font-family: 'Sacramento', cursive; }
+
+        @keyframes float-soft { 0%, 100% { transform: translateY(0px); } 50% { transform: translateY(-10px); } }
+        @keyframes pulse-soft { 0%, 100% { transform: scale(1); } 50% { transform: scale(1.05); } }
+        
+        .floating { animation: float-soft 4s ease-in-out infinite; }
+        .pulse { animation: pulse-soft 2s infinite; }
+
+        /* --- STYLING BARU UNTUK SURAT --- */
+        #letter-opening-layer {
+            position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+            background: #fff0f5; /* Solid background initially */
+            z-index: 9999;
+            display: flex; justify-content: center; align-items: center;
+            transition: opacity 1s ease;
+        }
+
+        .envelope-wrapper {
+            position: relative;
+            width: 300px; height: 200px;
+            cursor: pointer;
+            transition: transform 0.5s ease;
+        }
+        .envelope-wrapper:hover { transform: scale(1.02); }
+
+        .envelope {
+            position: relative;
+            width: 100%; height: 100%;
+            background: #ffb6c1;
+            border-radius: 0 0 10px 10px;
+            box-shadow: 0 10px 20px rgba(0,0,0,0.1);
+            z-index: 10;
+        }
+        
+        /* Flap (Tutup Amplop) */
+        .envelope-flap {
+            position: absolute; top: 0; left: 0;
+            width: 0; height: 0;
+            border-left: 150px solid transparent;
+            border-right: 150px solid transparent;
+            border-top: 110px solid #ff9ecf; /* Warna tutup lebih tua dikit */
+            transform-origin: top;
+            transition: transform 0.6s ease 0.2s, z-index 0.2s;
+            z-index: 30;
+        }
+        .envelope.open .envelope-flap {
+            transform: rotateX(180deg);
+            z-index: 1;
+        }
+
+        /* Kertas Surat */
+        .letter-paper {
+            position: absolute;
+            bottom: 0; left: 50%; transform: translateX(-50%);
+            width: 90%; height: 90%;
+            background: white;
+            padding: 20px;
+            border-radius: 5px;
+            box-shadow: 0 -5px 10px rgba(0,0,0,0.05);
+            transition: bottom 0.8s ease-in-out 0.6s, z-index 0.1s;
+            z-index: 5; /* Di dalam amplop */
+            display: flex; flex-direction: column; justify-content: center;
+            text-align: center;
+        }
+        .envelope.open .letter-paper {
+            bottom: 100px; /* Kertas naik ke atas */
+            z-index: 40; /* Kertas jadi di depan */
+            height: auto; min-height: 250px; /* Biar muat teks */
+        }
+
+        /* Pocket (Bagian Bawah Amplop) */
+        .envelope-pocket {
+            position: absolute; bottom: 0; left: 0;
+            width: 0; height: 0;
+            border-left: 150px solid #ffc0cb;
+            border-right: 150px solid #ffc0cb;
+            border-bottom: 100px solid #ffa6b9; /* Sedikit shading */
+            border-top: 100px solid transparent;
+            border-radius: 0 0 10px 10px;
+            z-index: 20;
+            pointer-events: none;
+        }
+
+        /* Overlay Khusus Moment Section (Stage 2) */
+        #moment-overlay-container {
+            position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+            background: rgba(255, 240, 245, 0.95);
+            z-index: 8888;
+            display: none; /* Hidden initially */
+            justify-content: center; align-items: center;
+            opacity: 0;
+            transition: opacity 0.8s ease;
+        }
+
+        /* --- EXISTING STYLES --- */
+        .header-sticker {
+            position: absolute; width: 150px; height: auto; top: -40px;
+            filter: drop-shadow(0 4px 4px rgba(0,0,0,0.1));
+            animation: float-soft 5s ease-in-out infinite;
+        }
+        .sticker-left { left: -90px; transform: rotate(-15deg); animation-delay: 0s; }
+        .sticker-right { right: -90px; transform: rotate(15deg); animation-delay: 0.5s; }
+
+        .glass-card { background: rgba(255, 255, 255, 0.8); backdrop-filter: blur(12px); -webkit-backdrop-filter: blur(12px); border: 1px solid rgba(255, 255, 255, 0.9); box-shadow: 0 8px 32px rgba(31, 38, 135, 0.15); }
+        
+        .wavy-line { width: 40px; background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='40' height='80' viewBox='0 0 40 80'%3E%3Cpath d='M20 0 Q 40 20 20 40 Q 0 60 20 80' stroke='%23ffb6c1' stroke-width='3' fill='none' stroke-dasharray='6 4' stroke-linecap='round'/%3E%3C/svg%3E"); background-repeat: repeat-y; background-position: center top; }
+        @media (max-width: 480px) { .wavy-line { display: none; } }
+
+        .hidden-page { opacity: 0; visibility: hidden; transition: all 0.8s ease-in-out; position: absolute; top: 0; left: 0; width: 100%; }
+        .active-page { opacity: 1; visibility: visible; position: relative; }
+        .music-playing { animation: pulse-soft 1.5s infinite; box-shadow: 0 0 15px var(--color-highlight); }
+        
+        .typed-cursor { color: #ffb6c1; }
+
+        /* Calendar Styling */
+        .calendar-grid { display: grid; grid-template-columns: repeat(7, 1fr); gap: 4px; }
+        .calendar-day {
+            width: 36px; height: 36px;
+            display: flex; justify-content: center; align-items: center;
+            font-size: 0.9rem; font-weight: 500; border-radius: 9999px;
+        }
+        .calendar-day.active {
+            background-color: var(--color-highlight); color: white;
+            box-shadow: 0 0 10px var(--color-highlight);
+            animation: pulse-soft 2s infinite;
+        }
+        .calendar-day.other-month { color: #d1d5db; }
+
+        /* Scrapbook Modal */
+        #scrapbook-modal-content { background: #fdfbf7 url('https://www.transparenttextures.com/patterns/cubes.png'); border: none; border-radius: 4px; box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.25); position: relative; padding: 0; max-width: 900px; width: 95%; height: 85vh; overflow: hidden; display: flex; flex-direction: column; }
+        .scrapbook-header-bar { background: #ffb6c1; padding: 15px; text-align: center; font-family: 'Permanent Marker', cursive; color: white; font-size: 1.5rem; box-shadow: 0 2px 10px rgba(0,0,0,0.1); z-index: 10; position: relative; }
+        .scrapbook-header-bar::after { content: ''; position: absolute; bottom: -10px; left: 0; width: 100%; height: 20px; background: linear-gradient(to bottom, rgba(0,0,0,0.05), transparent); pointer-events: none; }
+        #scrapbook-scroll-container { flex: 1; overflow-y: auto; padding: 2rem; scrollbar-width: thin; scrollbar-color: #ffb6c1 #f0f0f0; }
+        .scrapbook-group { margin-bottom: 3.5rem; position: relative; }
+        .scrapbook-date-header { display: inline-block; background: #fff; padding: 0.5rem 1.5rem; font-family: 'Permanent Marker', cursive; font-size: 1.4rem; color: #ff7eb3; border: 2px dashed #ffb6c1; transform: rotate(-2deg); box-shadow: 2px 2px 0px rgba(0,0,0,0.1); margin-bottom: 1.5rem; position: relative; z-index: 2; }
+        .scrapbook-date-header::before { content: ''; position: absolute; top: -10px; left: 50%; transform: translateX(-50%); width: 12px; height: 12px; background: #e5e7eb; border-radius: 50%; box-shadow: inset 0 0 2px rgba(0,0,0,0.2); }
+        .scrapbook-collage { display: flex; flex-wrap: wrap; justify-content: center; gap: 1.5rem; }
+        .scrapbook-photo-card { background: white; padding: 10px 10px 35px 10px; box-shadow: 2px 4px 8px rgba(0,0,0,0.15); width: 140px; transition: transform 0.3s ease, z-index 0.3s ease; position: relative; cursor: pointer; }
+        .scrapbook-photo-card:hover { transform: scale(1.2) rotate(0deg) !important; z-index: 50; box-shadow: 5px 10px 20px rgba(0,0,0,0.2); }
+        .scrapbook-photo-card img { width: 100%; height: 130px; object-fit: cover; filter: contrast(1.05) brightness(1.05); }
+        .scrapbook-photo-card p { position: absolute; bottom: 5px; left: 0; width: 100%; text-align: center; font-family: 'Reenie Beanie', 'Poppins', cursive; font-size: 0.8rem; color: #666; }
+        .tape-top { position: absolute; top: -12px; left: 50%; transform: translateX(-50%) rotate(2deg); width: 60px; height: 20px; background-color: rgba(255, 192, 203, 0.7); border-left: 2px dotted rgba(255,255,255,0.6); border-right: 2px dotted rgba(255,255,255,0.6); opacity: 0.8; z-index: 5; }
+        .deco-sticker { position: absolute; font-size: 2rem; z-index: 1; opacity: 0.8; pointer-events: none; }
+        #surprise-letter { text-align: left; font-size: 0.95rem; color: #4b5563; font-family: 'Poppins', sans-serif; font-weight: 400; line-height: 1.6; max-height: 50vh; overflow-y: auto; padding-right: 1rem; white-space: pre-wrap; text-align: justify; }
+
+        /* Moment & Future Styles */
+        .moment-img-wrapper { opacity: 0; filter: blur(10px); transform: scale(0.97); transition: all 1.2s cubic-bezier(0.22, 1, 0.36, 1); }
+        .moment-img-wrapper.active { opacity: 1; filter: blur(0); transform: scale(1); }
+        .moment-text { opacity: 0; transform: translateY(15px); transition: all 1s ease-out 0.5s; }
+        .moment-text.active { opacity: 1; transform: translateY(0); }
+        @keyframes float-up { 0% { transform: translateY(0) scale(0.8); opacity: 0; } 20% { opacity: 0.4; } 100% { transform: translateY(-60px) scale(1.2); opacity: 0; } }
+        .moment-particle { position: absolute; color: #ffb6c1; font-size: 10px; animation: float-up 4s infinite ease-in-out; pointer-events: none; z-index: 0; }
+        .checklist-item { transition: all 0.3s cubic-bezier(0.34, 1.56, 0.64, 1); cursor: pointer; user-select: none; }
+        .checklist-item:active { transform: scale(0.95); }
+        .checklist-item.checked { background-color: rgba(255, 255, 255, 0.6); border-color: #ffb6c1; }
+        .checklist-item.checked .check-box { background-color: #ffb6c1; border-color: #ffb6c1; }
+        .checklist-item.checked .check-text { text-decoration: line-through; color: #9ca3af; }
+        @keyframes heart-pop { 0% { transform: scale(0); opacity: 0; } 50% { transform: scale(1.5); opacity: 1; } 100% { transform: scale(1); opacity: 0; translateY(-20px); } }
+        .pop-heart { position: absolute; right: 10px; top: 50%; margin-top: -10px; font-size: 1.2rem; color: #ff69b4; pointer-events: none; animation: heart-pop 0.8s ease-out forwards; }
+    </style>
+</head>
+<body class="min-h-screen selection:bg-pink-200">
+
+    <div class="bg-overlay"></div>
+    <canvas id="bg-canvas"></canvas>
+
+    <audio id="bg-music" loop>
+        <source src="https://cdn.pixabay.com/download/audio/2022/11/23/audio_958b491a63.mp3?filename=inspiring-cinematic-ambient-116199.mp3" type="audio/mpeg">
+    </audio>
+
+    <!-- Tombol Musik (Hidden saat surat dibuka) -->
+    <button id="music-btn" onclick="toggleMusic()" class="fixed top-4 right-4 z-50 bg-white/90 p-3 rounded-full shadow-md text-pink-500 hover:bg-pink-100 transition animate-bounce hidden" aria-label="Toggle Music">
+        <i id="music-icon" class="ph-fill ph-speaker-slash text-2xl"></i>
+    </button>
+
+    <!-- OPENING SURAT START -->
+    <div id="letter-opening-layer">
+        <div class="envelope-wrapper" onclick="openLetter()">
+            <div class="envelope" id="envelope">
+                <div class="envelope-flap" id="flap"></div>
+                <div class="envelope-pocket"></div>
+                <div class="letter-paper" id="letter-paper">
+                    <p class="text-sm text-gray-600 leading-relaxed font-medium italic mb-4">
+                        "Hai sayang… sebelum kamu masuk ke halaman anniversary ini, aku mau bilang makasih dulu buat semua hal baik yang kamu lakuin ke aku. Baca pelan-pelan ya 💗"
+                    </p>
+                    <div class="text-xs text-pink-400 animate-pulse mt-auto cursor-pointer" onclick="event.stopPropagation(); showMomentReveal();">
+                        Klik di mana saja untuk lanjut ↓
+                    </div>
+                </div>
+                <!-- Segel Hati -->
+                <div id="seal" class="absolute top-[85px] left-1/2 transform -translate-x-1/2 z-40 bg-white p-1 rounded-full shadow-sm transition-opacity">
+                    <i class="ph-fill ph-heart text-4xl text-red-400"></i>
+                    <p class="text-xs text-gray-500 font-cute absolute -bottom-8 w-40 -left-14 text-center">Klik untuk buka surat 💌</p>
+                </div>
+            </div>
+        </div>
+    </div>
+    <!-- OPENING SURAT END -->
+
+    <!-- MOMENT TRANSITION START -->
+    <!-- Container khusus untuk Moment Section agar bisa muncul terpisah -->
+    <div id="moment-overlay-container">
+        <div class="max-w-md mx-auto px-4 relative w-full" onclick="finishOpening()">
+            <!-- Container Partikel -->
+            <div id="moment-particles" class="absolute inset-0 pointer-events-none"></div>
+            
+            <div class="glass-card p-6 rounded-[2rem] text-center shadow-2xl border-2 border-pink-200 transform scale-90 opacity-0 transition-all duration-1000" id="moment-card-content">
+                <!-- Foto dengan efek reveal -->
+                <div id="moment-img-container" class="moment-img-wrapper w-full h-64 md:h-80 rounded-2xl overflow-hidden shadow-md mb-6 relative">
+                    <img src="https://i.ibb.co.com/hxgDsw61/IMG-20251119-WA0008.jpg" alt="Kita" class="w-full h-full object-cover">
+                    <div class="absolute inset-0 bg-gradient-to-t from-black/30 to-transparent opacity-60"></div>
+                </div>
+                
+                <!-- Teks dengan delay -->
+                <div id="moment-text-container" class="moment-text">
+                    <h4 class="text-2xl font-cute text-pink-600 mb-3">“Aku beruntung banget bisa punya kamu.”</h4>
+                    <p class="text-sm text-gray-600 leading-relaxed font-light italic">
+                        i love you so much buat semua hal uda kamu lakuin ke aku selama ini, i really happy untuk semua hal yang kamu lakuin ke aku sekecil apapun itu 🥺💗
+                    </p>
+                    <p class="text-xs text-pink-300 mt-6 animate-pulse">(Klik lagi untuk lanjut ke halaman utama)</p>
+                </div>
+            </div>
+        </div>
+    </div>
+    <!-- MOMENT TRANSITION END -->
+
+    <!-- ================= BAGIAN 1 ASLI: OPENING PAGE UTAMA (Disembunyikan dulu) ================= -->
+    <!-- Ini akan muncul setelah Moment Section selesai -->
+    <section id="opening-page" class="h-screen flex flex-col justify-center items-center text-center p-6 active-page z-10 relative hidden opacity-0 transition-opacity duration-1000">
+        <div class="glass-card p-8 rounded-[3rem] shadow-2xl max-w-md mx-auto z-20 relative">
+            
+            <!-- Container Bunga Besar (150px) -->
+            <div class="relative inline-block mb-6 mt-8 w-1 h-32"> 
+                <img src="https://i.ibb.co.com/ym2VQb55/IMG-20251008-WA0049.png" class="header-sticker sticker-left" alt="Bunga Kiri">
+                <img src="https://i.ibb.co.com/ym2VQb55/IMG-20251008-WA0049.png" class="header-sticker sticker-right" alt="Bunga Kanan">
+            </div>
+
+            <h1 class="text-5xl md:text-6xl mb-6 text-pink-500 font-cute mt-8">Hai cintaku 💖</h1>
+            
+            <div class="min-h-[120px] flex items-center justify-center mb-8">
+                <span id="typed-text" class="text-lg md:text-xl leading-relaxed text-gray-800 font-medium"></span>
+            </div>
+
+            <button onclick="startJourney()" class="bg-pink-500 hover:bg-pink-600 text-white px-8 py-3 rounded-full text-xl font-semibold transition transform hover:scale-105 shadow-lg">
+                Lihat Cerita Kita 💞
+            </button>
+        </div>
+    </section>
+
+    <!-- ================= MAIN CONTENT ================= -->
+    <main id="main-content" class="hidden-page z-20 relative">
+        <header class="py-4 text-center sticky top-0 z-40 glass-card bg-opacity-95 mb-10 backdrop-blur-xl shadow-sm">
+             <h2 id="couple-name" class="text-3xl md:text-4xl text-pink-500 font-cute">Our Journey</h2>
+        </header>
+
+        <div class="max-w-4xl mx-auto px-4 space-y-24 pb-20 relative z-10">
+            <!-- TIMELINE -->
+            <section id="timeline-section">
+                <h3 class="text-3xl text-center text-pink-500 font-cute mb-12 flex justify-center items-center gap-2" data-aos="fade-down">
+                    <i class="ph-fill ph-hourglass-medium"></i> Timeline Kita
+                </h3>
+                <div class="relative container mx-auto px-2 md:px-6">
+                    <div class="absolute left-1/2 transform -translate-x-1/2 h-full wavy-line opacity-60"></div>
+                    <div id="timeline-items" class="relative z-10 pt-6"></div>
+                </div>
+            </section>
+
+            <!-- GALERI SCRAPBOOK -->
+            <section id="gallery-section" class="pt-10">
+                <h3 class="text-3xl text-center text-pink-500 font-cute mb-10 flex justify-center items-center gap-2" data-aos="fade-up">
+                    <i class="ph-fill ph-book-open-text"></i> Koleksi Fotbar Kita
+                </h3>
+                <div class="flex justify-center" data-aos="zoom-in">
+                    <button onclick="openScrapbookModal()" class="bg-pink-500 hover:bg-pink-600 text-white px-8 py-4 rounded-full text-xl font-semibold transition transform hover:scale-105 shadow-lg flex items-center gap-2">
+                        <i class="ph-fill ph-sparkle"></i> Buka Album Kenangan ❤️
+                    </button>
+                </div>
+            </section>
+
+            <!-- KALENDER -->
+            <section id="countdown-section" class="py-10" data-aos="zoom-in">
+                <div class="glass-card p-6 rounded-3xl text-center max-w-lg mx-auto shadow-lg">
+                    <h3 class="text-3xl text-pink-500 font-cute mb-4">Kalender Kita (Oktober 2025)</h3>
+                    <div id="calendar-october" class="calendar-grid text-gray-700 mb-6 max-w-xs mx-auto">
+                        <!-- JS akan mengisi ini -->
+                    </div>
+                    
+                    <p class="text-pink-600 mt-6 font-medium text-lg">
+                        Kita udah bareng selama <span id="love-days" class="font-bold text-2xl text-pink-500 bg-white/60 px-2 py-1 rounded-lg">0</span> hari 🫶
+                    </p>
+                </div>
+            </section>
+
+            <!-- MOMENT SECTION (Dihapus dari sini karena sudah ada di opening) -->
+            
+            <!-- FUTURE PAGE (Wishlist Date) -->
+            <section id="future-section" class="py-10 pb-24" data-aos="fade-up">
+                <div class="glass-card p-6 md:p-8 rounded-[2.5rem] max-w-lg mx-auto shadow-xl border-t-4 border-pink-200">
+                    <div class="text-center mb-8">
+                        <div class="inline-block bg-pink-100 p-3 rounded-full mb-3 text-pink-500">
+                            <i class="ph-fill ph-list-heart text-3xl"></i>
+                        </div>
+                        <h3 class="text-3xl font-cute text-pink-500">Wishlist Date</h3>
+                        <p class="text-sm text-gray-500 mt-1">List kecil yang pengen aku jalanin sama kamu ✨</p>
+                    </div>
+
+                    <div id="wishlist-container" class="space-y-3">
+                        <!-- Checklist items akan di-generate JS -->
+                    </div>
+                </div>
+            </section>
+
+            <!-- PENUTUP -->
+            <section id="closing-section" class="py-20 text-center" data-aos="fade-up" data-aos-offset="100">
+                <div class="glass-card p-10 rounded-[3rem] shadow-xl max-w-2xl mx-auto relative overflow-hidden">
+                    <h2 class="text-5xl text-pink-500 font-cute mb-8">Happy Anniversary!</h2>
+                    <p class="text-lg text-gray-800 leading-relaxed mb-8 font-medium">
+                        di satu bulan ini aku punya sesuatu buat kamuuu<br>tapii pastiin pas baca ini kamuu vc atau lagii ketemuan sama akuu yaa jangan baca sendiri
+                    </p>
+                    <button onclick="triggerSurprise()" class="bg-gradient-to-r from-pink-400 to-red-300 text-white px-8 py-4 rounded-full text-xl font-bold shadow-lg hover:shadow-xl transform hover:-translate-y-1 transition flex items-center gap-2 mx-auto pulse">
+                        <i class="ph-fill ph-gift"></i> Click for a Surprise 💘
+                    </button>
+
+                    <div class="mt-12 pt-8 border-t border-pink-200/50 space-y-6">
+                        <a id="whatsapp-link" href="#" target="_blank" class="inline-flex items-center gap-2 bg-green-500 text-white px-6 py-3 rounded-full hover:bg-green-600 transition shadow-sm font-medium text-sm">
+                            <i class="ph-fill ph-whatsapp-logo text-lg"></i> Balas via WhatsApp
+                        </a>
+                    </div>
+                </div>
+                <p class="text-pink-700 font-medium text-xs mt-8 drop-shadow-sm">Made with lots of love 💖 by your sweetheart</p>
+            </section>
+        </div>
+    </main>
+
+    <!-- MODALS (SAMA SEPERTI SEBELUMNYA) -->
+    <div id="timeline-modal" class="fixed inset-0 bg-black/60 hidden z-50 flex items-center justify-center p-4 backdrop-blur-md transition-opacity duration-300 opacity-0" onclick="if(event.target === this) closeModal('timeline-modal')">
+        <div class="bg-white/95 rounded-[2.5rem] max-w-md w-full p-6 relative transform scale-95 transition-all duration-300 shadow-2xl" id="modal-content">
+            <button onclick="closeModal('timeline-modal')" class="absolute top-4 right-4 bg-pink-100 text-pink-500 rounded-full p-2 hover:bg-pink-200 transition z-10"><i class="ph-bold ph-x"></i></button>
+            <div class="text-center">
+                <img id="modal-img" src="" alt="Moment" loading="lazy" class="w-full h-64 object-cover rounded-3xl shadow-sm bg-pink-50">
+                <h3 id="modal-date" class="text-pink-400 font-bold mb-1"></h3>
+                <h4 id="modal-title" class="text-2xl text-gray-800 font-cute mb-4"></h4>
+                <p id="modal-desc" class="text-gray-600 leading-relaxed text-sm md:text-base px-4 pb-4"></p>
+            </div>
+        </div>
+    </div>
+
+    <div id="scrapbook-modal" class="fixed inset-0 bg-black/60 hidden z-50 flex items-center justify-center p-4 backdrop-blur-md transition-opacity duration-300 opacity-0" onclick="if(event.target === this) closeModal('scrapbook-modal')">
+        <div id="scrapbook-modal-content" class="relative max-w-2xl w-full mx-auto transform scale-95 transition-all duration-300">
+            <button onclick="closeModal('scrapbook-modal')" class="absolute -top-4 -right-4 bg-pink-100 text-pink-500 rounded-full p-2 hover:bg-pink-200 transition z-10 shadow-lg"><i class="ph-bold ph-x text-lg"></i></button>
+            <div class="max-h-[70vh] overflow-y-auto pr-2">
+                <h3 class="text-3xl font-cute text-pink-500 text-center mb-6">Koleksi Fotbar Kita 📸</h3>
+                <div id="scrapbook-grid" class="grid grid-cols-2 md:grid-cols-3 gap-6 p-2"></div>
+            </div>
+        </div>
+    </div>
+
+    <div id="photo-modal" class="fixed inset-0 bg-black/95 hidden z-50 flex items-center justify-center p-4 cursor-pointer transition-opacity duration-300 opacity-0" onclick="closeModal('photo-modal')">
+        <img id="lightbox-img" src="" loading="lazy" class="max-h-[85vh] max-w-[95vw] object-contain rounded-xl shadow-2xl transform scale-95 transition-all duration-300">
+    </div>
+
+    <div id="surprise-modal" class="fixed inset-0 bg-pink-900/60 hidden z-50 flex items-center justify-center p-4 backdrop-blur-md transition-opacity duration-500 opacity-0" onclick="if(event.target === this) closeModal('surprise-modal')">
+        <div class="bg-white/95 p-8 rounded-[3rem] max-w-xl w-full text-center shadow-2xl transform translate-y-20 scale-90 transition-all duration-500 ease-out border-4 border-pink-300" id="surprise-content">
+            <i class="ph-fill ph-envelope-open text-8xl text-red-400 mb-6 animate-bounce inline-block drop-shadow-lg"></i>
+            <div id="surprise-letter" class="mb-6"></div>
+            <button onclick="closeModal('surprise-modal')" class="bg-pink-500 text-white px-8 py-3 rounded-full text-lg font-semibold hover:bg-pink-600 transition shadow-md pulse">Love you too! xoxo</button>
+        </div>
+    </div>
+
+    <!-- JAVASCRIPT -->
+    <script>
+        // Variable wishlistItems defined AT THE TOP
+        const wishlistItems = [
+            "Photobox", "Movie Date", "Night Ride", "Study Date", "Ngelukis Date",
+            "Museum Date", "Hujan-hujanan bareng naik motor", "sunset date", "pelukis 1 jam", "couple hoodie"
+        ];
+
+        AOS.init({ duration: 1000, easing: "ease-in-out", once: true, offset: 50 });
+
+        const CONFIG = { 
+            coupleName: "Ghoffar dan Dinnar (Gonar)", 
+            jadianDate: "2025-10-27",
+            whatsappNumber: "6285603668570"
+        };
+        
+        let timelineData = [
+            { date: "26 Feb - 18 Jun 25", title: "Awal Dekat 🫶", desc: "aku inget banget pas kita awal deket tu karena kita sama sama jadi panitia bukber dinepang dan saat itu pula kita dekat dan semakin dekat. disitu kita masi terlalu canggung untuk saling mengucap suka walaupun kita sama sama suka wkwkwk.", img: "https://placehold.co/600x400/ffb6c1/ffffff?text=Awal+Dekat" },
+            { date: "31 Agt 25 - Sekarang", title: "Lost tapi Balik 💞", desc: "kita lost tuu gara gara apa siii lupa, tapi yang paling aku inget sii pas aku lagi main ituu aku chat kamuu dan itu cape bangett terus kamuu nanya 'rate hari ini' aku tinggal tidur soalnya cape bangett kirain setelah ituu bakal di chat ehh ternyata engga jadiii yaudaaa deeeee kitaa loss. tapi sekarang maa udaa engga yaa pernah loss bentarr seminggu an laaaa soalnyaa ada something", img: "https://placehold.co/600x400/ffd6e8/865c6c?text=Balikan" },
+            { date: "09 Mei 25", title: "Mabar Roblox Pertama 😆", desc: "awal awal PDKT an biasa berawal dari mabar roblox wkwkwk. yaa walaupun ituuu aku masii bot yaaa main roblox nyaa tapii akuu lumayan seneng laa pas mabar tuuuu", img: "https://i.ibb.co.com/zTcqCdB9/4aabe49f-bfd9-40e2-b3ed-124c61abb22d.jpg" },
+            { date: "15 Sep 25", title: "Disukain Balik 🥹", desc: "sebenernya sediii sii aku pas kamuu ngomong suka sama aku pas 15 sep tuuu kek whatt. yaa gimana ngga sedii cobaa akuu dariii awal udaa suka ternyata kamuu ngga sukaa yaaaa gimanaa yaaa.", img: "https://placehold.co/600x400/ffd6e8/865c6c?text=Disukain+Balik" },
+            { date: "25 Sep 25", title: "Call Pertama 📞", desc: "anjayyy inii niii awal dariii PDKT mendalam nyaa wkwkwk. akuu masii ingett peratama kalii kita calll tuuu karena akuu modus ngga bisa tidurr terus kamuu ngelanjutin mau di dongengin ta jee terus aku iyain ehhh sampe sekarang call terus jadinyaa wkwkwk, yaaa walauu pas ituu akhirnya siii ngga jadiii didongengin nyaa tapiii akuu seneng ajjaaa ngga ekspek bisa call", img: "https://i.ibb.co.com/9m9drNqZ/e2c6288f-d408-47cc-a972-e3783ba931bf.jpg" },
+            { date: "30 Sep 25", title: "Pap Pertama 😳", desc: "gatauu kenapa ini niii kamuu tiba tiba ngirim pap gituuu pas pulsek kek dkbfigubjvneh. sukaa dee akuu niii manaa pap nyaa ngga 1 kalii lihat lagiiii. manaa pas ituuu muka kamuu luucuuu bangettt aku disini kek senyum senyum sendiri ajaaa", img: "https://i.ibb.co.com/QvjC1TFW/302688a7-b6f7-4311-9e6b-e30bc739693b.jpg" },
+            { date: "15 Okt 25", title: "Dikasih Scrapbook 🫶", desc: "gatauuu kamuu ini lagii kenapaa tiba tiba gasih akuu scrapbook, yaaa walau kata kamuu ini hadiah ultahh akuuu serlang 1 bulan lebihhh tapiii ngga papa laaa kalooo ituu dariii kauuu. btw ini belum jadiannn yaaa", img: "https://i.ibb.co.com/fBbRMcj/c38185fe-7902-426f-92a0-36612fa93737.jpg" },
+            { date: "20 Okt 25", title: "Dikasih Gift Dino 🦖", desc: "ini juga nii aku pun bingung kenapa kamuuu ngasih akuu dino gituuu akuu kaget kamuu mau ngasih aku dinoo inii, kirain kamuu cuma bercanda aja mau ngasii dino tuuu eh ternyata benaran", img: "https://i.ibb.co.com/qFgv9T13/3ebe24c3-634b-4ea9-a84f-bec666ff6d83.jpg" },
+            { date: "22 Okt 25", title: "First Date di Mixue 🍦", desc: "anjayyy gatauu ini awal nya gimnaa tiba tiba bisa ke mixue akuu lupa first date ini apa awalnya tapii yang jelas disitu akuu masiii maluu maluuu ngga berani ngapa ngapain kecualii pegang tangannn sama senderan wkwkkw. ini tuu aku masii alim bangett didepan kamuuu tuu pas first date tuuu", img: "https://i.ibb.co.com/Z6C0Pmkv/1c1c9d5a-3b7a-4008-a21a-9d6e30cc563a.jpg" },
+            { date: "25 Okt 25", title: "Dinner ke Rumah 🏡", desc: "yaaa ini aku juga ngga nyangka kamuu ke ruma aku terus ngasii nasi goreng 2 lagii gituu, padahal ini aku sama kamuu belum jadian atau apaa looo tapii kamuu uda effort bangettt sama akuuu. disini juga akuu sama kamuu tuu masii aga maluu maluu gimana gituuu ngga kaya sekarang laaa pokoknyaa", img: "https://i.ibb.co.com/RT1fvSWN/df7ecf75-e634-4b49-8824-863191c7f340.jpg" },
+            { date: "27 Okt 25", title: "Jadian di Mixue 💞", desc: "finally akhirnyaa akuu jadian sama kamuu setelah aku melihat kalauu kamuu tu beneran suka sama akuuu, dan akuu juga udaa pertimbangin semua nyaaa. ini tuuu niat nyaa aku nembak kamuu di cal ajaa biar kaloo ditolak ngga maluuu, dan aku uda niat juga disitu mauu nembak nya tuu jam 12 malam gituuu ehh kamu nyaa kek gituu anjiirr malaa disuruh nembak ulang ajaa je nanti dimixue wkwkwkwk. tapi akhirnya siii kita jadiii kita", img: "https://i.ibb.co.com/C5nnc9nV/831755f2-a802-4569-9845-fcdac5d2bada.jpg" },
+            { date: "03 Nov 25", title: "Ke Gacoan 🍜", desc: "ini nii pertama kalii kita main lumayan jauhh, biasa paling jauh kita kan main yaa di mixue apa lagii tapii inii pertama kalii kita main ke gacoan. disini juga aku pertama kaliii bawa cewe ke gacoann wkwkwkk kamuu maa paling uda sering yaaa ke gacoan sama cowoo", img: "https://i.ibb.co.com/GQnh0why/0e3e6a02-54db-4ffa-8892-9a5109183575.jpg" },
+            { date: "04 Nov 25", title: "Jemput & Main ke Rumah 💕", desc: "inii niii yang akuu speechless parahh tiba tiba bolee jemput kamuu dan ini juga kek nya awal darii kita diresstuiin dehhh, yaa kayaa msaa siii tiba tiba dibolehin berangkat bareng akuu gituuu kannn kayaa ngga masuk akal ajaaa. sedangkan kamuu bilang kaloo kamuu ituuu strict parents gituuu kannn, akuuu bener bener kaget pas kamuu bilangg bole jemputt kamuu tuuu", img: "https://i.ibb.co.com/LdhHSCyT/cbc6a933-9d9b-4492-b173-dfb794eb1770.jpg" },
+            { date: "08 Nov 25", title: "Main ke Pasar Malam 🎡", desc: "nahhh disiniii niii akuu kayaa wihhhh keren bangettt bolee mainn malamm gituu samaa akuuu lagii, sedangkan kamuu main malam ajaa katanyaaa dimarahin tapiii ini asmpe pulang jam 10 an gituuu wkwkwk akuu juga terkejoet disiini tuuuu aasliii akuu maaa. dann disinii jugaaa buat pertamaaa kalii nyaaa kamuuu beranii kiss akuu wkwkwk", img: "https://i.ibb.co.com/hF8t9r4S/fecde080-0b35-4e56-af23-cb4097827e5d.jpg" },
+            { date: "11 Nov 25", title: "After Marahan 🥺", desc: "ini tuuu kita abis marahan terus main kesiniii buat nyeselaiin masalah nyaaa. udaa sii gituuu aajjjaaa nggaa adaa yang bisa diceritain lebihh lanjutt", img: "https://i.ibb.co.com/PGGQZ9Hm/IMG-20251111-WA0015.jpg" },
+            { date: "16 Nov 25", title: "Pertama Kali Pelukis 🫂", desc: "jujur disini pas akuu mau pulang ttuu akuu udaa fikir kamuu ngga ngelakuin ituuu tapii kayaa pas pulang diturunan tiba tiba kamuu pelukiss akuu kagett aslii disituuu wkwkwk. akuu pikir nyaa nii kamuu anterin akuuu, akuu cuma kis kamu di lift terus udaaa bye bye gituuu. makanya pas kamuu ngga mau aku kiss pas dilift tuu akuu lumayan kesel gituuu yaa ga tauu saoalnyaa bakal pelukisss wkwkwk.", img: "https://i.ibb.co.com/DfTD40gp/Whats-App-Image-2025-11-15-at-18-08-48-865d34bf.jpg" }
+        ];
+
+        const galleryData = [
+            { img: "https://i.ibb.co.com/zTcqCdB9/4aabe49f-bfd9-40e2-b3ed-124c61abb22d.jpg", caption: "Mabar Roblox 😆" },
+            { img: "https://i.ibb.co.com/9m9drNqZ/e2c6288f-d408-47cc-a972-e3783ba931bf.jpg", caption: "Call Pertama 📞" },
+            { img: "https://i.ibb.co.com/QvjC1TFW/302688a7-b6f7-4311-9e6b-e30bc739693b.jpg", caption: "Pap Pertama 😳" },
+            { img: "https://i.ibb.co.com/fBbRMcj/c38185fe-7902-426f-92a0-36612fa93737.jpg", caption: "Scrapbook 🫶" },
+            { img: "https://i.ibb.co.com/qFgv9T13/3ebe24c3-634b-4ea9-a84f-bec666ff6d83.jpg", caption: "Gift Dino 🦖" },
+            { img: "https://i.ibb.co.com/jvqCQqsz/IMG-20251022-WA0079.jpg", caption: "22 Okt '25" },
+            { img: "https://i.ibb.co.com/WNTZVPwg/IMG-20251022-WA0081.jpg", caption: "22 Okt '25" },
+            { img: "https://i.ibb.co.com/9mwQ89bd/IMG-20251022-WA0083.jpg", caption: "22 Okt '25" },
+            { img: "https://i.ibb.co.com/Y7T6vFCt/IMG-20251025-WA0058.jpg", caption: "Pic 1" },
+            { img: "https://i.ibb.co.com/XfSbBY7X/IMG-20251025-WA0059.jpg", caption: "Pic 2" },
+            { img: "https://i.ibb.co.com/SXzqnFFd/IMG-20251025-WA0060.jpg", caption: "Pic 3" },
+            { img: "https://i.ibb.co.com/hRNhJ5pQ/IMG-20251027-WA0104.jpg", caption: "27 Okt '25" },
+            { img: "https://i.ibb.co.com/4Rr1CvVp/IMG-20251027-WA0105.jpg", caption: "27 Okt '25" },
+            { img: "https://i.ibb.co.com/fV2rvSsL/IMG-20251027-WA0144.jpg", caption: "27 Okt '25" },
+            { img: "https://i.ibb.co.com/G43qWVFV/IMG-20251103-WA0043.jpg", caption: "Pic 1" },
+            { img: "https://i.ibb.co.com/fdgtp3yq/IMG-20251103-WA0045.jpg", caption: "Pic 2" },
+            { img: "https://i.ibb.co.com/TDwq8CRX/IMG-20251104-WA0020.jpg", caption: "Pic 1" },
+            { img: "https://i.ibb.co.com/dJt2p3Fy/IMG-20251104-WA0022.jpg", caption: "Pic 2" },
+            { img: "https://i.ibb.co.com/gFwCxZg7/IMG-20251104-WA0025.jpg", caption: "Pic 3" },
+            { img: "https://i.ibb.co.com/C59Q3XkK/IMG-20251108-WA0007.jpg", caption: "Pic 1" },
+            { img: "https://i.ibb.co.com/n8MCVn8D/IMG-20251108-WA0008.jpg", caption: "Pic 2" },
+            { img: "https://i.ibb.co.com/Zp1yMCsN/IMG-20251108-WA0009.jpg", caption: "Pic 3" },
+            { img: "https://i.ibb.co.com/PGGQZ9Hm/IMG-20251111-WA0015.jpg", caption: "Pic 1" },
+            { img: "https://i.ibb.co.com/p6xFbLc3/IMG-20251111-WA0022.jpg", caption: "Pic 2" },
+            { img: "https://i.ibb.co.com/tTVP4hcd/IMG-20251115-WA0039.jpg", caption: "Pic 1" },
+            { img: "https://i.ibb.co.com/vCMhLXwd/Snapchat-266266814.jpg", caption: "Pic 2" },
+            { img: "https://i.ibb.co.com/pB6VhczJ/Snapchat-281709452.jpg", caption: "Pic 3" },
+            { img: "https://i.ibb.co.com/WWbQwBbK/Snapchat-353512030.jpg", caption: "Pic 4" },
+            { img: "https://i.ibb.co.com/KjS49CGN/Snapchat-399824450.jpg", caption: "Pic 5" },
+            { img: "https://i.ibb.co.com/TMG4RVbY/Snapchat-684131675.jpg", caption: "Pic 6" },
+            { img: "https://i.ibb.co.com/VprHFpfN/Snapchat-774875314.jpg", caption: "Pic 7" },
+            { img: "https://i.ibb.co.com/8Dy8bRYt/Snapchat-1113692132.jpg", caption: "Pic 8" },
+            { img: "https://i.ibb.co.com/zT85jqZz/Snapchat-1441866516.jpg", caption: "Pic 9" },
+            { img: "https://i.ibb.co.com/fzJJYgFf/Snapchat-1630171462.jpg", caption: "Pic 10" },
+            { img: "https://i.ibb.co.com/Myqy7rhF/Snapchat-1705106977.jpg", caption: "Pic 1" },
+            { img: "https://i.ibb.co.com/Q31pNBj5/Snapchat-1823957861.jpg", caption: "Pic 2" },
+            { img: "https://i.ibb.co.com/GfGrGzbK/Snapchat-1851965393.jpg", caption: "Pic 3" },
+            { img: "https://i.ibb.co.com/hFCwftZ6/Snapchat-1905599697.jpg", caption: "Pic 4" },
+            { img: "https://i.ibb.co.com/nNhLttyG/Snapchat-1908032002.jpg", caption: "Pic 5" },
+            { img: "https://i.ibb.co.com/kVCgdjks/Snapchat-2000852635.jpg", caption: "Pic 6" },
+            { img: "https://i.ibb.co.com/HfDHWhF9/Snapchat-2035768313.jpg", caption: "Pic 7" },
+            { img: "https://i.ibb.co.com/MD4rVDbC/IMG-20251119-WA0002.jpg", caption: "Pic 1" },
+            { img: "https://i.ibb.co.com/q3XhPdz6/IMG-20251119-WA0003.jpg", caption: "Pic 2" },
+            { img: "https://i.ibb.co.com/WWBZcwh7/IMG-20251119-WA0004.jpg", caption: "Pic 3" },
+            { img: "https://i.ibb.co.com/G4SkrGNz/IMG-20251119-WA0005.jpg", caption: "Pic 4" },
+            { img: "https://i.ibb.co.com/GvHWJwMw/IMG-20251119-WA0006.jpg", caption: "Pic 5" },
+            { img: "https://i.ibb.co.com/VYSY92VZ/IMG-20251119-WA0007.jpg", caption: "Pic 6" },
+            { img: "https://i.ibb.co.com/hxgDsw61/IMG-20251119-WA0008.jpg", caption: "Pic 7" },
+            { img: "https://i.ibb.co.com/TqKQ6qBq/IMG-20251119-WA0009.jpg", caption: "Pic 8" },
+            { img: "https://i.ibb.co.com/5xMq4CwM/IMG-20251119-WA0010.jpg", caption: "Pic 9" },
+            { img: "https://i.ibb.co.com/wFmDw64M/IMG-20251119-WA0011.jpg", caption: "Pic 10" },
+            { img: "https://i.ibb.co.com/dTx6C3h/IMG-20251119-WA0012.jpg", caption: "Pic 11" },
+            { img: "https://i.ibb.co.com/VWNwh5rR/IMG-20251119-WA0013.jpg", caption: "Pic 12" },
+            { img: "https://i.ibb.co.com/BdPGd1N/IMG-20251119-WA0014.jpg", caption: "Pic 13" },
+            { img: "https://i.ibb.co.com/whSt2yrh/IMG-20251119-WA0015.jpg", caption: "Pic 14" },
+            { img: "https://i.ibb.co.com/N6Bb8Qdr/IMG-20251119-WA0016.jpg", caption: "Pic 15" },
+            { img: "https://i.ibb.co.com/yB4sp35w/IMG-20251119-WA0017.jpg", caption: "Pic 16" },
+            { img: "https://i.ibb.co.com/mF085qCw/IMG-20251119-WA0021.jpg", caption: "Pic 17" }
+        ];
+
+        // --- INIT ---
+        document.getElementById('couple-name').innerText = `Journey of ${CONFIG.coupleName}`;
+        
+        new Typed('#typed-text', {
+            strings: [ "Dulu kita cuma teman chat...", "Sekarang jadi bagian terpenting di hidupku 💖", "Hari ini tepat 1 bulan kita bareng...", "Makasih udah selalu ada buat aku, ya. 💌" ],
+            typeSpeed: 50, backSpeed: 30, startDelay: 500, backDelay: 1500, loop: false, showCursor: true
+        });
+
+        renderTimeline();
+        initCalendarOctober(2025, 9, 27); // 9 = Oktober
+        initLoveMeter();
+        initFallingPhotos();
+        initFutureList();
+        updateWhatsAppLink();
+
+        // 1. LOGIKA BUKA SURAT
+        function openLetter() {
+            const envelope = document.getElementById('envelope');
+            const seal = document.getElementById('seal');
+            
+            // Animasi Amplop Terbuka
+            envelope.classList.add('open');
+            seal.style.opacity = '0';
+            
+            // Play Music Otomatis (Coba)
+            toggleMusic(true);
+        }
+
+        function showMomentReveal() {
+            const letterLayer = document.getElementById('letter-opening-layer');
+            const momentOverlay = document.getElementById('moment-overlay-container');
+            
+            // Fade out surat
+            letterLayer.style.opacity = '0';
+            setTimeout(() => {
+                letterLayer.style.display = 'none';
+                // Fade in Moment
+                momentOverlay.style.display = 'flex';
+                setTimeout(() => {
+                    momentOverlay.style.opacity = '1';
+                    // Trigger isi moment (card, foto, teks)
+                    document.getElementById('moment-card-content').style.transform = 'scale(1)';
+                    document.getElementById('moment-card-content').style.opacity = '1';
+                    document.getElementById('moment-img-container').classList.add('active');
+                    document.getElementById('moment-text-container').classList.add('active');
+                    
+                    // Partikel Moment
+                    createMomentParticles();
+                }, 100);
+            }, 1000);
+        }
+
+        function finishOpening() {
+            const momentOverlay = document.getElementById('moment-overlay-container');
+            const openingPage = document.getElementById('opening-page');
+            const musicBtn = document.getElementById('music-btn');
+            
+            momentOverlay.style.opacity = '0';
+            setTimeout(() => {
+                momentOverlay.style.display = 'none';
+                openingPage.classList.remove('hidden');
+                musicBtn.classList.remove('hidden');
+                setTimeout(() => {
+                    openingPage.style.opacity = '1';
+                }, 100);
+            }, 800);
+        }
+
+        function createMomentParticles() {
+            const container = document.getElementById('moment-particles');
+            for (let i = 0; i < 12; i++) {
+                const p = document.createElement('div');
+                p.className = 'moment-particle';
+                p.innerHTML = '💗';
+                p.style.left = Math.random() * 100 + '%';
+                p.style.top = Math.random() * 100 + '%';
+                p.style.animationDelay = Math.random() * 2 + 's';
+                container.appendChild(p);
+            }
+        }
+
+        function initFallingPhotos() {
+            const canvas = document.getElementById('bg-canvas');
+            const ctx = canvas.getContext('2d');
+            canvas.width = window.innerWidth;
+            canvas.height = window.innerHeight;
+            
+            window.addEventListener('resize', () => { canvas.width = window.innerWidth; canvas.height = window.innerHeight; });
+
+            const photoUrl = 'https://i.ibb.co.com/ym2VQb55/IMG-20251008-WA0049.png';
+            const photoSize = 35; 
+            const photos = Array(20).fill().map(() => ({
+                img: new Image(),
+                x: Math.random() * canvas.width,
+                y: Math.random() * canvas.height,
+                s: Math.random() * 0.8 + 0.3,
+                r: Math.random() * 360
+            }));
+
+            photos.forEach(p => p.img.src = photoUrl);
+
+            function drawPhotos() {
+                ctx.clearRect(0, 0, canvas.width, canvas.height);
+                photos.forEach(p => {
+                    ctx.save();
+                    ctx.translate(p.x + photoSize / 2, p.y + photoSize / 2);
+                    ctx.rotate(p.r * Math.PI / 180);
+                    ctx.globalAlpha = 0.8;
+                    ctx.drawImage(p.img, -photoSize / 2, -photoSize / 2, photoSize, photoSize);
+                    ctx.restore();
+                    
+                    p.y += p.s;
+                    p.r += p.s * 0.3;
+                    if (p.y > canvas.height) {
+                        p.y = -photoSize;
+                        p.x = Math.random() * canvas.width;
+                        p.r = Math.random() * 360;
+                    }
+                });
+                requestAnimationFrame(drawPhotos);
+            }
+            let loadedCount = 0;
+            photos.forEach(p => {
+                p.img.onload = () => {
+                    loadedCount++;
+                    if (loadedCount === photos.length) {
+                        drawPhotos();
+                    }
+                };
+            });
+        }
+
+        function initLoveMeter() {
+            const jadian = new Date(CONFIG.jadianDate);
+            const loveDaysEl = document.getElementById("love-days");
+            if (!loveDaysEl) return;
+            
+            const updateDays = () => {
+                const today = new Date();
+                const diff = Math.floor((today - jadian) / (1000 * 60 * 60 * 24));
+                loveDaysEl.innerText = diff;
+            };
+            updateDays();
+            setInterval(updateDays, 1000 * 60 * 60);
+        }
+
+        function initCalendarOctober(year, month, activeDay) {
+            const calendarEl = document.getElementById('calendar-october');
+            const firstDayOfMonth = new Date(year, month, 1).getDay();
+            const daysInMonth = new Date(year, month + 1, 0).getDate();
+
+            const dayNames = ['Min', 'Sen', 'Sel', 'Rab', 'Kam', 'Jum', 'Sab'];
+            dayNames.forEach(day => {
+                calendarEl.innerHTML += `<div class="calendar-day font-semibold text-pink-400">${day}</div>`;
+            });
+
+            for (let i = 0; i < firstDayOfMonth; i++) {
+                calendarEl.innerHTML += `<div class="calendar-day other-month"></div>`;
+            }
+
+            for (let day = 1; day <= daysInMonth; day++) {
+                let classes = 'calendar-day bg-white/50 text-gray-700';
+                if (day === activeDay) {
+                    classes += ' active';
+                }
+                calendarEl.innerHTML += `<div class="${classes}">${day}</div>`;
+            }
+        }
+
+        function initFutureList() {
+            const wishlistContainer = document.getElementById('wishlist-container');
+            if (!wishlistContainer) return;
+            const savedState = JSON.parse(localStorage.getItem('wishlistState') || '{}');
+
+            wishlistItems.forEach((item, index) => {
+                const div = document.createElement('div');
+                div.className = `checklist-item flex items-center p-3 rounded-xl bg-white/40 border border-white/60 shadow-sm ${savedState[index] ? 'checked' : ''}`;
+                div.onclick = function(e) {
+                    toggleCheck(this, index, e);
+                };
+
+                div.innerHTML = `
+                    <div class="check-box w-6 h-6 rounded-full border-2 border-pink-300 mr-4 flex items-center justify-center transition-colors">
+                        ${savedState[index] ? '<i class="ph-bold ph-check text-white text-sm"></i>' : ''}
+                    </div>
+                    <span class="check-text text-gray-700 font-medium flex-1 transition-colors">${item}</span>
+                `;
+                wishlistContainer.appendChild(div);
+            });
+        }
+
+        function toggleCheck(el, index, e) {
+            const isChecked = el.classList.toggle('checked');
+            const checkBox = el.querySelector('.check-box');
+            const checkText = el.querySelector('.check-text');
+            
+            if (isChecked) {
+                checkBox.style.backgroundColor = '#ffb6c1';
+                checkBox.style.borderColor = '#ffb6c1';
+                checkBox.innerHTML = '<i class="ph-bold ph-check text-white text-sm"></i>';
+                checkText.style.textDecoration = 'line-through';
+                checkText.style.color = '#9ca3af';
+                
+                const heart = document.createElement('div');
+                heart.className = 'pop-heart';
+                heart.innerHTML = '💗';
+                el.appendChild(heart);
+                setTimeout(() => heart.remove(), 1000);
+                el.style.transform = "scale(1.05)";
+                setTimeout(() => el.style.transform = "scale(1)", 200);
+            } else {
+                checkBox.style.backgroundColor = 'transparent';
+                checkBox.style.borderColor = '#f9a8d4';
+                checkBox.innerHTML = '';
+                checkText.style.textDecoration = 'none';
+                checkText.style.color = '#374151';
+            }
+
+            const savedState = JSON.parse(localStorage.getItem('wishlistState') || '{}');
+            savedState[index] = isChecked;
+            localStorage.setItem('wishlistState', JSON.stringify(savedState));
+        }
+
+        function updateWhatsAppLink() {
+            const link = document.getElementById('whatsapp-link');
+            const message = encodeURIComponent("speechless bangettt sayangg, love youu moreee sayangg. kamuu mau hadiah apa darii akuu?");
+            link.href = `https://wa.me/${CONFIG.whatsappNumber}?text=${message}`;
+        }
+
+        function startJourney() {
+            const opening = document.getElementById('opening-page');
+            const main = document.getElementById('main-content');
+            const musicBtn = document.getElementById('music-btn');
+
+            opening.classList.replace('active-page', 'hidden-page');
+            setTimeout(() => {
+                opening.style.display = 'none';
+                main.style.display = 'block';
+                void main.offsetWidth;
+                main.classList.replace('hidden-page', 'active-page');
+                // musicBtn.style.display = 'block'; // Sudah di-handle di finishOpening
+                setTimeout(() => musicBtn.classList.replace('hidden-page', 'active-page'), 100);
+                AOS.refresh();
+            }, 800);
+        }
+
+        function toggleMusic(forcePlay = false) {
+            const audio = document.getElementById("bg-music"), icon = document.getElementById("music-icon"), btn = document.getElementById("music-btn");
+            btn.classList.remove('animate-bounce');
+            if (forcePlay || audio.paused) {
+                audio.volume = 0.3;
+                audio.play().then(() => {
+                    icon.classList.replace('ph-speaker-slash', 'ph-speaker-high');
+                    btn.classList.add('music-playing');
+                }).catch(() => console.log("Autoplay dicegah"));
+            } else {
+                audio.pause(); icon.classList.replace('ph-speaker-high', 'ph-speaker-slash');
+                btn.classList.remove('music-playing');
+            }
+        }
+
+        function renderTimeline() {
+            const container = document.getElementById('timeline-items');
+            const colors = ['bg-pink-50/80', 'bg-red-50/80', 'bg-purple-50/80'];
+            container.innerHTML = '';
+            timelineData.forEach((item, index) => {
+                const isLeft = index % 2 === 0, colorClass = colors[index % colors.length];
+                const aosAnimation = isLeft ? 'fade-right' : 'fade-left';
+                container.innerHTML += `
+                    <div class="flex flex-col items-center mb-16 ${isLeft ? 'md:flex-row-reverse' : 'md:flex-row'} relative" data-aos="${aosAnimation}">
+                        <div class="hidden md:block w-5/12"></div>
+                        <button class="z-10 group focus:outline-none" onclick="openTimelineModal(${index})">
+                            <div class="w-14 h-14 bg-white/80 rounded-full border-4 border-white shadow-md flex items-center justify-center group-hover:scale-110 transition-all duration-300 backdrop-blur-sm">
+                                <i class="ph-fill ph-heart text-2xl text-pink-500 animate-pulse"></i>
+                            </div>
+                        </button>
+                        <div class="w-full md:w-5/12 mt-4 md:mt-0 p-4 ${isLeft ? 'md:mr-8 lg:mr-12 md:text-right' : 'md:ml-8 lg:ml-12 md:text-left'} text-center">
+                            <div class="${colorClass} backdrop-blur-md p-5 rounded-2xl shadow-sm hover:shadow-md transition cursor-pointer border-2 border-white/50 hover:border-pink-200" onclick="openTimelineModal(${index})">
+                                <span class="text-pink-500 text-xs font-bold tracking-wider block mb-1">${item.date}</span>
+                                <h4 class="text-lg font-semibold text-gray-800">${item.title}</h4>
+                            </div>
+                        </div>
+                    </div>`;
+            });
+        }
+
+        function openScrapbookModal() {
+            const grid = document.getElementById('scrapbook-grid');
+            grid.innerHTML = ''; // Clear dulu
+            
+            galleryData.forEach((item, index) => {
+                const randomRotation = Math.random() * 12 - 6; 
+                grid.innerHTML += `
+                    <div class="scrapbook-photo-item" style="transform: rotate(${randomRotation}deg);" data-aos="zoom-in" data-aos-delay="${index * 50}">
+                        <img src="${item.img}" alt="${item.caption}" class="w-full h-40 object-cover" onclick="openImageInLightbox('${item.img}')">
+                        <p class="scrapbook-caption">${item.caption}</p>
+                    </div>
+                `;
+            });
+            openModal('scrapbook-modal');
+            setTimeout(() => AOS.refresh(), 50);
+        }
+
+        function triggerSurprise() {
+            const modal = document.getElementById('surprise-modal'), content = document.getElementById('surprise-content');
+            const letterEl = document.getElementById('surprise-letter');
+            
+            const letterText = `satu bulan (officialnya) sudah kita lalui bareng bareng, ngga kerasa baru 1 bulan tapi aku yang ngejalanin kaya udaa ber bulan bulan asli. kita baru 1 bulan aja keluarga besar kamu, keluarga besar aku udaa pada tauu kita pacaran terus nanti gimana kaloo udaa 1 tahun? udaa jadi besti taa nanti wkwkwk.
+
+akuuu bener bener beruntung bangett bisa dapetin kamu tuu, kayaa akuu juga ngga yangka ajaa. aku bisa manja manjaaa cumaa sama kamuu, diperhatiin cuma sama kamuu, dilarang, tau aku kaya gimana ituu cuma kamuu serius. jadi kayaa aku samaa kamuu udaa cocok sii. bukan cuman kamu yang banyak first experience pas sama aku, aku juga banyak pas sama kamu tuu. pertama kali pegangan tangan tuu aku sama kamuu asli, aku ngga berani aslinya si kaya gitu tuu takut gituu tapi sama kamu nii ngga tau kenapaa kayaa ada magnet nya aja tangan aku sama kamu jadi pengen nyaa nempelll muluuu. terus aku juga pelukan dimotor baru pertama kali, fotbar juga baru pertama kalii, terus pelukis juga baru pertama kalii, kiss nya doang aja baru pertamaa jadii kayaa akuuu pengen terus soalnya kek seruu gituuu kiss kamu tuu, dikiss baru pertamaa, tapii yang palingg speechless tuu yaa itu pelukiss kayaa gilaaa ini beneran niii aku sampe di jalan ajaa senyum senyum sendiri teruss sampee pulanggg. yaaa sebenernya sii masi banyakk yaa apa lagii kan kita baru 1 bulan gituu masii ada banyak waktu buat bikin first experience with u.
+
+awal deket pdkt an tu aku deketin kamuu biasa ajaa cumaa aku masii bingung bangettt sama kamuu, antara suka atau ngga gituu. aku sebenernya pas kita awal banget yang lost kontak tuu aku berpikiran kalo kamu tuu not like me jadi pas kita mulai chatan lagii pas uda terlalu jauh aku stop gitu takut aku kesukaan sama kamu terus kamu nya ngga kan bahaya yaaa jadii yaa gitu aku stop lagii soal nyaa sikap kamu kayaa ngga suka jadii yaudaa aku nggaa lanjut lebih dalam. tapii pas sehabis pilketos aku inget banget kamu ngechat minta foto terus yaa gituu lanjut sampe sekarang. terus inget bangettt pas call pertamaa lucuu bangettt abiss ituu akuu manggil kamuu sayang tapii kamuu nyaa kayaa risi gituu "emang boleh temen manggil sayang" always bilang gituuu wkwkwk tapii its okay aman yang penting sekarang udaa bedaa.
+
+thankyou udaa percayaa samaa akuu yaa, i hope kamu bisa terus sama aku sampe selama lama nyaaa. hubungan kitaaa harus tetap private biarkan mereka ngga tau kita lagii kenapaa dan kamu juga jangan pernah bilang atau curhat ke siapa kalo kita lagi berantem mending an kita langsung selesai in bareng bareng, hubungan kita cuman berdua bukan bertiga atau berempat okayy? oh iyaaa sebenernya ini aku mau kasih kamu buket tapii gajadii maaf yaaaaa, bukan apaa apaa sumpaah cumana yaaa ada faktor u yang bikin nggaa jadii, maaf yaaaaaaa. satu lagiii, akuu say sorry banyak banyak maaff buat kamuu kaloo aku pernah nyakitin kamuu atau ngebuat kamuu ngga nyaman, semisal kaya gituu kamu plisss langsung bilangg sama akuu yaaa jangan di pendem sendiri atau malaaa diceritain ke orangg. aku jugaa pernaaa salaaa jadiii jangan raguu kaloo aku salaaa tinggal bilang ajaa yaa. samaa ini aku juga mintaa maaf kaloo akuu sering ketiduran  atau tidur duluan, itu emang tidur beneran asliii engga boong, kaloo aku tinggal main jugaaa aku mintaa maaf yaaa sayaangg soalnya aku cuman bisa main pas weekend doang selain itu ngga. yaudaa ituu ajaa darii akuu, sorry aku cuman bisa ngasih kamuu iniii ngga lebihhh maafff`;
+            
+            letterEl.innerText = letterText;
+            
+            modal.classList.remove('hidden'); 
+            void modal.offsetWidth; 
+            modal.classList.remove('opacity-0');
+            content.classList.remove('translate-y-20', 'scale-90');
+            
+            const duration = 3000, end = Date.now() + duration, colors = ['#ffb6c1', '#ff9ecf', '#ffd6e8'];
+            (function frame() {
+                confetti({ particleCount: 5, angle: 60, spread: 55, origin: { x: 0 }, colors });
+                confetti({ particleCount: 5, angle: 120, spread: 55, origin: { x: 1 }, colors });
+                if (Date.now() < end) requestAnimationFrame(frame);
+            }());
+        }
+
+        function openTimelineModal(i) { const d = timelineData[i]; document.getElementById('modal-img').src = d.img; document.getElementById('modal-date').innerText = d.date; document.getElementById('modal-title').innerText = d.title; document.getElementById('modal-desc').innerText = d.desc; openModal('timeline-modal'); }
+        
+        function openImageInLightbox(src) {
+            document.getElementById('lightbox-img').src = src;
+            openModal('photo-modal');
+        }
+
+        function openModal(id) { 
+            const m = document.getElementById(id); 
+            m.classList.remove('hidden'); 
+            void m.offsetWidth; 
+            m.classList.remove('opacity-0'); 
+            
+            if(id==='photo-modal') {
+                document.getElementById('lightbox-img').classList.remove('scale-95');
+            } else if (id==='scrapbook-modal') {
+                document.getElementById('scrapbook-modal-content').classList.remove('scale-95');
+                AOS.refresh();
+            } else if (id==='timeline-modal') {
+                 document.getElementById('modal-content').classList.remove('scale-95');
+            }
+        }
+
+        function closeModal(id) { 
+            const m = document.getElementById(id); 
+            m.classList.add('opacity-0'); 
+            
+            if(id==='photo-modal') {
+                document.getElementById('lightbox-img').classList.add('scale-95');
+            } else if (id==='scrapbook-modal') {
+                document.getElementById('scrapbook-modal-content').classList.add('scale-95');
+            } else if(id==='surprise-modal') { 
+                m.firstElementChild.classList.add('translate-y-20', 'scale-90'); 
+            } else if(id==='timeline-modal') {
+                document.getElementById('modal-content').classList.add('scale-95');
+            }
+            
+            setTimeout(()=>m.classList.add('hidden'),300); 
+        }
+    </script>
+</body>
+</html>
