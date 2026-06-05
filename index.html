@@ -373,28 +373,43 @@
     let partsData = PARTS.map(p => ({ locked: true, subtitle: p.subtitle }));
     let webStatusData = { closed: false, message: "Arsip sedang dikunci oleh admin." };
     let chatLastKey = null;
+    let lastVaultDataStr = null; // Menyimpan riwayat data untuk deteksi perubahan
 
     // ── LOADING BAR ──
     const loadingBar = document.getElementById('loadingBar');
     function barStart() { loadingBar.className = 'loading-bar active'; }
     function barDone()  { loadingBar.className = 'loading-bar done'; setTimeout(() => loadingBar.className = 'loading-bar', 600); }
 
-    // ── FETCH DATA (PARTS & WEB STATUS) ──
-    async function fetchData() {
-      barStart();
+    // ── FETCH DATA (PARTS & WEB STATUS) AUTO SYNC ──
+    async function fetchData(isInitial = true) {
+      if (isInitial) barStart();
       try {
         const res = await fetch(FB_URL);
         if (!res.ok) throw new Error('HTTP ' + res.status);
         const json = await res.json();
-        if (json && json.parts) partsData = json.parts;
-        if (json && json.webStatus) webStatusData = json.webStatus;
+        const jsonStr = JSON.stringify(json);
+
+        // Hanya update dan render ulang JIKA ada perubahan dari Admin
+        if (jsonStr !== lastVaultDataStr) {
+          const partsChanged = JSON.stringify(json?.parts) !== JSON.stringify(partsData);
+          const statusChanged = JSON.stringify(json?.webStatus) !== JSON.stringify(webStatusData);
+
+          if (json && json.parts) partsData = json.parts;
+          if (json && json.webStatus) webStatusData = json.webStatus;
+          lastVaultDataStr = jsonStr;
+
+          // Eksekusi perubahan ke layar secara instan
+          if (partsChanged || isInitial) renderCards();
+          if (statusChanged || isInitial) applyWebStatus();
+        }
       } catch(e) {
         console.warn('Gagal fetch data utama:', e);
       }
-      barDone();
-      renderCards();
-      applyWebStatus();
+      if (isInitial) barDone();
     }
+
+    // Auto-Sync mengecek perubahan tiap 2 detik (Real-time trigger)
+    setInterval(() => fetchData(false), 2000);
 
     // ── RENDER CARDS ──
     function renderCards() {
@@ -728,7 +743,7 @@
     drawParticles();
 
     // ── INIT ──
-    fetchData();
+    fetchData(true);
   </script>
 </body>
 </html>
