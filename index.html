@@ -31,12 +31,10 @@
       cursor: none;
     }
 
-    /* Mengembalikan kursor normal saat admin terbuka */
-    body.admin-open {
-      cursor: auto;
-    }
-    body.admin-open .cursor,
-    body.admin-open .cursor-ring {
+    /* Mengembalikan kursor normal saat admin atau chat terbuka */
+    body.admin-open, body.chat-open { cursor: auto; }
+    body.admin-open .cursor, body.admin-open .cursor-ring,
+    body.chat-open .cursor, body.chat-open .cursor-ring {
       display: none !important;
     }
 
@@ -64,692 +62,156 @@
     }
 
     /* Canvas particles */
-    #heartCanvas {
-      position: fixed;
-      inset: 0;
-      pointer-events: none;
-      z-index: 0;
-      opacity: 0.65;
-    }
+    #heartCanvas { position: fixed; inset: 0; pointer-events: none; z-index: 0; opacity: 0.65; }
 
     /* EKG background line */
     .ekg-bg {
-      position: fixed;
-      bottom: 15%;
-      left: -5%;
-      width: 110%;
-      height: 80px;
-      pointer-events: none;
-      z-index: 0;
-      opacity: 0.08;
+      position: fixed; bottom: 15%; left: -5%; width: 110%; height: 80px;
+      pointer-events: none; z-index: 0; opacity: 0.08;
     }
 
     /* Paper texture overlay */
     body::before {
-      content: '';
-      position: fixed;
-      inset: 0;
-      background-image:
-        url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='300' height='300'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.75' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='300' height='300' filter='url(%23n)' opacity='0.03'/%3E%3C/svg%3E");
-      opacity: 0.4;
-      pointer-events: none;
-      z-index: 0;
+      content: ''; position: fixed; inset: 0;
+      background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='300' height='300'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.75' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='300' height='300' filter='url(%23n)' opacity='0.03'/%3E%3C/svg%3E");
+      opacity: 0.4; pointer-events: none; z-index: 0;
     }
 
-    /* Soft blush top gradient */
     body::after {
-      content: '';
-      position: fixed;
-      inset: 0;
-      background:
-        radial-gradient(ellipse at 20% 10%, rgba(247,232,232,0.7) 0%, transparent 55%),
-        radial-gradient(ellipse at 80% 90%, rgba(240,196,204,0.4) 0%, transparent 50%),
-        radial-gradient(ellipse at 50% 50%, rgba(253,246,240,0.2) 0%, transparent 80%);
-      pointer-events: none;
-      z-index: 0;
+      content: ''; position: fixed; inset: 0;
+      background: radial-gradient(ellipse at 20% 10%, rgba(247,232,232,0.7) 0%, transparent 55%),
+                  radial-gradient(ellipse at 80% 90%, rgba(240,196,204,0.4) 0%, transparent 50%),
+                  radial-gradient(ellipse at 50% 50%, rgba(253,246,240,0.2) 0%, transparent 80%);
+      pointer-events: none; z-index: 0;
     }
 
-    /* Horizontal ruled lines like medical form */
     .ruled-lines {
-      position: fixed;
-      inset: 0;
-      background-image: repeating-linear-gradient(
-        180deg,
-        transparent,
-        transparent 39px,
-        rgba(201,122,138,0.06) 39px,
-        rgba(201,122,138,0.06) 40px
-      );
-      pointer-events: none;
-      z-index: 0;
+      position: fixed; inset: 0;
+      background-image: repeating-linear-gradient(180deg, transparent, transparent 39px, rgba(201,122,138,0.06) 39px, rgba(201,122,138,0.06) 40px);
+      pointer-events: none; z-index: 0;
     }
 
-    /* Main wrapper */
-    .wrapper {
-      position: relative;
-      z-index: 1;
-      max-width: 1000px;
-      margin: 0 auto;
-      padding: 64px 32px 120px;
-    }
+    .wrapper { position: relative; z-index: 1; max-width: 1000px; margin: 0 auto; padding: 64px 32px 120px; }
 
-    /* Header */
-    header {
-      text-align: center;
-      margin-bottom: 80px;
-      animation: fadeDown 1.2s cubic-bezier(0.23,1,0.32,1) both;
-    }
+    header { text-align: center; margin-bottom: 80px; animation: fadeDown 1.2s cubic-bezier(0.23,1,0.32,1) both; }
+    .rx-symbol { font-family: 'DM Mono', monospace; font-size: 13px; color: var(--rose); letter-spacing: 0.3em; text-transform: uppercase; margin-bottom: 20px; opacity: 0.8; display: flex; align-items: center; justify-content: center; gap: 12px; }
+    .rx-symbol::before, .rx-symbol::after { content: ''; display: block; width: 48px; height: 1px; background: linear-gradient(90deg, transparent, var(--rose-pale)); }
+    .rx-symbol::after { background: linear-gradient(90deg, var(--rose-pale), transparent); }
+    h1 { font-family: 'Playfair Display', serif; font-style: italic; font-size: clamp(52px, 10vw, 110px); font-weight: 400; line-height: 0.95; color: var(--burgundy); letter-spacing: -0.01em; margin-bottom: 16px; text-shadow: 0 4px 15px rgba(201,122,138,0.15); }
+    .code-subtitle { font-family: 'DM Mono', monospace; font-size: 13px; color: var(--code-green); letter-spacing: 0.1em; margin-top: 20px; opacity: 0.8; font-style: italic; }
+    .heartbeat-line { width: 100%; max-width: 320px; margin: 28px auto 0; display: block; }
 
-    .rx-symbol {
-      font-family: 'DM Mono', monospace;
-      font-size: 13px;
-      color: var(--rose);
-      letter-spacing: 0.3em;
-      text-transform: uppercase;
-      margin-bottom: 20px;
-      opacity: 0.8;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      gap: 12px;
-    }
-    .rx-symbol::before, .rx-symbol::after {
-      content: '';
-      display: block;
-      width: 48px; height: 1px;
-      background: linear-gradient(90deg, transparent, var(--rose-pale));
-    }
-    .rx-symbol::after {
-      background: linear-gradient(90deg, var(--rose-pale), transparent);
-    }
-
-    h1 {
-      font-family: 'Playfair Display', serif;
-      font-style: italic;
-      font-size: clamp(52px, 10vw, 110px);
-      font-weight: 400;
-      line-height: 0.95;
-      color: var(--burgundy);
-      letter-spacing: -0.01em;
-      margin-bottom: 16px;
-      text-shadow: 0 4px 15px rgba(201,122,138,0.15);
-    }
-
-    .code-subtitle {
-      font-family: 'DM Mono', monospace;
-      font-size: 13px;
-      color: var(--code-green);
-      letter-spacing: 0.1em;
-      margin-top: 20px;
-      opacity: 0.8;
-      font-style: italic;
-    }
-
-    .heartbeat-line {
-      width: 100%;
-      max-width: 320px;
-      margin: 28px auto 0;
-      display: block;
-    }
-
-    /* Patient info strip */
-    .patient-strip {
-      display: flex;
-      justify-content: center;
-      gap: 0;
-      margin-bottom: 72px;
-      border: 1px solid rgba(201,122,138,0.3);
-      border-radius: 6px;
-      overflow: hidden;
-      animation: fadeDown 1.2s 0.15s cubic-bezier(0.23,1,0.32,1) both;
-      max-width: 680px;
-      margin-left: auto;
-      margin-right: auto;
-      box-shadow: 0 10px 30px rgba(201,122,138,0.05);
-    }
-
-    .strip-item {
-      flex: 1;
-      padding: 14px 20px;
-      text-align: center;
-      border-right: 1px solid rgba(201,122,138,0.15);
-      background: rgba(255,249,247,0.7);
-      backdrop-filter: blur(5px);
-    }
+    .patient-strip { display: flex; justify-content: center; gap: 0; margin-bottom: 72px; border: 1px solid rgba(201,122,138,0.3); border-radius: 6px; overflow: hidden; animation: fadeDown 1.2s 0.15s cubic-bezier(0.23,1,0.32,1) both; max-width: 680px; margin-left: auto; margin-right: auto; box-shadow: 0 10px 30px rgba(201,122,138,0.05); }
+    .strip-item { flex: 1; padding: 14px 20px; text-align: center; border-right: 1px solid rgba(201,122,138,0.15); background: rgba(255,249,247,0.7); backdrop-filter: blur(5px); }
     .strip-item:last-child { border-right: none; }
-
-    .strip-label {
-      font-family: 'DM Mono', monospace;
-      font-size: 9px;
-      letter-spacing: 0.25em;
-      text-transform: uppercase;
-      color: var(--rose);
-      opacity: 0.7;
-      margin-bottom: 4px;
-    }
-
-    .strip-value {
-      font-family: 'DM Mono', monospace;
-      font-size: 13px;
-      color: var(--text);
-      font-weight: 400;
-    }
+    .strip-label { font-family: 'DM Mono', monospace; font-size: 9px; letter-spacing: 0.25em; text-transform: uppercase; color: var(--rose); opacity: 0.7; margin-bottom: 4px; }
+    .strip-value { font-family: 'DM Mono', monospace; font-size: 13px; color: var(--text); font-weight: 400; }
     .strip-value.alive { color: var(--code-green); font-weight: bold;}
-    .strip-value.locked-val { color: var(--rose); }
+    .strip-value.clickable { cursor: pointer; user-select: none; }
+    .strip-value.clickable:hover { color: var(--rose-deep); }
 
-    /* Section label */
-    .section-label {
-      display: flex;
-      align-items: center;
-      gap: 16px;
-      margin-bottom: 28px;
-      animation: fadeUp 0.8s 0.3s ease both;
-    }
+    .section-label { display: flex; align-items: center; gap: 16px; margin-bottom: 28px; animation: fadeUp 0.8s 0.3s ease both; }
     .section-label-line { flex: 1; height: 1px; background: rgba(201,122,138,0.25); }
-    .section-label-text {
-      font-family: 'DM Mono', monospace;
-      font-size: 11px;
-      letter-spacing: 0.3em;
-      text-transform: uppercase;
-      color: var(--rose-deep);
-      font-weight: bold;
-    }
+    .section-label-text { font-family: 'DM Mono', monospace; font-size: 11px; letter-spacing: 0.3em; text-transform: uppercase; color: var(--rose-deep); font-weight: bold; }
 
-    /* Grid */
-    .grid {
-      display: grid;
-      grid-template-columns: repeat(auto-fill, minmax(290px, 1fr));
-      gap: 18px;
-      margin-bottom: 60px;
-    }
-
-    /* Card */
-    .card {
-      position: relative;
-      background: rgba(255,249,247,0.85);
-      border: 1px solid rgba(201,122,138,0.25);
-      border-radius: 8px;
-      overflow: hidden;
-      text-decoration: none;
-      color: inherit;
-      display: block;
-      backdrop-filter: blur(6px);
-      transition: border-color 0.4s, transform 0.4s cubic-bezier(0.23,1,0.32,1), box-shadow 0.4s;
-      animation: fadeUp 0.8s ease both;
-    }
-
-    .card:nth-child(1) { animation-delay: 0.15s; }
-    .card:nth-child(2) { animation-delay: 0.25s; }
-    .card:nth-child(3) { animation-delay: 0.35s; }
-    .card:nth-child(4) { animation-delay: 0.45s; }
-    .card:nth-child(5) { animation-delay: 0.55s; }
-    .card:nth-child(6) { animation-delay: 0.65s; }
-
-    .card.unlocked:hover {
-      border-color: rgba(201,122,138,0.7);
-      transform: translateY(-8px) rotate(-0.5deg);
-      box-shadow:
-        0 20px 60px rgba(155,74,94,0.15),
-        0 4px 20px rgba(201,122,138,0.15),
-        0 0 0 1px rgba(201,122,138,0.3);
-    }
-
-    .card.locked {
-      cursor: not-allowed;
-      background: rgba(253,246,240,0.6);
-      border-color: rgba(201,122,138,0.15);
-    }
-
-    /* Card left accent bar */
-    .card-accent {
-      position: absolute;
-      left: 0; top: 0; bottom: 0;
-      width: 4px;
-    }
-    .card.unlocked .card-accent {
-      background: linear-gradient(180deg, var(--rose-pale), var(--rose), var(--rose-deep));
-    }
-    .card.locked .card-accent {
-      background: linear-gradient(180deg, #d8c3c7, #c4aeb3, #d8c3c7);
-      opacity: 0.5;
-    }
-
-    /* Card inner */
-    .card-inner {
-      padding: 26px 26px 22px 30px;
-    }
-
-    /* Prescription number */
-    .rx-num {
-      font-family: 'DM Mono', monospace;
-      font-size: 10px;
-      letter-spacing: 0.25em;
-      color: var(--rose-deep);
-      opacity: 0.7;
-      margin-bottom: 12px;
-      display: flex;
-      align-items: center;
-      gap: 8px;
-    }
-    .rx-num::after {
-      content: '';
-      display: block;
-      flex: 1;
-      height: 1px;
-      background: rgba(201,122,138,0.25);
-    }
-
-    .card-title {
-      font-family: 'Cormorant Garamond', serif;
-      font-size: 32px;
-      font-weight: 300;
-      line-height: 1.1;
-      color: var(--burgundy);
-      margin-bottom: 8px;
-      letter-spacing: 0.02em;
-    }
-    .card-title em {
-      font-style: italic;
-      font-weight: 600;
-    }
+    .grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(290px, 1fr)); gap: 18px; margin-bottom: 60px; }
+    .card { position: relative; background: rgba(255,249,247,0.85); border: 1px solid rgba(201,122,138,0.25); border-radius: 8px; overflow: hidden; text-decoration: none; color: inherit; display: block; backdrop-filter: blur(6px); transition: border-color 0.4s, transform 0.4s cubic-bezier(0.23,1,0.32,1), box-shadow 0.4s; animation: fadeUp 0.8s ease both; }
+    .card.unlocked:hover { border-color: rgba(201,122,138,0.7); transform: translateY(-8px) rotate(-0.5deg); box-shadow: 0 20px 60px rgba(155,74,94,0.15), 0 4px 20px rgba(201,122,138,0.15), 0 0 0 1px rgba(201,122,138,0.3); }
+    .card.locked { cursor: not-allowed; background: rgba(253,246,240,0.6); border-color: rgba(201,122,138,0.15); }
+    .card-accent { position: absolute; left: 0; top: 0; bottom: 0; width: 4px; }
+    .card.unlocked .card-accent { background: linear-gradient(180deg, var(--rose-pale), var(--rose), var(--rose-deep)); }
+    .card.locked .card-accent { background: linear-gradient(180deg, #d8c3c7, #c4aeb3, #d8c3c7); opacity: 0.5; }
+    .card-inner { padding: 26px 26px 22px 30px; }
+    .rx-num { font-family: 'DM Mono', monospace; font-size: 10px; letter-spacing: 0.25em; color: var(--rose-deep); opacity: 0.7; margin-bottom: 12px; display: flex; align-items: center; gap: 8px; }
+    .rx-num::after { content: ''; display: block; flex: 1; height: 1px; background: rgba(201,122,138,0.25); }
+    .card-title { font-family: 'Cormorant Garamond', serif; font-size: 32px; font-weight: 300; line-height: 1.1; color: var(--burgundy); margin-bottom: 8px; letter-spacing: 0.02em; }
+    .card-title em { font-style: italic; font-weight: 600; }
     .card.locked .card-title { color: var(--muted); }
-
-    /* Code snippet in card */
-    .card-code {
-      font-family: 'DM Mono', monospace;
-      font-size: 11px;
-      color: var(--code-blue);
-      opacity: 0.8;
-      margin-bottom: 18px;
-      font-style: italic;
-      letter-spacing: 0.03em;
-    }
+    .card-code { font-family: 'DM Mono', monospace; font-size: 11px; color: var(--code-blue); opacity: 0.8; margin-bottom: 18px; font-style: italic; letter-spacing: 0.03em; }
     .card.locked .card-code { color: var(--muted); opacity: 0.4; }
-
-    .card-desc {
-      font-size: 15px;
-      font-weight: 400;
-      line-height: 1.6;
-      color: var(--text);
-      margin-bottom: 22px;
-      font-style: italic;
-    }
+    .card-desc { font-size: 15px; font-weight: 400; line-height: 1.6; color: var(--text); margin-bottom: 22px; font-style: italic; }
     .card.locked .card-desc { color: var(--muted); }
-
-    /* Badge */
-    .badge {
-      display: inline-flex;
-      align-items: center;
-      gap: 7px;
-      padding: 6px 14px;
-      border-radius: 20px;
-      font-family: 'DM Mono', monospace;
-      font-size: 10px;
-      letter-spacing: 0.15em;
-      text-transform: uppercase;
-      font-weight: bold;
-    }
-    .badge-open {
-      background: rgba(201,122,138,0.12);
-      border: 1px solid rgba(201,122,138,0.4);
-      color: var(--rose-deep);
-    }
-    .badge-locked {
-      background: rgba(180,180,180,0.08);
-      border: 1px solid rgba(180,180,180,0.2);
-      color: var(--muted);
-    }
-
-    /* Decorative ECG mini in card */
-    .card-ekg {
-      position: absolute;
-      bottom: 0; right: 0;
-      opacity: 0.08;
-      pointer-events: none;
-      transition: opacity 0.4s;
-    }
-
-    /* Hover heart pulse */
+    .badge { display: inline-flex; align-items: center; gap: 7px; padding: 6px 14px; border-radius: 20px; font-family: 'DM Mono', monospace; font-size: 10px; letter-spacing: 0.15em; text-transform: uppercase; font-weight: bold; }
+    .badge-open { background: rgba(201,122,138,0.12); border: 1px solid rgba(201,122,138,0.4); color: var(--rose-deep); }
+    .badge-locked { background: rgba(180,180,180,0.08); border: 1px solid rgba(180,180,180,0.2); color: var(--muted); }
+    .card-ekg { position: absolute; bottom: 0; right: 0; opacity: 0.08; pointer-events: none; transition: opacity 0.4s; }
     .card.unlocked:hover .card-ekg { opacity: 0.25; stroke: var(--rose-deep); }
+    .locked-overlay { position: absolute; inset: 0; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 10px; background: rgba(253,246,240,0.75); backdrop-filter: blur(4px); }
+    .locked-icon { font-size: 26px; animation: heartFloat 3s ease-in-out infinite; }
+    .coming-text { font-family: 'Playfair Display', serif; font-style: italic; font-size: 20px; color: var(--burgundy); letter-spacing: 0.08em; }
+    .coming-code { font-family: 'DM Mono', monospace; font-size: 10px; letter-spacing: 0.2em; color: var(--rose-deep); opacity: 0.6; text-transform: uppercase; }
+    .card-arrow { position: absolute; bottom: 22px; right: 22px; font-style: italic; font-family: 'Cormorant Garamond', serif; font-size: 24px; color: var(--rose-deep); opacity: 0; transform: translate(-8px, 8px) rotate(-10deg); transition: opacity 0.4s, transform 0.4s cubic-bezier(0.23,1,0.32,1); }
+    .card.unlocked:hover .card-arrow { opacity: 0.9; transform: translate(0, 0) rotate(0deg); }
 
-    /* Coming soon overlay */
-    .locked-overlay {
-      position: absolute;
-      inset: 0;
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      justify-content: center;
-      gap: 10px;
-      background: rgba(253,246,240,0.75);
-      backdrop-filter: blur(4px);
-    }
+    /* Akhir Card (Part 9) */
+    #finalCard { margin-bottom: 40px; }
+    .card-final { width: 100%; min-height: 200px; position: relative; background: rgba(255,249,247,0.92); border: 1px solid rgba(201,122,138,0.35); border-radius: 12px; overflow: hidden; text-decoration: none; color: inherit; display: block; backdrop-filter: blur(8px); transition: border-color 0.4s, transform 0.4s cubic-bezier(0.23,1,0.32,1), box-shadow 0.4s; animation: fadeUp 0.8s ease both; }
+    .card-final.unlocked:hover { border-color: rgba(201,122,138,0.8); transform: translateY(-6px); box-shadow: 0 24px 70px rgba(155,74,94,0.18), 0 4px 24px rgba(201,122,138,0.18), 0 0 0 1px rgba(201,122,138,0.35); }
+    .card-final.locked { cursor: not-allowed; background: rgba(253,246,240,0.6); border-color: rgba(201,122,138,0.15); }
+    .card-final-inner { padding: 40px 40px 36px 44px; display: flex; flex-direction: column; gap: 4px; }
+    .card-final-title { font-size: 52px !important; margin-bottom: 12px !important; }
 
-    .locked-icon {
-      font-size: 26px;
-      animation: heartFloat 3s ease-in-out infinite;
-    }
+    footer { text-align: center; animation: fadeUp 1s 0.9s ease both; padding-top: 20px; }
+    .footer-quote { font-family: 'Playfair Display', serif; font-style: italic; font-size: 22px; color: var(--burgundy); opacity: 0.8; margin-bottom: 16px; letter-spacing: 0.03em; }
+    .footer-code { font-family: 'DM Mono', monospace; font-size: 11px; letter-spacing: 0.2em; color: var(--rose); opacity: 0.5; }
 
-    .coming-text {
-      font-family: 'Playfair Display', serif;
-      font-style: italic;
-      font-size: 20px;
-      color: var(--burgundy);
-      letter-spacing: 0.08em;
-    }
-    .coming-code {
-      font-family: 'DM Mono', monospace;
-      font-size: 10px;
-      letter-spacing: 0.2em;
-      color: var(--rose-deep);
-      opacity: 0.6;
-      text-transform: uppercase;
-    }
+    @keyframes fadeDown { from { opacity: 0; transform: translateY(-28px); } to { opacity: 1; transform: translateY(0); } }
+    @keyframes fadeUp { from { opacity: 0; transform: translateY(24px); } to { opacity: 1; transform: translateY(0); } }
+    @keyframes heartFloat { 0%, 100% { transform: translateY(0) scale(1); } 50% { transform: translateY(-8px) scale(1.1); } }
 
-    @keyframes heartFloat {
-      0%, 100% { transform: translateY(0) scale(1); }
-      50% { transform: translateY(-8px) scale(1.1); }
-    }
-
-    /* Arrow on hover */
-    .card-arrow {
-      position: absolute;
-      bottom: 22px; right: 22px;
-      font-style: italic;
-      font-family: 'Cormorant Garamond', serif;
-      font-size: 24px;
-      color: var(--rose-deep);
-      opacity: 0;
-      transform: translate(-8px, 8px) rotate(-10deg);
-      transition: opacity 0.4s, transform 0.4s cubic-bezier(0.23,1,0.32,1);
-    }
-    .card.unlocked:hover .card-arrow {
-      opacity: 0.9;
-      transform: translate(0, 0) rotate(0deg);
-    }
-
-    /* Footer */
-    footer {
-      text-align: center;
-      animation: fadeUp 1s 0.9s ease both;
-      padding-top: 20px;
-    }
-
-    .footer-quote {
-      font-family: 'Playfair Display', serif;
-      font-style: italic;
-      font-size: 22px;
-      color: var(--burgundy);
-      opacity: 0.8;
-      margin-bottom: 16px;
-      letter-spacing: 0.03em;
-    }
-
-    .footer-code {
-      font-family: 'DM Mono', monospace;
-      font-size: 11px;
-      letter-spacing: 0.2em;
-      color: var(--rose);
-      opacity: 0.5;
-    }
-
-    /* Animations */
-    @keyframes fadeDown {
-      from { opacity: 0; transform: translateY(-28px); }
-      to { opacity: 1; transform: translateY(0); }
-    }
-    @keyframes fadeUp {
-      from { opacity: 0; transform: translateY(24px); }
-      to { opacity: 1; transform: translateY(0); }
-    }
-
-    /* Responsive */
     @media (max-width: 600px) {
       .patient-strip { flex-wrap: wrap; }
       .strip-item { min-width: 50%; border-bottom: 1px solid rgba(201,122,138,0.15); }
       .grid { grid-template-columns: 1fr; }
+      .card-final-title { font-size: 36px !important; }
+      .card-final-inner { padding: 28px 24px 24px 28px; }
+      #chatBox { right: 15px !important; width: calc(100% - 30px) !important; }
     }
 
     /* ── ADMIN PANEL ── */
-    .admin-overlay {
-      display: none;
-      position: fixed;
-      inset: 0;
-      background: rgba(43, 20, 30, 0.72);
-      backdrop-filter: blur(8px);
-      z-index: 10000;
-      align-items: center;
-      justify-content: center;
-      padding: 20px;
-    }
+    .admin-overlay { display: none; position: fixed; inset: 0; background: rgba(43, 20, 30, 0.72); backdrop-filter: blur(8px); z-index: 100000; align-items: center; justify-content: center; padding: 20px; }
     .admin-overlay.open { display: flex; }
-
-    .admin-panel {
-      background: var(--white);
-      border: 1px solid rgba(201,122,138,0.4);
-      border-radius: 12px;
-      padding: 36px 32px 28px;
-      width: 100%;
-      max-width: 500px;
-      max-height: 90vh;
-      overflow-y: auto;
-      box-shadow: 0 40px 80px rgba(107,45,62,0.25), 0 0 0 1px rgba(201,122,138,0.15);
-      animation: fadeDown 0.4s cubic-bezier(0.23,1,0.32,1);
-    }
-
-    .admin-header {
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-      margin-bottom: 28px;
-      padding-bottom: 16px;
-      border-bottom: 1px solid rgba(201,122,138,0.2);
-    }
-    .admin-title {
-      font-family: 'DM Mono', monospace;
-      font-size: 11px;
-      letter-spacing: 0.3em;
-      text-transform: uppercase;
-      color: var(--rose-deep);
-    }
-    .admin-close {
-      background: none;
-      border: 1px solid rgba(201,122,138,0.3);
-      border-radius: 50%;
-      width: 30px; height: 30px;
-      cursor: pointer;
-      color: var(--rose);
-      font-size: 16px;
-      display: flex; align-items: center; justify-content: center;
-      transition: background 0.2s, color 0.2s;
-    }
+    .admin-panel { background: var(--white); border: 1px solid rgba(201,122,138,0.4); border-radius: 12px; padding: 36px 32px 28px; width: 100%; max-width: 500px; max-height: 90vh; overflow-y: auto; box-shadow: 0 40px 80px rgba(107,45,62,0.25), 0 0 0 1px rgba(201,122,138,0.15); animation: fadeDown 0.4s cubic-bezier(0.23,1,0.32,1); }
+    .admin-header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 28px; padding-bottom: 16px; border-bottom: 1px solid rgba(201,122,138,0.2); }
+    .admin-title { font-family: 'DM Mono', monospace; font-size: 11px; letter-spacing: 0.3em; text-transform: uppercase; color: var(--rose-deep); }
+    .admin-close { background: none; border: 1px solid rgba(201,122,138,0.3); border-radius: 50%; width: 30px; height: 30px; cursor: pointer; color: var(--rose); font-size: 16px; display: flex; align-items: center; justify-content: center; transition: background 0.2s, color 0.2s; }
     .admin-close:hover { background: var(--rose); color: white; }
-
-    .admin-row {
-      margin-bottom: 12px;
-      padding: 16px;
-      background: rgba(247,232,232,0.3);
-      border-radius: 8px;
-      border: 1px solid rgba(201,122,138,0.12);
-    }
-    .admin-row-header {
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-    }
-    .admin-part-label {
-      font-family: 'DM Mono', monospace;
-      font-size: 10px;
-      letter-spacing: 0.25em;
-      color: var(--rose-deep);
-      text-transform: uppercase;
-    }
-
-    /* Toggle switch */
+    .admin-row { margin-bottom: 12px; padding: 16px; background: rgba(247,232,232,0.3); border-radius: 8px; border: 1px solid rgba(201,122,138,0.12); }
+    .admin-row-header { display: flex; align-items: center; justify-content: space-between; }
+    .admin-part-label { font-family: 'DM Mono', monospace; font-size: 10px; letter-spacing: 0.25em; color: var(--rose-deep); text-transform: uppercase; }
     .toggle-wrap { display: flex; align-items: center; gap: 8px; }
-    .toggle-label {
-      font-family: 'DM Mono', monospace;
-      font-size: 9px;
-      letter-spacing: 0.15em;
-      color: var(--muted);
-      text-transform: uppercase;
-    }
-    .toggle {
-      position: relative;
-      width: 36px; height: 20px;
-    }
+    .toggle-label { font-family: 'DM Mono', monospace; font-size: 9px; letter-spacing: 0.15em; color: var(--muted); text-transform: uppercase; }
+    .toggle { position: relative; width: 36px; height: 20px; }
     .toggle input { display: none; }
-    .toggle-slider {
-      position: absolute;
-      inset: 0;
-      background: rgba(180,180,180,0.3);
-      border-radius: 20px;
-      cursor: pointer;
-      transition: background 0.3s;
-      border: 1px solid rgba(201,122,138,0.2);
-    }
-    .toggle-slider::before {
-      content: '';
-      position: absolute;
-      width: 14px; height: 14px;
-      left: 3px; top: 2px;
-      background: white;
-      border-radius: 50%;
-      transition: transform 0.3s;
-      box-shadow: 0 1px 4px rgba(0,0,0,0.2);
-    }
+    .toggle-slider { position: absolute; inset: 0; background: rgba(180,180,180,0.3); border-radius: 20px; cursor: pointer; transition: background 0.3s; border: 1px solid rgba(201,122,138,0.2); }
+    .toggle-slider::before { content: ''; position: absolute; width: 14px; height: 14px; left: 3px; top: 2px; background: white; border-radius: 50%; transition: transform 0.3s; box-shadow: 0 1px 4px rgba(0,0,0,0.2); }
     .toggle input:checked + .toggle-slider { background: var(--rose); border-color: var(--rose-deep); }
     .toggle input:checked + .toggle-slider::before { transform: translateX(16px); }
-
-    .admin-input {
-      width: 100%;
-      padding: 9px 12px;
-      margin-top: 8px;
-      border: 1px solid rgba(201,122,138,0.3);
-      border-radius: 6px;
-      background: rgba(255,249,247,0.9);
-      font-family: 'DM Mono', monospace;
-      font-size: 11px;
-      color: var(--text);
-      outline: none;
-      transition: border-color 0.2s, box-shadow 0.2s;
-    }
-    .admin-input:focus {
-      border-color: var(--rose);
-      box-shadow: 0 0 0 3px rgba(201,122,138,0.12);
-    }
-
-    .admin-footer {
-      margin-top: 24px;
-      display: flex;
-      gap: 10px;
-      justify-content: flex-end;
-      align-items: center;
-    }
-    .admin-lock-all {
-      padding: 10px 16px;
-      background: rgba(180,180,180,0.15);
-      color: var(--text);
-      border: 1px solid rgba(180,180,180,0.3);
-      border-radius: 6px;
-      font-family: 'DM Mono', monospace;
-      font-size: 10px;
-      letter-spacing: 0.1em;
-      text-transform: uppercase;
-      cursor: pointer;
-      transition: background 0.2s;
-    }
+    .admin-input { width: 100%; padding: 9px 12px; margin-top: 8px; border: 1px solid rgba(201,122,138,0.3); border-radius: 6px; background: rgba(255,249,247,0.9); font-family: 'DM Mono', monospace; font-size: 11px; color: var(--text); outline: none; transition: border-color 0.2s, box-shadow 0.2s; }
+    .admin-input:focus { border-color: var(--rose); box-shadow: 0 0 0 3px rgba(201,122,138,0.12); }
+    .admin-footer { margin-top: 24px; display: flex; gap: 10px; justify-content: flex-end; align-items: center; }
+    .admin-lock-all { padding: 10px 16px; background: rgba(180,180,180,0.15); color: var(--text); border: 1px solid rgba(180,180,180,0.3); border-radius: 6px; font-family: 'DM Mono', monospace; font-size: 10px; letter-spacing: 0.1em; text-transform: uppercase; cursor: pointer; transition: background 0.2s; }
     .admin-lock-all:hover { background: rgba(180,180,180,0.3); }
-    .admin-save {
-      padding: 10px 24px;
-      background: var(--rose-deep);
-      color: white;
-      border: none;
-      border-radius: 6px;
-      font-family: 'DM Mono', monospace;
-      font-size: 10px;
-      letter-spacing: 0.2em;
-      text-transform: uppercase;
-      cursor: pointer;
-      transition: background 0.2s, transform 0.15s;
-    }
+    .admin-save { padding: 10px 24px; background: var(--rose-deep); color: white; border: none; border-radius: 6px; font-family: 'DM Mono', monospace; font-size: 10px; letter-spacing: 0.2em; text-transform: uppercase; cursor: pointer; transition: background 0.2s, transform 0.15s; }
     .admin-save:hover { background: var(--burgundy); transform: translateY(-1px); }
     .admin-save:disabled { opacity: 0.5; cursor: not-allowed; transform: none; }
-    .admin-status {
-      font-family: 'DM Mono', monospace;
-      font-size: 10px;
-      color: var(--code-green);
-      letter-spacing: 0.1em;
-      opacity: 0;
-      transition: opacity 0.3s;
-    }
+    .admin-status { font-family: 'DM Mono', monospace; font-size: 10px; color: var(--code-green); letter-spacing: 0.1em; opacity: 0; transition: opacity 0.3s; }
     .admin-status.show { opacity: 1; }
     .admin-status.error { color: #c97a5a; }
 
-    /* Part 9 — Final Card */
-    #finalCard {
-      margin-bottom: 40px;
-    }
-    .card-final {
-      width: 100%;
-      min-height: 200px;
-      position: relative;
-      background: rgba(255,249,247,0.92);
-      border: 1px solid rgba(201,122,138,0.35);
-      border-radius: 12px;
-      overflow: hidden;
-      text-decoration: none;
-      color: inherit;
-      display: block;
-      backdrop-filter: blur(8px);
-      transition: border-color 0.4s, transform 0.4s cubic-bezier(0.23,1,0.32,1), box-shadow 0.4s;
-      animation: fadeUp 0.8s ease both;
-    }
-    .card-final.unlocked:hover {
-      border-color: rgba(201,122,138,0.8);
-      transform: translateY(-6px);
-      box-shadow:
-        0 24px 70px rgba(155,74,94,0.18),
-        0 4px 24px rgba(201,122,138,0.18),
-        0 0 0 1px rgba(201,122,138,0.35);
-    }
-    .card-final.locked {
-      cursor: not-allowed;
-      background: rgba(253,246,240,0.6);
-      border-color: rgba(201,122,138,0.15);
-    }
-    .card-final-inner {
-      padding: 40px 40px 36px 44px;
-      display: flex;
-      flex-direction: column;
-      gap: 4px;
-    }
-    .card-final-title {
-      font-size: 52px !important;
-      margin-bottom: 12px !important;
-    }
-    @media (max-width: 600px) {
-      .card-final-title { font-size: 36px !important; }
-      .card-final-inner { padding: 28px 24px 24px 28px; }
-    }
-
-    /* ID Hati click hint */
-    .strip-value.clickable { cursor: pointer; user-select: none; }
-    .strip-value.clickable:hover { color: var(--rose-deep); }
-
-    /* Loading state overlay */
-    .loading-bar {
-      position: fixed;
-      top: 0; left: 0; right: 0;
-      height: 2px;
-      background: linear-gradient(90deg, var(--rose-pale), var(--rose), var(--rose-deep));
-      z-index: 9997;
-      transform-origin: left;
-      transform: scaleX(0);
-      transition: transform 0.4s ease;
-    }
+    .loading-bar { position: fixed; top: 0; left: 0; right: 0; height: 2px; background: linear-gradient(90deg, var(--rose-pale), var(--rose), var(--rose-deep)); z-index: 9997; transform-origin: left; transform: scaleX(0); transition: transform 0.4s ease; }
     .loading-bar.active { transform: scaleX(0.7); }
     .loading-bar.done { transform: scaleX(1); opacity: 0; transition: transform 0.2s, opacity 0.4s 0.2s; }
+
+    /* ── CHAT STYLES ── */
+    #chatMessages::-webkit-scrollbar { width: 6px; }
+    #chatMessages::-webkit-scrollbar-track { background: transparent; }
+    #chatMessages::-webkit-scrollbar-thumb { background: rgba(201,122,138,0.4); border-radius: 3px; }
+    .chat-msg { background: rgba(255,249,247,0.9); padding: 8px 12px; border-radius: 12px; max-width: 85%; border: 1px solid rgba(201,122,138,0.2); margin-bottom: 8px; font-family: 'DM Mono', monospace; font-size: 12px; line-height: 1.4; word-wrap: break-word; }
+    .chat-msg.me { background: var(--rose-pale); align-self: flex-end; border-color: var(--rose); border-bottom-right-radius: 2px; }
+    .chat-msg.other { background: var(--white); align-self: flex-start; border-bottom-left-radius: 2px; }
+    .chat-name { font-weight: bold; color: var(--burgundy); font-size: 10px; margin-bottom: 3px; }
+    .chat-time { font-size: 9px; color: var(--muted); text-align: right; margin-top: 4px; }
   </style>
 </head>
 <body>
@@ -757,9 +219,14 @@
   <div class="cursor-ring" id="cursorRing"></div>
   <div class="ruled-lines"></div>
 
+  <!-- Layar Web Ditutup -->
+  <div id="closedOverlay" style="display: none; position: fixed; inset: 0; background: var(--cream); z-index: 99999; align-items: center; justify-content: center; flex-direction: column; text-align: center; padding: 20px;">
+    <h1 id="closedAdminTrigger" style="color: var(--burgundy); font-size: clamp(36px, 8vw, 64px); margin-bottom: 16px; cursor: pointer; font-family: 'Playfair Display', serif; font-style: italic; position: relative; z-index: 100001;">Akses Ditutup</h1>
+    <p id="closedMessage" style="color: var(--text); font-size: 20px; font-family: 'Cormorant Garamond', serif; font-style: italic;">Arsip sedang dikunci oleh admin.</p>
+  </div>
+
   <canvas id="heartCanvas"></canvas>
 
-  <!-- EKG SVG background -->
   <svg class="ekg-bg" viewBox="0 0 1200 80" preserveAspectRatio="none" xmlns="http://www.w3.org/2000/svg">
     <path d="M0,40 L80,40 L100,40 L110,10 L120,70 L130,5 L140,75 L150,40 L170,40 L280,40 L300,40 L310,10 L320,70 L330,5 L340,75 L350,40 L370,40 L480,40 L500,40 L510,10 L520,70 L530,5 L540,75 L550,40 L570,40 L680,40 L700,40 L710,10 L720,70 L730,5 L740,75 L750,40 L770,40 L880,40 L900,40 L910,10 L920,70 L930,5 L940,75 L950,40 L970,40 L1080,40 L1100,40 L1110,10 L1120,70 L1130,5 L1140,75 L1150,40 L1200,40"
       stroke="var(--rose)" stroke-width="1.5" fill="none" stroke-linecap="round" stroke-linejoin="round">
@@ -772,21 +239,17 @@
       <div class="rx-symbol">Rx &nbsp;·&nbsp; Dokumen Cinta &nbsp;·&nbsp; Rahasia</div>
       <h1>For Dinnar</h1>
       <div class="code-subtitle">// if (aku.bersama(dinnar)) { cinta.selamanya(); }</div>
-
-      <!-- Heartbeat SVG inline -->
       <svg class="heartbeat-line" viewBox="0 0 320 40" xmlns="http://www.w3.org/2000/svg">
-        <path d="M0,20 L40,20 L55,20 L63,5 L70,35 L77,2 L84,38 L90,20 L110,20 L160,20 L175,20 L183,5 L190,35 L197,2 L204,38 L210,20 L230,20 L280,20 L295,20 L303,5 L310,35 L316,12 L320,20"
-          stroke="rgba(155,74,94,0.6)" stroke-width="1.5" fill="none" stroke-linecap="round">
+        <path d="M0,20 L40,20 L55,20 L63,5 L70,35 L77,2 L84,38 L90,20 L110,20 L160,20 L175,20 L183,5 L190,35 L197,2 L204,38 L210,20 L230,20 L280,20 L295,20 L303,5 L310,35 L316,12 L320,20" stroke="rgba(155,74,94,0.6)" stroke-width="1.5" fill="none" stroke-linecap="round">
           <animate attributeName="stroke-dasharray" from="0 800" to="800 0" dur="2.5s" ease="ease-out" fill="freeze" begin="0.5s"/>
         </path>
       </svg>
     </header>
 
-    <!-- Patient record strip -->
     <div class="patient-strip">
       <div class="strip-item">
         <div class="strip-label">ID Hati</div>
-        <div class="strip-value clickable" id="adminTrigger" title="">DN-LOVE-01</div>
+        <div class="strip-value clickable" id="adminTrigger" title="Klik 3x untuk Admin">DN-LOVE-01</div>
       </div>
       <div class="strip-item">
         <div class="strip-label">Diagnosis</div>
@@ -798,32 +261,25 @@
       </div>
       <div class="strip-item">
         <div class="strip-label">Memori</div>
-        <!-- Update memori menjadi 5 -->
         <div class="strip-value">5 / ∞</div>
       </div>
     </div>
 
-    <!-- Unlocked section -->
     <div class="section-label">
       <div class="section-label-line"></div>
       <div class="section-label-text">♡ &nbsp; Resep Kebahagiaan</div>
       <div class="section-label-line"></div>
     </div>
 
-    <div class="grid" id="cardsGrid">
-      <!-- Cards 1-8 rendered dynamically via JS -->
-    </div>
+    <div class="grid" id="cardsGrid"></div>
 
-    <!-- Section label Part 9 -->
     <div class="section-label" style="margin-top: 20px;">
       <div class="section-label-line"></div>
       <div class="section-label-text">💍 &nbsp; Bab Terakhir</div>
       <div class="section-label-line"></div>
     </div>
 
-    <div id="finalCard">
-      <!-- Part 9 rendered dynamically via JS -->
-    </div>
+    <div id="finalCard"></div>
 
     <footer>
       <div class="footer-quote">"Di antara setiap detak jantung, ada sebaris rasa. Di antara setiap baris, ada namamu."</div>
@@ -831,21 +287,37 @@
     </footer>
   </div>
 
-  <!-- Loading bar -->
   <div class="loading-bar" id="loadingBar"></div>
 
   <!-- Admin Panel -->
   <div class="admin-overlay" id="adminOverlay">
     <div class="admin-panel">
       <div class="admin-header">
-        <div class="admin-title">⚙ &nbsp; Admin Panel &nbsp;·&nbsp; The Vault</div>
+        <div class="admin-title">⚙ &nbsp; Admin Panel</div>
         <button class="admin-close" id="adminClose">✕</button>
       </div>
-      <div id="adminRows">
-        <!-- Rows rendered by JS -->
+
+      <!-- Pengaturan Buka/Tutup Web -->
+      <div class="admin-row" style="background: rgba(201,122,138,0.1); border-color: var(--rose);">
+        <div class="admin-row-header">
+          <div class="admin-part-label" style="color: var(--burgundy);">Kunci Arsip (Tutup Web)</div>
+          <div class="toggle-wrap">
+            <span class="toggle-label">Tutup</span>
+            <label class="toggle">
+              <input type="checkbox" id="adminWebClosedToggle">
+              <span class="toggle-slider"></span>
+            </label>
+          </div>
+        </div>
+        <input class="admin-input" type="text" id="adminWebMessage" placeholder="Pesan saat web ditutup..." value="Maaf, Arsip sedang dikunci oleh Admin.">
       </div>
+      <hr style="border: 0; border-top: 1px dashed rgba(201,122,138,0.3); margin: 20px 0;">
+
+      <!-- List Parts -->
+      <div id="adminRows"></div>
+
       <div class="admin-footer">
-        <button class="admin-lock-all" id="adminLockAll">Kunci Semua</button>
+        <button class="admin-lock-all" id="adminLockAll">Kunci Semua Bab</button>
         <div style="flex:1;"></div>
         <span class="admin-status" id="adminStatus"></span>
         <button class="admin-save" id="adminSave">Simpan Perubahan</button>
@@ -853,11 +325,35 @@
     </div>
   </div>
 
+  <!-- Real-time Bubble Chat UI -->
+  <div id="chatBubble" style="position: fixed; bottom: 30px; right: 30px; width: 56px; height: 56px; background: var(--rose-deep); border-radius: 50%; display: flex; align-items: center; justify-content: center; color: white; font-size: 24px; cursor: pointer; box-shadow: 0 4px 20px rgba(155,74,94,0.4); z-index: 9998; transition: transform 0.3s, background 0.3s;">
+    💬
+  </div>
+
+  <div id="chatBox" style="display: none; position: fixed; bottom: 100px; right: 30px; width: 340px; height: 440px; background: rgba(255,249,247,0.98); backdrop-filter: blur(10px); border: 1px solid var(--rose); border-radius: 16px; z-index: 9998; flex-direction: column; box-shadow: 0 10px 40px rgba(107,45,62,0.2); overflow: hidden;">
+    <div style="background: var(--rose-deep); padding: 16px; color: white; display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid var(--rose);">
+      <div style="font-family: 'DM Mono', monospace; font-size: 13px; font-weight: bold; letter-spacing: 0.1em; text-transform: uppercase;">
+        Pulse Chat <span style="font-size: 8px; background: var(--code-green); padding: 2px 6px; border-radius: 10px; margin-left: 6px;">LIVE</span>
+      </div>
+      <button id="chatCloseBtn" style="background: none; border: none; color: white; cursor: pointer; font-size: 16px;">✕</button>
+    </div>
+    
+    <div id="chatMessages" style="flex: 1; padding: 15px; overflow-y: auto; display: flex; flex-direction: column;">
+      <div style="text-align: center; color: var(--muted); font-size: 11px; font-style: italic; margin-bottom: 15px;">Memuat pesan...</div>
+    </div>
+
+    <div style="padding: 12px; background: white; border-top: 1px solid rgba(201,122,138,0.2); display: flex; gap: 8px;">
+      <input type="text" id="chatInput" placeholder="Ketik pesan cinta..." style="flex: 1; padding: 10px 14px; border: 1px solid var(--rose-pale); border-radius: 20px; outline: none; font-family: 'DM Mono', monospace; font-size: 12px; background: var(--cream);">
+      <button id="chatSend" style="background: var(--rose-deep); color: white; border: none; padding: 0 16px; border-radius: 20px; cursor: pointer; font-family: 'DM Mono', monospace; font-size: 12px; font-weight: bold; transition: background 0.2s;">▶</button>
+    </div>
+  </div>
+
   <script>
     // ── CONFIG FIREBASE ──
     const FB_URL = 'https://gf9-dn5-default-rtdb.asia-southeast1.firebasedatabase.app/vault.json';
+    const CHAT_URL = 'https://gf9-dn5-default-rtdb.asia-southeast1.firebasedatabase.app/vault/chat.json';
 
-    // ── PART METADATA (konten statis) ──
+    // ── PART METADATA ──
     const PARTS = [
       { num:'001', roman:'I',   subtitle:'Pertemuan',  code:'// awal_mula.init()',             desc:'Detak jantung pertama. Di mana semuanya bermula — buka arsip ini dan rasakan kembali momen itu.' },
       { num:'002', roman:'II',  subtitle:'Perasaan',   code:'// pulse.monitor(dinnar)',        desc:'Dosis rindu kedua diberikan. Cerita kita semakin dalam, sedalam tarikan napas panjang.' },
@@ -869,20 +365,21 @@
       { num:'008', roman:'VIII',subtitle:'Janji',      code:'// promise.commit(forever)',      desc:'Setiap kata adalah sumpah. Setiap kalimat adalah ikatan yang tak akan putus.' },
       { num:'009', roman:'IX',  subtitle:'Akhirnya',   code:'// return love.selamanya()',      desc:'Bab terakhir dari cerita yang tidak akan pernah benar-benar berakhir — karena kita masih terus menulis.' },
     ];
-
     const LOCKED_ICONS  = ['🔒','🔒','🔒','🔒','🔒','🔒','🔒','🔒','💍'];
     const LOCKED_TEXTS  = ['Terkunci','Terkunci','Terkunci','Terkunci','Terkunci','Terkunci','Terkunci','Terkunci','Terkunci'];
     const LOCKED_CODES  = ['// segera...','// segera...','// segera...','// segera...','// segera...','// segera...','// segera...','// segera...','// hanya_untuk_nanti...'];
 
     // ── STATE ──
     let partsData = PARTS.map(p => ({ locked: true, subtitle: p.subtitle }));
+    let webStatusData = { closed: false, message: "Arsip sedang dikunci oleh admin." };
+    let chatLastKey = null;
 
     // ── LOADING BAR ──
     const loadingBar = document.getElementById('loadingBar');
     function barStart() { loadingBar.className = 'loading-bar active'; }
     function barDone()  { loadingBar.className = 'loading-bar done'; setTimeout(() => loadingBar.className = 'loading-bar', 600); }
 
-    // ── FETCH DATA FROM FIREBASE ──
+    // ── FETCH DATA (PARTS & WEB STATUS) ──
     async function fetchData() {
       barStart();
       try {
@@ -890,30 +387,26 @@
         if (!res.ok) throw new Error('HTTP ' + res.status);
         const json = await res.json();
         if (json && json.parts) partsData = json.parts;
+        if (json && json.webStatus) webStatusData = json.webStatus;
       } catch(e) {
-        console.warn('Gagal fetch Firebase:', e);
+        console.warn('Gagal fetch data utama:', e);
       }
       barDone();
       renderCards();
+      applyWebStatus();
     }
 
     // ── RENDER CARDS ──
     function renderCards() {
       const grid = document.getElementById('cardsGrid');
       const finalSlot = document.getElementById('finalCard');
-      grid.innerHTML = '';
-      finalSlot.innerHTML = '';
+      grid.innerHTML = ''; finalSlot.innerHTML = '';
 
       PARTS.forEach((p, i) => {
         const d = partsData[i] || { locked: true, subtitle: p.subtitle };
         const locked = d.locked === undefined ? true : d.locked;
         const subtitle = d.subtitle || p.subtitle;
-
-        // ── TARGET URL FOLDER PART ──
-        // Ubah ini jika kamu ingin menaruhnya di folder lain.
-        // Saat ini akan mengarah ke "part1/thevault1.html", "part2/thevault2.html", dst.
         const targetUrl = 'part' + (i + 1) + '/thevault' + (i + 1) + '.html';
-        
         const delay = (0.15 + i * 0.1).toFixed(2);
         const isLast = i === PARTS.length - 1;
 
@@ -921,124 +414,88 @@
           <path d="M0,25 L20,25 L28,10 L34,40 L40,5 L46,45 L52,25 L120,25" stroke="var(--rose)" stroke-width="1.5" fill="none"/>
         </svg>`;
 
-        if (isLast) {
-          // ── PART 9 SPECIAL ──
-          const el = locked ? document.createElement('div') : document.createElement('a');
-          el.className = locked ? 'card card-final locked' : 'card card-final unlocked';
-          if (!locked) { el.href = targetUrl; el.target = '_blank'; el.rel = 'noopener'; }
-          el.style.animationDelay = delay + 's';
-          
-          if (!locked) {
-            el.innerHTML = `
-              <div class="card-accent"></div>
-              <div class="card-inner card-final-inner">
-                <div class="rx-num">Rx — ${p.num}</div>
-                <div class="card-title card-final-title">Bagian ${p.roman}<br><em>${subtitle}</em></div>
-                <div class="card-code">${p.code}</div>
-                <div class="card-desc">${p.desc}</div>
-                <div class="badge badge-open">♡ Buka File</div>
-              </div>
-              <svg class="card-ekg" width="200" height="60" viewBox="0 0 200 60">
-                <path d="M0,30 L30,30 L42,12 L52,48 L62,5 L72,55 L82,30 L200,30" stroke="var(--rose)" stroke-width="1.5" fill="none"/>
-              </svg>
-              <div class="card-arrow">→</div>`;
-            el.addEventListener('mouseenter', () => {
-              cursor.style.width = '20px'; cursor.style.height = '20px';
-              ring.style.width = '54px'; ring.style.height = '54px';
-              ring.style.borderColor = 'rgba(155,74,94,0.8)';
-            });
-            el.addEventListener('mouseleave', () => {
-              cursor.style.width = '12px'; cursor.style.height = '12px';
-              ring.style.width = '36px'; ring.style.height = '36px';
-              ring.style.borderColor = 'rgba(201,122,138,0.6)';
-            });
-          } else {
-            el.innerHTML = `
-              <div class="card-accent"></div>
-              <div class="card-inner card-final-inner">
-                <div class="rx-num" style="opacity:0.2;">Rx — ${p.num}</div>
-                <div class="card-title card-final-title">Bagian ${p.roman}<br><em>${subtitle}</em></div>
-                <div class="card-code" style="opacity:0.15;">${p.code}</div>
-                <div class="card-desc" style="opacity:0.4;">${p.desc}</div>
-                <div class="badge badge-locked">⌛ Rahasia</div>
-              </div>
-              <div class="locked-overlay">
-                <div class="locked-icon" style="font-size:40px;">${LOCKED_ICONS[i]}</div>
-                <div class="coming-text">${LOCKED_TEXTS[i]}</div>
-                <div class="coming-code">${LOCKED_CODES[i]}</div>
-              </div>`;
-          }
-          finalSlot.appendChild(el);
-          return;
-        }
+        const el = locked ? document.createElement('div') : document.createElement('a');
+        el.className = 'card ' + (isLast ? 'card-final ' : '') + (locked ? 'locked' : 'unlocked');
+        if (!locked) { el.href = targetUrl; el.target = '_blank'; el.rel = 'noopener'; }
+        el.style.animationDelay = delay + 's';
 
-        // ── PART 1–8 ──
         if (!locked) {
-          const card = document.createElement('a');
-          card.className = 'card unlocked';
-          card.href = targetUrl;
-          card.target = '_blank';
-          card.rel = 'noopener';
-          card.style.animationDelay = delay + 's';
-          card.innerHTML = `
+          el.innerHTML = `
             <div class="card-accent"></div>
-            <div class="card-inner">
+            <div class="card-inner ${isLast ? 'card-final-inner' : ''}">
               <div class="rx-num">Rx — ${p.num}</div>
-              <div class="card-title">Bagian ${p.roman}<br><em>${subtitle}</em></div>
+              <div class="card-title ${isLast ? 'card-final-title' : ''}">Bagian ${p.roman}<br><em>${subtitle}</em></div>
               <div class="card-code">${p.code}</div>
               <div class="card-desc">${p.desc}</div>
               <div class="badge badge-open">♡ Buka File</div>
             </div>
-            ${ekgSvg}
+            ${isLast ? `<svg class="card-ekg" width="200" height="60" viewBox="0 0 200 60"><path d="M0,30 L30,30 L42,12 L52,48 L62,5 L72,55 L82,30 L200,30" stroke="var(--rose)" stroke-width="1.5" fill="none"/></svg>` : ekgSvg}
             <div class="card-arrow">→</div>`;
-          grid.appendChild(card);
-          card.addEventListener('mouseenter', () => {
-            cursor.style.width = '20px'; cursor.style.height = '20px';
-            ring.style.width = '54px'; ring.style.height = '54px';
-            ring.style.borderColor = 'rgba(155,74,94,0.8)';
-          });
-          card.addEventListener('mouseleave', () => {
-            cursor.style.width = '12px'; cursor.style.height = '12px';
-            ring.style.width = '36px'; ring.style.height = '36px';
-            ring.style.borderColor = 'rgba(201,122,138,0.6)';
-          });
+          el.addEventListener('mouseenter', () => { cursor.style.width='20px'; cursor.style.height='20px'; ring.style.width='54px'; ring.style.height='54px'; ring.style.borderColor='rgba(155,74,94,0.8)'; });
+          el.addEventListener('mouseleave', () => { cursor.style.width='12px'; cursor.style.height='12px'; ring.style.width='36px'; ring.style.height='36px'; ring.style.borderColor='rgba(201,122,138,0.6)'; });
         } else {
-          const card = document.createElement('div');
-          card.className = 'card locked';
-          card.style.animationDelay = delay + 's';
-          card.innerHTML = `
+          el.innerHTML = `
             <div class="card-accent"></div>
-            <div class="card-inner">
+            <div class="card-inner ${isLast ? 'card-final-inner' : ''}">
               <div class="rx-num" style="opacity:0.2;">Rx — ${p.num}</div>
-              <div class="card-title">Bagian ${p.roman}<br><em>${subtitle}</em></div>
+              <div class="card-title ${isLast ? 'card-final-title' : ''}">Bagian ${p.roman}<br><em>${subtitle}</em></div>
               <div class="card-code" style="opacity:0.15;">${p.code}</div>
               <div class="card-desc" style="opacity:0.4;">${p.desc}</div>
               <div class="badge badge-locked">⌛ Rahasia</div>
             </div>
             <div class="locked-overlay">
-              <div class="locked-icon">${LOCKED_ICONS[i]}</div>
+              <div class="locked-icon" ${isLast ? 'style="font-size:40px;"' : ''}>${LOCKED_ICONS[i]}</div>
               <div class="coming-text">${LOCKED_TEXTS[i]}</div>
               <div class="coming-code">${LOCKED_CODES[i]}</div>
             </div>`;
-          grid.appendChild(card);
         }
+        (isLast ? finalSlot : grid).appendChild(el);
       });
     }
 
+    // ── FITUR WEB DITUTUP ──
+    function applyWebStatus() {
+      const overlayClosed = document.getElementById('closedOverlay');
+      const msgClosed = document.getElementById('closedMessage');
+      
+      if (webStatusData.closed) {
+        overlayClosed.style.display = 'flex';
+        msgClosed.textContent = webStatusData.message;
+        document.body.style.overflow = 'hidden'; 
+      } else {
+        overlayClosed.style.display = 'none';
+        document.body.style.overflow = '';
+      }
+
+      // Update UI toggle di Admin panel
+      const toggleWeb = document.getElementById('adminWebClosedToggle');
+      const inputMsg = document.getElementById('adminWebMessage');
+      if (toggleWeb) toggleWeb.checked = webStatusData.closed;
+      if (inputMsg) inputMsg.value = webStatusData.message;
+    }
+
+    // Trigger klik "Akses Ditutup" 3x untuk buka admin (saat web sedang ditutup)
+    let closedClickCount = 0, closedClickTimer;
+    document.getElementById('closedAdminTrigger').addEventListener('click', () => {
+      closedClickCount++;
+      clearTimeout(closedClickTimer);
+      closedClickTimer = setTimeout(() => { closedClickCount = 0; }, 800);
+      if (closedClickCount >= 3) {
+        closedClickCount = 0;
+        openAdmin();
+      }
+    });
+
     // ── ADMIN PANEL ──
-    const overlay  = document.getElementById('adminOverlay');
+    const overlay = document.getElementById('adminOverlay');
     const adminRows = document.getElementById('adminRows');
     const adminSave = document.getElementById('adminSave');
     const adminStatus = document.getElementById('adminStatus');
-    const adminClose = document.getElementById('adminClose');
 
     function openAdmin() {
       adminRows.innerHTML = '';
       PARTS.forEach((p, i) => {
         const d = partsData[i] || { locked: true, subtitle: p.subtitle };
-        const locked = d.locked === undefined ? true : d.locked;
-        const subtitle = d.subtitle || p.subtitle;
-        
         const row = document.createElement('div');
         row.className = 'admin-row';
         row.innerHTML = `
@@ -1047,30 +504,24 @@
             <div class="toggle-wrap">
               <span class="toggle-label">Buka</span>
               <label class="toggle">
-                <input type="checkbox" id="lock${i}" ${!locked ? 'checked' : ''}>
+                <input type="checkbox" id="lock${i}" ${!d.locked ? 'checked' : ''}>
                 <span class="toggle-slider"></span>
               </label>
             </div>
           </div>
-          <input class="admin-input" type="text" id="sub${i}" value="${subtitle}" placeholder="Judul bagian...">`;
+          <input class="admin-input" type="text" id="sub${i}" value="${d.subtitle || p.subtitle}" placeholder="Judul bagian...">`;
         adminRows.appendChild(row);
       });
       document.body.classList.add('admin-open');
       overlay.classList.add('open');
     }
 
-    function closeAdmin() { 
-      document.body.classList.remove('admin-open');
-      overlay.classList.remove('open'); 
-    }
-
-    adminClose.addEventListener('click', closeAdmin);
+    function closeAdmin() { document.body.classList.remove('admin-open'); overlay.classList.remove('open'); }
+    document.getElementById('adminClose').addEventListener('click', closeAdmin);
     overlay.addEventListener('click', e => { if (e.target === overlay) closeAdmin(); });
 
     document.getElementById('adminLockAll').addEventListener('click', () => {
-      PARTS.forEach((_, i) => {
-        document.getElementById(`lock${i}`).checked = false;
-      });
+      PARTS.forEach((_, i) => document.getElementById(`lock${i}`).checked = false);
     });
 
     adminSave.addEventListener('click', async () => {
@@ -1081,16 +532,23 @@
         locked: !document.getElementById(`lock${i}`).checked,
         subtitle: document.getElementById(`sub${i}`).value.trim() || p.subtitle
       }));
+      const newWebStatus = {
+        closed: document.getElementById('adminWebClosedToggle').checked,
+        message: document.getElementById('adminWebMessage').value.trim() || "Akses Ditutup"
+      };
 
       try {
+        // Gunakan PATCH agar tidak menghapus node "chat" di Firebase
         const res = await fetch(FB_URL, {
-          method: 'PUT',
+          method: 'PATCH',
           headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ parts: newParts })
+          body: JSON.stringify({ parts: newParts, webStatus: newWebStatus })
         });
         if (!res.ok) throw new Error('Gagal');
         partsData = newParts;
+        webStatusData = newWebStatus;
         renderCards();
+        applyWebStatus();
         showStatus('✓ Tersimpan!', false);
         setTimeout(closeAdmin, 1200);
       } catch(e) {
@@ -1105,75 +563,164 @@
       if (!isError) setTimeout(() => adminStatus.className = 'admin-status', 2500);
     }
 
-    // ── TRIGGER: klik "DN-LOVE-01" 3x ──
+    // Trigger klik "DN-LOVE-01" 3x
     let clickCount = 0, clickTimer;
     document.getElementById('adminTrigger').addEventListener('click', () => {
       clickCount++;
       clearTimeout(clickTimer);
       clickTimer = setTimeout(() => { clickCount = 0; }, 800);
-      if (clickCount >= 3) {
-        clickCount = 0;
-        openAdmin();
-      }
+      if (clickCount >= 3) { clickCount = 0; openAdmin(); }
     });
 
-    // ── CURSOR ──
+
+    // ── FITUR CHAT REAL-TIME (POLLING API) ──
+    const chatBubble = document.getElementById('chatBubble');
+    const chatBox = document.getElementById('chatBox');
+    const chatCloseBtn = document.getElementById('chatCloseBtn');
+    const chatMessages = document.getElementById('chatMessages');
+    const chatInput = document.getElementById('chatInput');
+    const chatSend = document.getElementById('chatSend');
+    
+    let chatInterval = null;
+    let myName = localStorage.getItem('vault_chat_name');
+
+    // Buka/Tutup Chat UI
+    function toggleChat() {
+      const isClosed = chatBox.style.display === 'none';
+      if (isClosed) {
+        if (!myName) {
+          const promptName = prompt("Siapa namamu?", "");
+          if (promptName && promptName.trim()) {
+            myName = promptName.trim();
+            localStorage.setItem('vault_chat_name', myName);
+          } else {
+            myName = "Guest_" + Math.floor(Math.random() * 1000);
+          }
+        }
+        chatBox.style.display = 'flex';
+        chatBubble.style.transform = 'scale(0)';
+        document.body.classList.add('chat-open');
+        fetchChat(); // Langsung ambil saat dibuka
+        chatInterval = setInterval(fetchChat, 2500); // Polling setiap 2.5 detik
+        setTimeout(() => chatMessages.scrollTop = chatMessages.scrollHeight, 300);
+      } else {
+        chatBox.style.display = 'none';
+        chatBubble.style.transform = 'scale(1)';
+        document.body.classList.remove('chat-open');
+        clearInterval(chatInterval);
+      }
+    }
+
+    chatBubble.addEventListener('click', toggleChat);
+    chatCloseBtn.addEventListener('click', toggleChat);
+
+    // Kirim pesan
+    async function sendMessage() {
+      const text = chatInput.value.trim();
+      if (!text) return;
+      
+      chatInput.value = '';
+      chatInput.focus();
+
+      const msgObj = {
+        name: myName || 'Anon',
+        text: text,
+        time: Date.now()
+      };
+
+      try {
+        await fetch(CHAT_URL, {
+          method: 'POST', // POST menambah data baru dengan ID unik Firebase
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(msgObj)
+        });
+        fetchChat(); // Paksa update
+      } catch(e) {
+        console.warn("Gagal kirim pesan", e);
+      }
+    }
+
+    chatSend.addEventListener('click', sendMessage);
+    chatInput.addEventListener('keypress', e => { if (e.key === 'Enter') sendMessage(); });
+
+    // Ambil Data Chat dari Firebase
+    async function fetchChat() {
+      if (chatBox.style.display === 'none') return;
+      try {
+        const res = await fetch(CHAT_URL);
+        if (!res.ok) return;
+        const data = await res.json();
+        
+        if (!data) {
+          chatMessages.innerHTML = '<div style="text-align: center; color: var(--muted); font-size: 11px; font-style: italic; margin-top:20px;">Belum ada detak pesan. Jadilah yang pertama.</div>';
+          return;
+        }
+
+        // Konversi objek ke array & urutkan berdasar waktu
+        const msgsArray = Object.keys(data).map(key => ({ id: key, ...data[key] }));
+        msgsArray.sort((a, b) => a.time - b.time);
+
+        // Cek apakah ada pesan baru (agar tidak re-render & scroll terus menerus)
+        const latestKey = msgsArray.length > 0 ? msgsArray[msgsArray.length - 1].id : null;
+        if (latestKey !== chatLastKey) {
+          chatLastKey = latestKey;
+          renderChatMessages(msgsArray);
+        }
+      } catch(e) {
+        console.warn("Gagal load chat", e);
+      }
+    }
+
+    function renderChatMessages(msgs) {
+      chatMessages.innerHTML = '';
+      msgs.forEach(msg => {
+        const isMe = msg.name === myName;
+        const date = new Date(msg.time || Date.now());
+        const timeStr = date.getHours().toString().padStart(2, '0') + ':' + date.getMinutes().toString().padStart(2, '0');
+        
+        const div = document.createElement('div');
+        div.className = `chat-msg ${isMe ? 'me' : 'other'}`;
+        div.innerHTML = `
+          ${!isMe ? `<div class="chat-name">${msg.name}</div>` : ''}
+          <div>${msg.text}</div>
+          <div class="chat-time">${timeStr}</div>
+        `;
+        chatMessages.appendChild(div);
+      });
+      // Scroll ke paling bawah
+      chatMessages.scrollTop = chatMessages.scrollHeight;
+    }
+
+
+    // ── CURSOR SCRIPT ──
     const cursor = document.getElementById('cursor');
     const ring = document.getElementById('cursorRing');
     let mx = 0, my = 0, rx = 0, ry = 0;
-    document.addEventListener('mousemove', e => {
-      mx = e.clientX; my = e.clientY;
-      cursor.style.left = mx + 'px';
-      cursor.style.top = my + 'px';
-    });
-    function animRing() {
-      rx += (mx - rx) * 0.12;
-      ry += (my - ry) * 0.12;
-      ring.style.left = rx + 'px';
-      ring.style.top = ry + 'px';
-      requestAnimationFrame(animRing);
-    }
+    document.addEventListener('mousemove', e => { mx = e.clientX; my = e.clientY; cursor.style.left = mx + 'px'; cursor.style.top = my + 'px'; });
+    function animRing() { rx += (mx - rx) * 0.12; ry += (my - ry) * 0.12; ring.style.left = rx + 'px'; ring.style.top = ry + 'px'; requestAnimationFrame(animRing); }
     animRing();
 
-    // ── PARTICLES ──
+    // ── CANVAS PARTICLES ──
     const canvas = document.getElementById('heartCanvas');
     const ctx = canvas.getContext('2d');
     let W, H, particles = [];
-
     function resize() { W = canvas.width = window.innerWidth; H = canvas.height = window.innerHeight; }
-    resize();
-    window.addEventListener('resize', resize);
-
+    resize(); window.addEventListener('resize', resize);
     function heartPath(ctx, x, y, size) {
-      ctx.save(); ctx.translate(x, y); ctx.scale(size, size);
-      ctx.beginPath();
-      ctx.moveTo(0, -0.5);
-      ctx.bezierCurveTo(0.5, -1.2, 1.2, -0.5, 1.2, 0.2);
-      ctx.bezierCurveTo(1.2, 0.9, 0, 1.5, 0, 1.5);
-      ctx.bezierCurveTo(0, 1.5, -1.2, 0.9, -1.2, 0.2);
-      ctx.bezierCurveTo(-1.2, -0.5, -0.5, -1.2, 0, -0.5);
-      ctx.closePath(); ctx.restore();
+      ctx.save(); ctx.translate(x, y); ctx.scale(size, size); ctx.beginPath();
+      ctx.moveTo(0, -0.5); ctx.bezierCurveTo(0.5, -1.2, 1.2, -0.5, 1.2, 0.2);
+      ctx.bezierCurveTo(1.2, 0.9, 0, 1.5, 0, 1.5); ctx.bezierCurveTo(0, 1.5, -1.2, 0.9, -1.2, 0.2);
+      ctx.bezierCurveTo(-1.2, -0.5, -0.5, -1.2, 0, -0.5); ctx.closePath(); ctx.restore();
     }
-
-    function createParticle() {
-      return { x: Math.random() * W, y: H + 20, size: Math.random() * 8 + 4,
-        speed: Math.random() * 0.6 + 0.3, drift: (Math.random() - 0.5) * 0.4,
-        opacity: Math.random() * 0.3 + 0.1, type: Math.random() > 0.4 ? 'heart' : 'dot',
-        wobble: Math.random() * Math.PI * 2, wobbleSpeed: Math.random() * 0.02 + 0.01 };
-    }
-
+    function createParticle() { return { x: Math.random() * W, y: H + 20, size: Math.random() * 8 + 4, speed: Math.random() * 0.6 + 0.3, drift: (Math.random() - 0.5) * 0.4, opacity: Math.random() * 0.3 + 0.1, type: Math.random() > 0.4 ? 'heart' : 'dot', wobble: Math.random() * Math.PI * 2, wobbleSpeed: Math.random() * 0.02 + 0.01 }; }
     for (let i = 0; i < 35; i++) { const p = createParticle(); p.y = Math.random() * H; particles.push(p); }
-
     function drawParticles() {
       ctx.clearRect(0, 0, W, H);
       particles.forEach((p, i) => {
-        p.wobble += p.wobbleSpeed;
-        p.x += p.drift + Math.sin(p.wobble) * 0.4;
-        p.y -= p.speed;
+        p.wobble += p.wobbleSpeed; p.x += p.drift + Math.sin(p.wobble) * 0.4; p.y -= p.speed;
         if (p.y < -30) { particles[i] = createParticle(); return; }
         ctx.save(); ctx.globalAlpha = p.opacity; ctx.fillStyle = '#c97a8a';
-        if (p.type === 'heart') { heartPath(ctx, p.x, p.y, p.size); ctx.fill(); }
-        else { ctx.beginPath(); ctx.arc(p.x, p.y, p.size * 0.4, 0, Math.PI * 2); ctx.fill(); }
+        if (p.type === 'heart') { heartPath(ctx, p.x, p.y, p.size); ctx.fill(); } else { ctx.beginPath(); ctx.arc(p.x, p.y, p.size * 0.4, 0, Math.PI * 2); ctx.fill(); }
         ctx.restore();
       });
       requestAnimationFrame(drawParticles);
