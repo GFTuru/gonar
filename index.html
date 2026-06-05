@@ -189,9 +189,11 @@
     .toggle input:checked + .toggle-slider::before { transform: translateX(16px); }
     .admin-input { width: 100%; padding: 9px 12px; margin-top: 8px; border: 1px solid rgba(201,122,138,0.3); border-radius: 6px; background: rgba(255,249,247,0.9); font-family: 'DM Mono', monospace; font-size: 11px; color: var(--text); outline: none; transition: border-color 0.2s, box-shadow 0.2s; }
     .admin-input:focus { border-color: var(--rose); box-shadow: 0 0 0 3px rgba(201,122,138,0.12); }
-    .admin-footer { margin-top: 24px; display: flex; gap: 10px; justify-content: flex-end; align-items: center; }
-    .admin-lock-all { padding: 10px 16px; background: rgba(180,180,180,0.15); color: var(--text); border: 1px solid rgba(180,180,180,0.3); border-radius: 6px; font-family: 'DM Mono', monospace; font-size: 10px; letter-spacing: 0.1em; text-transform: uppercase; cursor: pointer; transition: background 0.2s; }
-    .admin-lock-all:hover { background: rgba(180,180,180,0.3); }
+    
+    .admin-footer { margin-top: 24px; display: flex; gap: 10px; justify-content: flex-end; align-items: center; flex-wrap: wrap; }
+    .admin-btn { padding: 10px 16px; color: var(--text); border: 1px solid rgba(180,180,180,0.3); border-radius: 6px; font-family: 'DM Mono', monospace; font-size: 10px; letter-spacing: 0.1em; text-transform: uppercase; cursor: pointer; transition: background 0.2s; }
+    .admin-btn:hover { background: rgba(180,180,180,0.3); }
+    
     .admin-save { padding: 10px 24px; background: var(--rose-deep); color: white; border: none; border-radius: 6px; font-family: 'DM Mono', monospace; font-size: 10px; letter-spacing: 0.2em; text-transform: uppercase; cursor: pointer; transition: background 0.2s, transform 0.15s; }
     .admin-save:hover { background: var(--burgundy); transform: translateY(-1px); }
     .admin-save:disabled { opacity: 0.5; cursor: not-allowed; transform: none; }
@@ -317,7 +319,9 @@
       <div id="adminRows"></div>
 
       <div class="admin-footer">
-        <button class="admin-lock-all" id="adminLockAll">Kunci Semua Bab</button>
+        <button class="admin-btn" id="adminLockAll" style="background: rgba(180,180,180,0.15);">Kunci Semua Bab</button>
+        <!-- Tombol Hapus Chat Baru -->
+        <button class="admin-btn" id="adminClearChat" style="background: rgba(201,90,110,0.15); color: var(--rose-deep); border-color: rgba(201,122,138,0.4);">Hapus Chat</button>
         <div style="flex:1;"></div>
         <span class="admin-status" id="adminStatus"></span>
         <button class="admin-save" id="adminSave">Simpan Perubahan</button>
@@ -373,14 +377,14 @@
     let partsData = PARTS.map(p => ({ locked: true, subtitle: p.subtitle }));
     let webStatusData = { closed: false, message: "Arsip sedang dikunci oleh admin." };
     let chatLastKey = null;
-    let lastVaultDataStr = null; // Menyimpan riwayat data untuk deteksi perubahan
+    let lastVaultDataStr = null; 
 
     // ── LOADING BAR ──
     const loadingBar = document.getElementById('loadingBar');
     function barStart() { loadingBar.className = 'loading-bar active'; }
     function barDone()  { loadingBar.className = 'loading-bar done'; setTimeout(() => loadingBar.className = 'loading-bar', 600); }
 
-    // ── FETCH DATA (PARTS & WEB STATUS) AUTO SYNC ──
+    // ── REAL-TIME AUTO SYNC (Tarik Data Tiap 2 Detik) ──
     async function fetchData(isInitial = true) {
       if (isInitial) barStart();
       try {
@@ -389,7 +393,6 @@
         const json = await res.json();
         const jsonStr = JSON.stringify(json);
 
-        // Hanya update dan render ulang JIKA ada perubahan dari Admin
         if (jsonStr !== lastVaultDataStr) {
           const partsChanged = JSON.stringify(json?.parts) !== JSON.stringify(partsData);
           const statusChanged = JSON.stringify(json?.webStatus) !== JSON.stringify(webStatusData);
@@ -398,7 +401,6 @@
           if (json && json.webStatus) webStatusData = json.webStatus;
           lastVaultDataStr = jsonStr;
 
-          // Eksekusi perubahan ke layar secara instan
           if (partsChanged || isInitial) renderCards();
           if (statusChanged || isInitial) applyWebStatus();
         }
@@ -407,9 +409,7 @@
       }
       if (isInitial) barDone();
     }
-
-    // Auto-Sync mengecek perubahan tiap 2 detik (Real-time trigger)
-    setInterval(() => fetchData(false), 2000);
+    setInterval(() => fetchData(false), 2000); // Cek otomatis terus menerus
 
     // ── RENDER CARDS ──
     function renderCards() {
@@ -482,14 +482,12 @@
         document.body.style.overflow = '';
       }
 
-      // Update UI toggle di Admin panel
       const toggleWeb = document.getElementById('adminWebClosedToggle');
       const inputMsg = document.getElementById('adminWebMessage');
       if (toggleWeb) toggleWeb.checked = webStatusData.closed;
       if (inputMsg) inputMsg.value = webStatusData.message;
     }
 
-    // Trigger klik "Akses Ditutup" 3x untuk buka admin (saat web sedang ditutup)
     let closedClickCount = 0, closedClickTimer;
     document.getElementById('closedAdminTrigger').addEventListener('click', () => {
       closedClickCount++;
@@ -539,6 +537,21 @@
       PARTS.forEach((_, i) => document.getElementById(`lock${i}`).checked = false);
     });
 
+    // Fitur Hapus Semua Chat
+    document.getElementById('adminClearChat').addEventListener('click', async () => {
+      if (!confirm("Yakin ingin menghapus semua riwayat chat? Tindakan ini tidak bisa dikembalikan.")) return;
+      showStatus('Menghapus chat...', false);
+      try {
+        const res = await fetch(CHAT_URL, { method: 'DELETE' });
+        if (!res.ok) throw new Error('Gagal hapus');
+        showStatus('✓ Chat dibersihkan!', false);
+        chatLastKey = null; // Reset key lokal agar mendeteksi kekosongan
+        fetchChat(); // Panggil fetchChat untuk memperbarui layar
+      } catch(e) {
+        showStatus('✗ Gagal hapus chat', true);
+      }
+    });
+
     adminSave.addEventListener('click', async () => {
       adminSave.disabled = true;
       showStatus('Menyimpan...', false);
@@ -553,15 +566,19 @@
       };
 
       try {
-        // Gunakan PATCH agar tidak menghapus node "chat" di Firebase
         const res = await fetch(FB_URL, {
           method: 'PATCH',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({ parts: newParts, webStatus: newWebStatus })
         });
         if (!res.ok) throw new Error('Gagal');
+        
+        // Data lokal akan otomatis diperbarui oleh fetch interval 2 detik, 
+        // tapi kita perbarui langsung agar admin tidak perlu menunggu 2 detik.
         partsData = newParts;
         webStatusData = newWebStatus;
+        lastVaultDataStr = JSON.stringify({ parts: newParts, webStatus: newWebStatus }); 
+        
         renderCards();
         applyWebStatus();
         showStatus('✓ Tersimpan!', false);
@@ -578,7 +595,6 @@
       if (!isError) setTimeout(() => adminStatus.className = 'admin-status', 2500);
     }
 
-    // Trigger klik "DN-LOVE-01" 3x
     let clickCount = 0, clickTimer;
     document.getElementById('adminTrigger').addEventListener('click', () => {
       clickCount++;
@@ -599,7 +615,6 @@
     let chatInterval = null;
     let myName = localStorage.getItem('vault_chat_name');
 
-    // Buka/Tutup Chat UI
     function toggleChat() {
       const isClosed = chatBox.style.display === 'none';
       if (isClosed) {
@@ -615,8 +630,8 @@
         chatBox.style.display = 'flex';
         chatBubble.style.transform = 'scale(0)';
         document.body.classList.add('chat-open');
-        fetchChat(); // Langsung ambil saat dibuka
-        chatInterval = setInterval(fetchChat, 2500); // Polling setiap 2.5 detik
+        fetchChat(); 
+        chatInterval = setInterval(fetchChat, 2500); 
         setTimeout(() => chatMessages.scrollTop = chatMessages.scrollHeight, 300);
       } else {
         chatBox.style.display = 'none';
@@ -629,7 +644,6 @@
     chatBubble.addEventListener('click', toggleChat);
     chatCloseBtn.addEventListener('click', toggleChat);
 
-    // Kirim pesan
     async function sendMessage() {
       const text = chatInput.value.trim();
       if (!text) return;
@@ -645,11 +659,11 @@
 
       try {
         await fetch(CHAT_URL, {
-          method: 'POST', // POST menambah data baru dengan ID unik Firebase
+          method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify(msgObj)
         });
-        fetchChat(); // Paksa update
+        fetchChat(); 
       } catch(e) {
         console.warn("Gagal kirim pesan", e);
       }
@@ -658,7 +672,6 @@
     chatSend.addEventListener('click', sendMessage);
     chatInput.addEventListener('keypress', e => { if (e.key === 'Enter') sendMessage(); });
 
-    // Ambil Data Chat dari Firebase
     async function fetchChat() {
       if (chatBox.style.display === 'none') return;
       try {
@@ -666,16 +679,18 @@
         if (!res.ok) return;
         const data = await res.json();
         
+        // Jika data kosong (karena belum ada chat atau baru saja dihapus admin)
         if (!data) {
-          chatMessages.innerHTML = '<div style="text-align: center; color: var(--muted); font-size: 11px; font-style: italic; margin-top:20px;">Belum ada detak pesan. Jadilah yang pertama.</div>';
+          if (chatLastKey !== null || chatMessages.innerHTML.trim() === '') {
+            chatLastKey = null;
+            chatMessages.innerHTML = '<div style="text-align: center; color: var(--muted); font-size: 11px; font-style: italic; margin-top:20px;">Belum ada detak pesan. Jadilah yang pertama.</div>';
+          }
           return;
         }
 
-        // Konversi objek ke array & urutkan berdasar waktu
         const msgsArray = Object.keys(data).map(key => ({ id: key, ...data[key] }));
         msgsArray.sort((a, b) => a.time - b.time);
 
-        // Cek apakah ada pesan baru (agar tidak re-render & scroll terus menerus)
         const latestKey = msgsArray.length > 0 ? msgsArray[msgsArray.length - 1].id : null;
         if (latestKey !== chatLastKey) {
           chatLastKey = latestKey;
@@ -702,7 +717,6 @@
         `;
         chatMessages.appendChild(div);
       });
-      // Scroll ke paling bawah
       chatMessages.scrollTop = chatMessages.scrollHeight;
     }
 
