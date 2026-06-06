@@ -5,6 +5,8 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Go & Nar — Our Story</title>
 <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;0,500;1,300;1,400&family=Jost:wght@200;300;400&display=swap" rel="stylesheet">
+<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-database-compat.js"></script>
 <style>
   :root {
     --blush: #f5e6e0;
@@ -105,7 +107,116 @@
   .cover-hint { margin-top: 36px; font-size: 10px; letter-spacing: 0.35em; text-transform: uppercase; color: rgba(255,255,255,0.8); opacity: 0.7; animation: blink 2s ease-in-out infinite; text-align: center; z-index: 101;}
   .cover-quote { position: absolute; bottom: 36px; font-family: 'Cormorant Garamond', serif; font-style: italic; font-size: 13px; color: rgba(255,255,255,0.7); letter-spacing: 0.05em; text-align: center; padding: 0 40px; z-index: 101;}
 
-  @keyframes heartbeat { 0%, 100% { transform: translate(-50%, -50%) scale(1); } 14% { transform: translate(-50%, -50%) scale(1.1); } 28% { transform: translate(-50%, -50%) scale(1); } 42% { transform: translate(-50%, -50%) scale(1.06); } 70% { transform: translate(-50%, -50%) scale(1); } }
+  /* ===== ADMIN PANEL ===== */
+  #admin-overlay {
+    display: none; position: fixed; inset: 0;
+    background: rgba(20,10,12,0.88); z-index: 9999;
+    backdrop-filter: blur(10px); -webkit-backdrop-filter: blur(10px);
+    overflow-y: auto; padding: 20px 16px 40px;
+  }
+  #admin-modal {
+    background: var(--cream); border-radius: 18px;
+    max-width: 430px; margin: 20px auto;
+    padding: 28px 24px;
+    box-shadow: 0 24px 64px rgba(0,0,0,0.45);
+    border: 1px solid rgba(255,255,255,0.55);
+  }
+  .admin-header {
+    display: flex; align-items: center; justify-content: space-between;
+    margin-bottom: 22px; padding-bottom: 16px;
+    border-bottom: 1px solid rgba(232,180,184,0.35);
+  }
+  .admin-title {
+    font-family: 'Cormorant Garamond', serif;
+    font-size: 21px; color: var(--wine);
+    font-weight: 500; font-style: italic;
+  }
+  .admin-close-btn {
+    background: none; border: none;
+    font-size: 26px; color: var(--muted);
+    cursor: pointer; line-height: 1; padding: 0 4px;
+    transition: color 0.2s; font-weight: 200;
+  }
+  .admin-close-btn:hover { color: var(--wine); }
+  .admin-field-label {
+    display: block; font-size: 9px; text-transform: uppercase;
+    letter-spacing: 0.25em; color: var(--muted); margin-bottom: 7px;
+  }
+  .admin-select, .admin-input {
+    width: 100%; padding: 10px 14px;
+    border: 1px solid rgba(201,135,141,0.3); border-radius: 8px;
+    background: rgba(255,255,255,0.75); font-family: 'Jost', sans-serif;
+    font-size: 13px; color: var(--text); margin-bottom: 16px;
+    outline: none; transition: border-color 0.2s;
+    -webkit-appearance: none; appearance: none;
+  }
+  .admin-select:focus, .admin-input:focus { border-color: var(--dusty); }
+  .admin-textarea {
+    width: 100%; padding: 10px 14px;
+    border: 1px solid rgba(201,135,141,0.3); border-radius: 8px;
+    background: rgba(255,255,255,0.75); font-family: 'Jost', sans-serif;
+    font-size: 11.5px; color: var(--text); margin-bottom: 16px;
+    resize: vertical; min-height: 68px; outline: none;
+    transition: border-color 0.2s; line-height: 1.7;
+  }
+  .admin-textarea:focus { border-color: var(--dusty); }
+  .admin-textarea::placeholder { color: var(--locked); font-size: 11px; }
+  .admin-row { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+  .admin-save-btn {
+    width: 100%; padding: 13px;
+    background: linear-gradient(135deg, var(--dusty), var(--wine));
+    color: white; border: none; border-radius: 10px;
+    font-family: 'Jost', sans-serif; font-size: 11px;
+    letter-spacing: 0.22em; text-transform: uppercase;
+    cursor: pointer; transition: opacity 0.2s; margin-top: 4px;
+  }
+  .admin-save-btn:hover { opacity: 0.82; }
+  .admin-save-btn:disabled { opacity: 0.5; cursor: default; }
+  .admin-info-note {
+    text-align: center; font-size: 10px; color: var(--muted);
+    letter-spacing: 0.06em; margin-top: 10px; line-height: 1.6;
+  }
+  .admin-divider { height: 1px; background: rgba(232,180,184,0.3); margin: 22px 0; }
+  .admin-sub-title {
+    font-family: 'Cormorant Garamond', serif;
+    font-size: 16px; color: var(--wine); font-style: italic; margin-bottom: 14px;
+  }
+  .admin-entry-card {
+    background: rgba(255,255,255,0.65);
+    border: 1px solid rgba(201,135,141,0.2); border-radius: 9px;
+    padding: 12px 14px; margin-bottom: 9px;
+    display: flex; align-items: flex-start; justify-content: space-between; gap: 10px;
+  }
+  .admin-entry-info { flex: 1; }
+  .admin-entry-date {
+    font-family: 'Cormorant Garamond', serif;
+    font-size: 15px; color: var(--wine); font-weight: 500;
+  }
+  .admin-entry-meta { font-size: 10px; color: var(--muted); margin-top: 3px; letter-spacing: 0.1em; }
+  .admin-del-btn {
+    background: none; border: 1px solid rgba(201,135,141,0.3);
+    border-radius: 6px; color: var(--muted);
+    font-size: 11px; padding: 4px 10px;
+    cursor: pointer; transition: all 0.2s; white-space: nowrap; flex-shrink: 0;
+  }
+  .admin-del-btn:hover { background: rgba(201,135,141,0.1); color: var(--wine); border-color: var(--dusty); }
+  .admin-empty-note {
+    text-align: center; font-family: 'Cormorant Garamond', serif;
+    font-style: italic; color: var(--muted); font-size: 14px; padding: 18px 0;
+  }
+  #admin-toast {
+    position: fixed; bottom: 28px; left: 50%;
+    transform: translateX(-50%) translateY(16px);
+    background: var(--wine); color: white;
+    padding: 11px 24px; border-radius: 30px;
+    font-family: 'Jost', sans-serif; font-size: 11px; letter-spacing: 0.15em;
+    opacity: 0; transition: all 0.3s ease;
+    z-index: 99999; white-space: nowrap; pointer-events: none;
+    box-shadow: 0 4px 20px rgba(139,74,82,0.4);
+  }
+  #admin-toast.show { opacity: 1; transform: translateX(-50%) translateY(0); }
+
+
   @keyframes blink { 0%, 100% { opacity: 0.7; } 50% { opacity: 0.25; } }
 
   /* ===== SCREENS ===== */
@@ -396,7 +507,7 @@
   <div class="header-shared" style="padding-top: 10px;">
     <h1>Go &amp; Nar</h1>
     <p>our little story ♡</p>
-    <div class="love-counter-wrap" style="margin-top:4px;"><span class="num" id="love-counter-num-2" style="font-size:16px;">0</span> <span class="text" style="font-size:7px;">Hari Bersama</span></div>
+    <div class="love-counter-wrap" style="margin-top:4px;" onclick="handleAdminTap()"><span class="num" id="love-counter-num-2" style="font-size:16px;">0</span> <span class="text" style="font-size:7px;">Hari Bersama</span></div>
   </div>
   <div class="month-grid" id="month-grid"></div>
   <div class="home-footer"><p>"and every photo is a reason i fall a little more."</p></div>
@@ -442,6 +553,42 @@
   <span class="lb-close" aria-label="Tutup">×</span>
   <iframe id="lb-iframe" src=""></iframe>
 </div>
+
+<!-- ===== ADMIN PANEL ===== -->
+<div id="admin-overlay" onclick="adminOverlayClick(event)">
+  <div id="admin-modal">
+    <div class="admin-header">
+      <div class="admin-title">✦ Admin Panel</div>
+      <button class="admin-close-btn" onclick="closeAdmin()">×</button>
+    </div>
+
+    <!-- FORM TAMBAH -->
+    <span class="admin-field-label">Bulan</span>
+    <select id="admin-month-select" class="admin-select"></select>
+
+    <span class="admin-field-label">Tanggal</span>
+    <input type="number" id="admin-date-input" class="admin-input" min="1" max="31" placeholder="Masukkan tanggal (1 – 31)">
+
+    <span class="admin-field-label">Link Foto · 1 link per baris (opsional)</span>
+    <textarea id="admin-links-foto" class="admin-textarea" placeholder="https://drive.google.com/file/d/1AbCd.../view&#10;atau langsung ID: 1AbCdEf..."></textarea>
+
+    <span class="admin-field-label">Link Video · 1 link per baris (opsional)</span>
+    <textarea id="admin-links-video" class="admin-textarea" placeholder="https://drive.google.com/file/d/1AbCd.../view"></textarea>
+
+    <span class="admin-field-label">Link Edit / Preset · 1 link per baris (opsional)</span>
+    <textarea id="admin-links-edit" class="admin-textarea" placeholder="https://drive.google.com/file/d/1AbCd.../view"></textarea>
+
+    <button class="admin-save-btn" id="admin-save-btn" onclick="saveAdminEntry()">💾 Simpan ke Album</button>
+    <p class="admin-info-note">Tersimpan di Firebase · langsung muncul ke semua orang</p>
+
+    <div class="admin-divider"></div>
+
+    <div class="admin-sub-title">Yang sudah ditambahkan</div>
+    <div id="admin-recent-list"><div class="admin-empty-note">Belum ada entri.</div></div>
+  </div>
+</div>
+
+<div id="admin-toast"></div>
 
 <script>
 // ===== GOOGLE DRIVE HELPER =====
@@ -669,7 +816,7 @@ function openMonth(idx) {
   const m = MONTHS[idx];
   if (isLocked(m)) return;
 
-  const monthData = FOTBAR_DATA[idx];
+  const monthData = getMergedMonthData(idx);
   const unlocked = MONTHS.filter(x => !isLocked(x));
   const pageNum = unlocked.indexOf(m) + 1;
 
@@ -915,9 +1062,195 @@ function closeLightbox(event) {
   }
 }
 
+// ===== FIREBASE INIT =====
+const firebaseConfig = {
+  databaseURL: "https://bygf-6f77-default-rtdb.asia-southeast1.firebasedatabase.app"
+};
+firebase.initializeApp(firebaseConfig);
+const db = firebase.database();
+
+// Cache additions dari Firebase
+let FB_ADDITIONS = {};  // monthIndex -> [{date, foto, video, edit}]
+let FB_RAW = {};        // pushKey -> raw entry (untuk admin list)
+
+db.ref('fotbar_additions').on('value', (snapshot) => {
+  FB_ADDITIONS = {};
+  FB_RAW = {};
+  if (snapshot.exists()) {
+    snapshot.forEach(child => {
+      const key = child.key;
+      const entry = child.val();
+      FB_RAW[key] = entry;
+
+      const idx = entry.monthIndex;
+      if (!FB_ADDITIONS[idx]) FB_ADDITIONS[idx] = [];
+
+      const group = { date: entry.date };
+      if (entry.foto  && entry.foto.length)  group.foto  = entry.foto;
+      if (entry.video && entry.video.length) group.video = entry.video;
+      if (entry.edit  && entry.edit.length)  group.edit  = entry.edit;
+
+      FB_ADDITIONS[idx].push(group);
+    });
+  }
+  renderAdminList();
+});
+
+// Merge hardcoded + Firebase
+function getMergedMonthData(idx) {
+  const base      = FOTBAR_DATA[idx] || [];
+  const additions = FB_ADDITIONS[idx] || [];
+  return [...base, ...additions];
+}
+
+// ===== ADMIN TRIGGER (tap "Hari Bersama" 7x) =====
+let _adminTaps = 0, _adminTimer = null;
+function handleAdminTap() {
+  _adminTaps++;
+  clearTimeout(_adminTimer);
+  if (_adminTaps >= 7) {
+    _adminTaps = 0;
+    openAdmin();
+  } else {
+    _adminTimer = setTimeout(() => { _adminTaps = 0; }, 2000);
+  }
+}
+
+// ===== ADMIN PANEL =====
+function openAdmin() {
+  // Populate month dropdown
+  const sel = document.getElementById('admin-month-select');
+  sel.innerHTML = MONTHS.map((m, i) => `<option value="${i}">${m.name}</option>`).join('');
+  document.getElementById('admin-overlay').style.display = 'block';
+  document.body.style.overflow = 'hidden';
+}
+
+function closeAdmin() {
+  document.getElementById('admin-overlay').style.display = 'none';
+  document.body.style.overflow = '';
+}
+
+function adminOverlayClick(e) {
+  if (e.target.id === 'admin-overlay') closeAdmin();
+}
+
+// Ekstrak Drive ID dari full link atau ID langsung
+function extractDriveId(raw) {
+  raw = raw.trim();
+  if (!raw) return null;
+  const m = raw.match(/\/d\/([a-zA-Z0-9_-]{10,})/);
+  return m ? m[1] : (raw.length >= 10 ? raw : null);
+}
+
+function parseLinks(textareaId) {
+  const val = document.getElementById(textareaId).value;
+  return val.split('\n')
+    .map(l => extractDriveId(l))
+    .filter(Boolean);
+}
+
+async function saveAdminEntry() {
+  const btn = document.getElementById('admin-save-btn');
+  const monthIdx = parseInt(document.getElementById('admin-month-select').value);
+  const dateNum  = parseInt(document.getElementById('admin-date-input').value);
+
+  if (!dateNum || dateNum < 1 || dateNum > 31) {
+    showAdminToast('⚠ Tanggal tidak valid');
+    return;
+  }
+
+  const fotoIds  = parseLinks('admin-links-foto');
+  const videoIds = parseLinks('admin-links-video');
+  const editIds  = parseLinks('admin-links-edit');
+
+  if (!fotoIds.length && !videoIds.length && !editIds.length) {
+    showAdminToast('⚠ Masukkan minimal 1 link');
+    return;
+  }
+
+  const monthName = MONTHS[monthIdx].name.split(' ')[0];
+  const dateStr   = `${dateNum} ${monthName}`;
+
+  const entry = {
+    monthIndex: monthIdx,
+    date:       dateStr,
+    foto:       fotoIds,
+    video:      videoIds,
+    edit:       editIds,
+    addedAt:    Date.now()
+  };
+
+  btn.disabled = true;
+  btn.textContent = 'Menyimpan...';
+
+  try {
+    await db.ref('fotbar_additions').push(entry);
+    // Reset form
+    document.getElementById('admin-date-input').value  = '';
+    document.getElementById('admin-links-foto').value  = '';
+    document.getElementById('admin-links-video').value = '';
+    document.getElementById('admin-links-edit').value  = '';
+    showAdminToast('✓ Berhasil disimpan!');
+  } catch (err) {
+    console.error(err);
+    showAdminToast('✕ Gagal menyimpan');
+  }
+
+  btn.disabled = false;
+  btn.textContent = '💾 Simpan ke Album';
+}
+
+async function deleteAdminEntry(key) {
+  if (!confirm('Hapus entri ini?')) return;
+  try {
+    await db.ref('fotbar_additions/' + key).remove();
+    showAdminToast('✓ Entri dihapus');
+  } catch (err) {
+    showAdminToast('✕ Gagal menghapus');
+  }
+}
+
+function renderAdminList() {
+  const container = document.getElementById('admin-recent-list');
+  if (!container) return;
+
+  const entries = Object.entries(FB_RAW);
+  if (!entries.length) {
+    container.innerHTML = '<div class="admin-empty-note">Belum ada entri.</div>';
+    return;
+  }
+
+  entries.sort((a, b) => (b[1].addedAt || 0) - (a[1].addedAt || 0));
+
+  container.innerHTML = entries.map(([key, entry]) => {
+    const mName = MONTHS[entry.monthIndex]?.name || `Bulan ${entry.monthIndex}`;
+    const parts = [];
+    if (entry.foto?.length)  parts.push(`${entry.foto.length} foto`);
+    if (entry.video?.length) parts.push(`${entry.video.length} video`);
+    if (entry.edit?.length)  parts.push(`${entry.edit.length} edit`);
+    return `
+      <div class="admin-entry-card">
+        <div class="admin-entry-info">
+          <div class="admin-entry-date">${entry.date}</div>
+          <div class="admin-entry-meta">${mName} &middot; ${parts.join(', ')}</div>
+        </div>
+        <button class="admin-del-btn" onclick="deleteAdminEntry('${key}')">Hapus</button>
+      </div>`;
+  }).join('');
+}
+
+function showAdminToast(msg) {
+  const t = document.getElementById('admin-toast');
+  t.textContent = msg;
+  t.classList.add('show');
+  setTimeout(() => t.classList.remove('show'), 2600);
+}
+
 document.addEventListener('keydown', e => { 
   if (e.key === 'Escape') closeLightbox({target: document.getElementById('lightbox')}); 
 });
+
+
 
 </script>
 </body>
