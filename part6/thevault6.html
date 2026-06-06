@@ -1064,7 +1064,7 @@ function closeLightbox(event) {
 
 // ===== FIREBASE INIT =====
 const firebaseConfig = {
-  databaseURL: "https://bygf-6f77-default-rtdb.asia-southeast1.firebasedatabase.app"
+  databaseURL: "https://gf9-dn5-default-rtdb.asia-southeast1.firebasedatabase.app"
 };
 firebase.initializeApp(firebaseConfig);
 const db = firebase.database();
@@ -1193,7 +1193,7 @@ async function saveAdminEntry() {
     showAdminToast('✓ Berhasil disimpan!');
   } catch (err) {
     console.error(err);
-    showAdminToast('✕ Gagal menyimpan');
+    const msg = err?.message || err?.code || "Unknown error"; showAdminToast("✕ " + msg);
   }
 
   btn.disabled = false;
