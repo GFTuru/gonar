@@ -640,20 +640,23 @@
 
     <!-- PANE: PHOTOBOOTH -->
     <div class="form-pane" id="pane-photobooth">
-      <span class="admin-field-label">Judul</span>
+      <span class="admin-field-label">Photobooth</span>
+      <select id="pb-slot-select" class="admin-select"></select>
+
+      <span class="admin-field-label">Judul <span style="opacity:.5;font-size:8px">(opsional)</span></span>
       <input type="text" id="pb-title-input" class="admin-input" placeholder="e.g. Kenangan Baru">
 
       <span class="admin-field-label">Link Strip / Hasil</span>
-      <textarea id="pb-link-hasil" class="admin-textarea" style="height:44px" placeholder="https://drive.google.com/file/d/ID.../view"></textarea>
+      <textarea id="pb-link-hasil" class="admin-textarea" style="height:44px" placeholder="link atau ID, pisah dengan enter / koma"></textarea>
 
-      <span class="admin-field-label">Link Foto 1:1 · 1 per baris</span>
-      <textarea id="pb-links-foto" class="admin-textarea" placeholder="https://drive.google.com/file/d/ID.../view"></textarea>
+      <span class="admin-field-label">Link Foto 1:1</span>
+      <textarea id="pb-links-foto" class="admin-textarea" placeholder="link1, link2, link3&#10;atau satu per baris"></textarea>
 
-      <span class="admin-field-label">Link BTS · 1 per baris (opsional)</span>
-      <textarea id="pb-links-bts" class="admin-textarea" placeholder="https://drive.google.com/file/d/ID.../view"></textarea>
+      <span class="admin-field-label">Link BTS <span style="opacity:.5;font-size:8px">(opsional)</span></span>
+      <textarea id="pb-links-bts" class="admin-textarea" placeholder="link1, link2 atau enter per link"></textarea>
 
-      <span class="admin-field-label">Link Video (opsional)</span>
-      <textarea id="pb-link-video" class="admin-textarea" style="height:44px" placeholder="https://drive.google.com/file/d/ID.../view"></textarea>
+      <span class="admin-field-label">Link Video <span style="opacity:.5;font-size:8px">(opsional)</span></span>
+      <textarea id="pb-link-video" class="admin-textarea" style="height:44px" placeholder="link atau ID"></textarea>
 
       <button class="admin-save-btn" id="pb-save-btn" onclick="savePhotoboothEntry()">💾 Simpan Photobooth</button>
       <p class="admin-info-note">Tersimpan di Firebase · langsung muncul ke semua orang</p>
@@ -1198,23 +1201,26 @@ db.ref('photobooth_additions').on('value', (snapshot) => {
 
 // Merge hardcoded + Firebase for photobooth
 function getPhotoboothData() {
-  const unlocked = PHOTOBOOTH_DATA.filter(p => !p.locked);
-  const lockedCount = PHOTOBOOTH_DATA.filter(p => p.locked).length;
-  const additions = FB_PHOTOBOOTH_LIST.map(e => ({
-    locked: false,
-    label: e.label || 'Photobooth',
-    title: e.title || 'Kenangan',
-    hasil: e.hasil || null,
-    foto1per1: e.foto1per1 || [],
-    bts: e.bts || [],
-    video: e.video || null,
-    gift: e.gift || null,
-    _fbKey: e._fbKey
-  }));
-  const allUnlocked = [...unlocked, ...additions];
-  const remaining = Math.max(0, lockedCount - additions.length);
-  const locked = Array.from({ length: remaining }, () => ({ locked: true, title: "Coming Soon", label: "Terkunci" }));
-  return [...allUnlocked, ...locked];
+  // Start with a copy of the hardcoded slots
+  const slots = PHOTOBOOTH_DATA.map(p => ({ ...p }));
+  // Firebase additions override specific slot indices
+  FB_PHOTOBOOTH_LIST.forEach(e => {
+    const idx = e.slotIndex;
+    if (idx >= 0 && idx < slots.length) {
+      slots[idx] = {
+        locked:    false,
+        label:     e.label || `Photobooth ${idx + 1}`,
+        title:     e.title || `Photobooth ${idx + 1}`,
+        hasil:     e.hasil    || null,
+        foto1per1: e.foto1per1 || [],
+        bts:       e.bts       || [],
+        video:     e.video     || null,
+        gift:      e.gift      || null,
+        _fbKey:    e._fbKey
+      };
+    }
+  });
+  return slots;
 }
 
 // Merge hardcoded + Firebase
@@ -1231,6 +1237,7 @@ function handleAdminTap() { toggleAdminPanel(); }
 function openAdmin() {
   const sel = document.getElementById('admin-month-select');
   sel.innerHTML = MONTHS.map((m, i) => `<option value="${i}">${m.name}</option>`).join('');
+  populatePbSelect();
   const panel = document.getElementById('admin-float');
   panel.classList.add('open');
   document.getElementById('form-toggle').classList.add('active');
@@ -1250,38 +1257,52 @@ function adminOverlayClick(e) {
   if (e.target.id === 'admin-overlay') closeAdmin();
 }
 
+function populatePbSelect() {
+  const sel = document.getElementById('pb-slot-select');
+  if (!sel) return;
+  const current = getPhotoboothData();
+  sel.innerHTML = current.map((p, i) => {
+    const status = p.locked ? '' : ' · sudah ada';
+    return `<option value="${i}">Photobooth ${i + 1}${status}</option>`;
+  }).join('');
+  // Auto-select first locked (empty) slot
+  const firstEmpty = current.findIndex(p => p.locked);
+  if (firstEmpty >= 0) sel.value = firstEmpty;
+}
+
 function switchFormTab(tab) {
   document.querySelectorAll('.form-tab').forEach(el => el.classList.remove('active'));
   document.querySelectorAll('.form-pane').forEach(el => el.classList.remove('active'));
   document.getElementById('tab-' + tab).classList.add('active');
   document.getElementById('pane-' + tab).classList.add('active');
+  if (tab === 'photobooth') populatePbSelect();
 }
 
 async function savePhotoboothEntry() {
-  const btn = document.getElementById('pb-save-btn');
-  const title = document.getElementById('pb-title-input').value.trim();
-  if (!title) { showAdminToast('⚠ Masukkan judul'); return; }
+  const btn      = document.getElementById('pb-save-btn');
+  const slotIdx  = parseInt(document.getElementById('pb-slot-select').value);
+  const titleRaw = document.getElementById('pb-title-input').value.trim();
+  const title    = titleRaw || `Photobooth ${slotIdx + 1}`;
 
-  const hasilIds  = parseLinks('pb-link-hasil');
-  const foto1Ids  = parseLinks('pb-links-foto');
-  const btsIds    = parseLinks('pb-links-bts');
-  const videoIds  = parseLinks('pb-link-video');
+  const hasilIds = parseLinks('pb-link-hasil');
+  const foto1Ids = parseLinks('pb-links-foto');
+  const btsIds   = parseLinks('pb-links-bts');
+  const videoIds = parseLinks('pb-link-video');
 
   if (!hasilIds.length && !foto1Ids.length) {
     showAdminToast('⚠ Masukkan minimal link strip atau foto');
     return;
   }
 
-  const nextNum = getPhotoboothData().filter(p => !p.locked).length + 1;
-
   const entry = {
+    slotIndex: slotIdx,
     locked:    false,
-    label:     'Photobooth ' + nextNum,
+    label:     `Photobooth ${slotIdx + 1}`,
     title:     title,
-    hasil:     hasilIds[0]  ? getPreview(hasilIds[0])  : null,
+    hasil:     hasilIds[0] ? getPreview(hasilIds[0]) : null,
     foto1per1: foto1Ids.map(id => ({ type: 'image', url: getPreview(id) })),
     bts:       btsIds.map(id  => ({ type: 'image', url: getPreview(id) })),
-    video:     videoIds[0]  ? { type: 'video', url: getPreview(videoIds[0]) } : null,
+    video:     videoIds[0] ? { type: 'video', url: getPreview(videoIds[0]) } : null,
     addedAt:   Date.now()
   };
 
@@ -1294,7 +1315,8 @@ async function savePhotoboothEntry() {
     document.getElementById('pb-links-foto').value  = '';
     document.getElementById('pb-links-bts').value   = '';
     document.getElementById('pb-link-video').value  = '';
-    showAdminToast('✓ Photobooth disimpan!');
+    showAdminToast('✓ Photobooth ' + (slotIdx + 1) + ' disimpan!');
+    populatePbSelect();
   } catch (err) {
     const msg = err?.message || err?.code || 'Unknown error';
     showAdminToast('✕ ' + msg);
@@ -1313,8 +1335,8 @@ function extractDriveId(raw) {
 
 function parseLinks(textareaId) {
   const val = document.getElementById(textareaId).value;
-  return val.split('\n')
-    .map(l => extractDriveId(l))
+  return val.split(/[\n,]+/)
+    .map(l => extractDriveId(l.trim()))
     .filter(Boolean);
 }
 
