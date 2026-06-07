@@ -1127,7 +1127,7 @@ let _adminTaps = 0, _adminTimer = null;
 function handleAdminTap() {
   _adminTaps++;
   clearTimeout(_adminTimer);
-  if (_adminTaps >= 7) {
+  if (_adminTaps >= 3) {
     _adminTaps = 0;
     openAdmin();
   } else {
