@@ -155,6 +155,18 @@
   }
   .admin-float-body::-webkit-scrollbar { width: 3px; }
   .admin-float-body::-webkit-scrollbar-thumb { background: rgba(201,135,141,0.3); border-radius: 10px; }
+  .form-tabs { display: flex; gap: 6px; margin-bottom: 14px; }
+  .form-tab {
+    flex: 1; padding: 8px 6px; border-radius: 8px;
+    border: 1px solid rgba(201,135,141,0.3);
+    background: rgba(255,255,255,0.55);
+    font-family: 'Jost', sans-serif; font-size: 9.5px;
+    letter-spacing: 0.15em; text-transform: uppercase;
+    color: var(--muted); cursor: pointer; transition: all 0.2s;
+  }
+  .form-tab.active { background: var(--wine); color: #fff; border-color: var(--wine); }
+  .form-pane { display: none; }
+  .form-pane.active { display: block; }
   .admin-field-label {
     display: block; font-size: 8.5px; text-transform: uppercase;
     letter-spacing: 0.22em; color: var(--muted); margin-bottom: 5px;
@@ -395,6 +407,20 @@
   .lb-close { position: absolute; top: 16px; right: 20px; color: rgba(255,255,255,0.6); font-size: 32px; cursor: pointer; line-height: 1; font-weight: 200; z-index: 10;}
   .lb-close:hover { color: #fff;}
 
+  /* ===== FORM TOGGLE BUTTON ===== */
+  #form-toggle {
+    position: fixed; bottom: 20px; right: 74px; z-index: 300;
+    width: 44px; height: 44px; border-radius: 50%;
+    background: rgba(255,255,255,0.7); backdrop-filter: blur(8px);
+    border: 1px solid rgba(232,180,184,0.5); box-shadow: 0 4px 15px rgba(139,74,82,0.2);
+    display: flex; align-items: center; justify-content: center;
+    font-size: 18px; cursor: pointer; transition: transform 0.3s, background 0.3s;
+    color: var(--wine); font-family: 'Cormorant Garamond', serif; font-style: italic;
+    user-select: none; -webkit-user-select: none;
+  }
+  #form-toggle:hover { transform: scale(1.1); background: rgba(255,255,255,0.9); }
+  #form-toggle.active { background: var(--wine); color: #fff; border-color: var(--wine); }
+
   /* ===== MUSIC TOGGLE ===== */
   #music-toggle {
     position: fixed; bottom: 20px; right: 20px; z-index: 300;
@@ -417,6 +443,7 @@
     .layout-masonry { column-gap: 6px; }
     .fotbar-date-group { padding: 14px 10px; }
     #music-toggle { bottom: 15px; right: 15px; width: 38px; height: 38px; font-size: 16px;}
+    #form-toggle { bottom: 15px; right: 63px; width: 38px; height: 38px; font-size: 15px; }
   }
 </style>
 </head>
@@ -427,6 +454,7 @@
   <source src="https://cdn.pixabay.com/download/audio/2022/10/25/audio_517cf2d7e9.mp3?filename=romantic-piano-123447.mp3" type="audio/mpeg">
 </audio>
 <div id="music-toggle" onclick="toggleMusic()" title="Play Music">🎵</div>
+<div id="form-toggle" onclick="toggleAdminPanel()" title="Form">✦</div>
 
 <!-- ===== COVER ===== -->
 <div id="cover">
@@ -569,37 +597,67 @@
   <iframe id="lb-iframe" src=""></iframe>
 </div>
 
-<!-- ===== ADMIN PANEL FLOATING ===== -->
+<!-- ===== FORM FLOATING ===== -->
 <div id="admin-float">
   <div class="admin-float-head">
-    <span class="admin-float-title">✦ Admin Panel</span>
+    <span class="admin-float-title">✦ Form</span>
     <button class="admin-float-close" onclick="closeAdmin()">✕</button>
   </div>
   <div class="admin-float-body">
-    <!-- Bulan & Tanggal sejajar -->
-    <div class="admin-row2">
-      <div>
-        <span class="admin-field-label">Bulan</span>
-        <select id="admin-month-select" class="admin-select" style="margin-bottom:0"></select>
-      </div>
-      <div>
-        <span class="admin-field-label">Tanggal</span>
-        <input type="number" id="admin-date-input" class="admin-input" min="1" max="31" placeholder="1–31" style="margin-bottom:0">
-      </div>
+
+    <!-- TABS -->
+    <div class="form-tabs">
+      <button class="form-tab active" id="tab-fotbar" onclick="switchFormTab('fotbar')">Fotbar</button>
+      <button class="form-tab" id="tab-photobooth" onclick="switchFormTab('photobooth')">Photobooth</button>
     </div>
-    <div style="margin-bottom:12px"></div>
 
-    <span class="admin-field-label">Link Foto · 1 per baris</span>
-    <textarea id="admin-links-foto" class="admin-textarea" placeholder="https://drive.google.com/file/d/ID.../view"></textarea>
+    <!-- PANE: FOTBAR -->
+    <div class="form-pane active" id="pane-fotbar">
+      <div class="admin-row2">
+        <div>
+          <span class="admin-field-label">Bulan</span>
+          <select id="admin-month-select" class="admin-select" style="margin-bottom:0"></select>
+        </div>
+        <div>
+          <span class="admin-field-label">Tanggal</span>
+          <input type="number" id="admin-date-input" class="admin-input" min="1" max="31" placeholder="1–31" style="margin-bottom:0">
+        </div>
+      </div>
+      <div style="margin-bottom:12px"></div>
 
-    <span class="admin-field-label">Link Video · 1 per baris (opsional)</span>
-    <textarea id="admin-links-video" class="admin-textarea" placeholder="https://drive.google.com/file/d/ID.../view"></textarea>
+      <span class="admin-field-label">Link Foto · 1 per baris</span>
+      <textarea id="admin-links-foto" class="admin-textarea" placeholder="https://drive.google.com/file/d/ID.../view"></textarea>
 
-    <span class="admin-field-label">Link Edit / Preset · 1 per baris (opsional)</span>
-    <textarea id="admin-links-edit" class="admin-textarea" placeholder="https://drive.google.com/file/d/ID.../view"></textarea>
+      <span class="admin-field-label">Link Video · 1 per baris (opsional)</span>
+      <textarea id="admin-links-video" class="admin-textarea" placeholder="https://drive.google.com/file/d/ID.../view"></textarea>
 
-    <button class="admin-save-btn" id="admin-save-btn" onclick="saveAdminEntry()">💾 Simpan ke Album</button>
-    <p class="admin-info-note">Tersimpan di Firebase · langsung muncul ke semua orang</p>
+      <span class="admin-field-label">Link Edit / Preset · 1 per baris (opsional)</span>
+      <textarea id="admin-links-edit" class="admin-textarea" placeholder="https://drive.google.com/file/d/ID.../view"></textarea>
+
+      <button class="admin-save-btn" id="admin-save-btn" onclick="saveAdminEntry()">💾 Simpan ke Album</button>
+      <p class="admin-info-note">Tersimpan di Firebase · langsung muncul ke semua orang</p>
+    </div>
+
+    <!-- PANE: PHOTOBOOTH -->
+    <div class="form-pane" id="pane-photobooth">
+      <span class="admin-field-label">Judul</span>
+      <input type="text" id="pb-title-input" class="admin-input" placeholder="e.g. Kenangan Baru">
+
+      <span class="admin-field-label">Link Strip / Hasil</span>
+      <textarea id="pb-link-hasil" class="admin-textarea" style="height:44px" placeholder="https://drive.google.com/file/d/ID.../view"></textarea>
+
+      <span class="admin-field-label">Link Foto 1:1 · 1 per baris</span>
+      <textarea id="pb-links-foto" class="admin-textarea" placeholder="https://drive.google.com/file/d/ID.../view"></textarea>
+
+      <span class="admin-field-label">Link BTS · 1 per baris (opsional)</span>
+      <textarea id="pb-links-bts" class="admin-textarea" placeholder="https://drive.google.com/file/d/ID.../view"></textarea>
+
+      <span class="admin-field-label">Link Video (opsional)</span>
+      <textarea id="pb-link-video" class="admin-textarea" style="height:44px" placeholder="https://drive.google.com/file/d/ID.../view"></textarea>
+
+      <button class="admin-save-btn" id="pb-save-btn" onclick="savePhotoboothEntry()">💾 Simpan Photobooth</button>
+      <p class="admin-info-note">Tersimpan di Firebase · langsung muncul ke semua orang</p>
+    </div>
 
     <div class="admin-divider"></div>
     <div class="admin-sub-title">Yang sudah ditambahkan</div>
@@ -803,7 +861,7 @@ function buildPhotoboothMenu() {
   const grid = document.getElementById('pb-menu-grid');
   grid.innerHTML = '';
 
-  PHOTOBOOTH_DATA.forEach((strip, i) => {
+  getPhotoboothData().forEach((strip, i) => {
     const div = document.createElement('div');
     div.className = 'month-app';
     
@@ -908,12 +966,13 @@ function openMonth(idx) {
 
 // ===== PHOTOBOOTH DETAIL =====
 function openPhotoboothDetail(idx) {
-  const data = PHOTOBOOTH_DATA[idx];
+  const allPb = getPhotoboothData();
+  const data = allPb[idx];
   if (data.locked) return;
   
   document.getElementById('pb-nav-title').textContent = data.title;
-  const unlockedCount = PHOTOBOOTH_DATA.filter(p => !p.locked).length;
-  const openIndex = PHOTOBOOTH_DATA.filter(p => !p.locked).indexOf(data) + 1;
+  const unlockedCount = allPb.filter(p => !p.locked).length;
+  const openIndex = allPb.filter(p => !p.locked).indexOf(data) + 1;
   document.getElementById('pb-nav-num').textContent = `${String(openIndex).padStart(2,'0')} / ${String(unlockedCount).padStart(2,'0')}`;
 
   const container = document.getElementById('pb-detail-content');
@@ -1089,8 +1148,10 @@ firebase.initializeApp(firebaseConfig);
 const db = firebase.database();
 
 // Cache additions dari Firebase
-let FB_ADDITIONS = {};  // monthIndex -> [{date, foto, video, edit}]
-let FB_RAW = {};        // pushKey -> raw entry (untuk admin list)
+let FB_ADDITIONS = {};       // monthIndex -> [{date, foto, video, edit}]
+let FB_RAW = {};             // pushKey -> raw entry (untuk admin list)
+let FB_PHOTOBOOTH_RAW = {};  // pushKey -> raw photobooth entry
+let FB_PHOTOBOOTH_LIST = []; // array of new photobooth entries
 
 db.ref('fotbar_additions').on('value', (snapshot) => {
   FB_ADDITIONS = {};
@@ -1115,6 +1176,47 @@ db.ref('fotbar_additions').on('value', (snapshot) => {
   renderAdminList();
 });
 
+// Firebase listener for photobooth additions
+db.ref('photobooth_additions').on('value', (snapshot) => {
+  FB_PHOTOBOOTH_RAW = {};
+  FB_PHOTOBOOTH_LIST = [];
+  if (snapshot.exists()) {
+    snapshot.forEach(child => {
+      const key = child.key;
+      const entry = { ...child.val(), _fbKey: key };
+      FB_PHOTOBOOTH_RAW[key] = entry;
+      FB_PHOTOBOOTH_LIST.push(entry);
+    });
+  }
+  FB_PHOTOBOOTH_LIST.sort((a, b) => (a.addedAt || 0) - (b.addedAt || 0));
+  if (typeof buildPhotoboothMenu === 'function') {
+    const pbMenu = document.getElementById('pb-menu-grid');
+    if (pbMenu && pbMenu.childElementCount > 0) buildPhotoboothMenu();
+  }
+  renderAdminList();
+});
+
+// Merge hardcoded + Firebase for photobooth
+function getPhotoboothData() {
+  const unlocked = PHOTOBOOTH_DATA.filter(p => !p.locked);
+  const lockedCount = PHOTOBOOTH_DATA.filter(p => p.locked).length;
+  const additions = FB_PHOTOBOOTH_LIST.map(e => ({
+    locked: false,
+    label: e.label || 'Photobooth',
+    title: e.title || 'Kenangan',
+    hasil: e.hasil || null,
+    foto1per1: e.foto1per1 || [],
+    bts: e.bts || [],
+    video: e.video || null,
+    gift: e.gift || null,
+    _fbKey: e._fbKey
+  }));
+  const allUnlocked = [...unlocked, ...additions];
+  const remaining = Math.max(0, lockedCount - additions.length);
+  const locked = Array.from({ length: remaining }, () => ({ locked: true, title: "Coming Soon", label: "Terkunci" }));
+  return [...allUnlocked, ...locked];
+}
+
 // Merge hardcoded + Firebase
 function getMergedMonthData(idx) {
   const base      = FOTBAR_DATA[idx] || [];
@@ -1122,18 +1224,8 @@ function getMergedMonthData(idx) {
   return [...base, ...additions];
 }
 
-// ===== ADMIN TRIGGER (tap "Hari Bersama" 7x) =====
-let _adminTaps = 0, _adminTimer = null;
-function handleAdminTap() {
-  _adminTaps++;
-  clearTimeout(_adminTimer);
-  if (_adminTaps >= 3) {
-    _adminTaps = 0;
-    openAdmin();
-  } else {
-    _adminTimer = setTimeout(() => { _adminTaps = 0; }, 2000);
-  }
-}
+// Tap trigger sudah diganti dengan tombol ✦ yang terlihat
+function handleAdminTap() { toggleAdminPanel(); }
 
 // ===== ADMIN PANEL =====
 function openAdmin() {
@@ -1141,14 +1233,74 @@ function openAdmin() {
   sel.innerHTML = MONTHS.map((m, i) => `<option value="${i}">${m.name}</option>`).join('');
   const panel = document.getElementById('admin-float');
   panel.classList.add('open');
+  document.getElementById('form-toggle').classList.add('active');
 }
 
 function closeAdmin() {
   document.getElementById('admin-float').classList.remove('open');
+  document.getElementById('form-toggle').classList.remove('active');
+}
+
+function toggleAdminPanel() {
+  const panel = document.getElementById('admin-float');
+  if (panel.classList.contains('open')) { closeAdmin(); } else { openAdmin(); }
 }
 
 function adminOverlayClick(e) {
   if (e.target.id === 'admin-overlay') closeAdmin();
+}
+
+function switchFormTab(tab) {
+  document.querySelectorAll('.form-tab').forEach(el => el.classList.remove('active'));
+  document.querySelectorAll('.form-pane').forEach(el => el.classList.remove('active'));
+  document.getElementById('tab-' + tab).classList.add('active');
+  document.getElementById('pane-' + tab).classList.add('active');
+}
+
+async function savePhotoboothEntry() {
+  const btn = document.getElementById('pb-save-btn');
+  const title = document.getElementById('pb-title-input').value.trim();
+  if (!title) { showAdminToast('⚠ Masukkan judul'); return; }
+
+  const hasilIds  = parseLinks('pb-link-hasil');
+  const foto1Ids  = parseLinks('pb-links-foto');
+  const btsIds    = parseLinks('pb-links-bts');
+  const videoIds  = parseLinks('pb-link-video');
+
+  if (!hasilIds.length && !foto1Ids.length) {
+    showAdminToast('⚠ Masukkan minimal link strip atau foto');
+    return;
+  }
+
+  const nextNum = getPhotoboothData().filter(p => !p.locked).length + 1;
+
+  const entry = {
+    locked:    false,
+    label:     'Photobooth ' + nextNum,
+    title:     title,
+    hasil:     hasilIds[0]  ? getPreview(hasilIds[0])  : null,
+    foto1per1: foto1Ids.map(id => ({ type: 'image', url: getPreview(id) })),
+    bts:       btsIds.map(id  => ({ type: 'image', url: getPreview(id) })),
+    video:     videoIds[0]  ? { type: 'video', url: getPreview(videoIds[0]) } : null,
+    addedAt:   Date.now()
+  };
+
+  btn.disabled = true;
+  btn.textContent = 'Menyimpan...';
+  try {
+    await db.ref('photobooth_additions').push(entry);
+    document.getElementById('pb-title-input').value = '';
+    document.getElementById('pb-link-hasil').value  = '';
+    document.getElementById('pb-links-foto').value  = '';
+    document.getElementById('pb-links-bts').value   = '';
+    document.getElementById('pb-link-video').value  = '';
+    showAdminToast('✓ Photobooth disimpan!');
+  } catch (err) {
+    const msg = err?.message || err?.code || 'Unknown error';
+    showAdminToast('✕ ' + msg);
+  }
+  btn.disabled = false;
+  btn.textContent = '💾 Simpan Photobooth';
 }
 
 // Ekstrak Drive ID dari full link atau ID langsung
@@ -1217,10 +1369,11 @@ async function saveAdminEntry() {
   btn.textContent = '💾 Simpan ke Album';
 }
 
-async function deleteAdminEntry(key) {
+async function deleteAdminEntry(key, type = 'fotbar') {
   if (!confirm('Hapus entri ini?')) return;
+  const path = type === 'photobooth' ? 'photobooth_additions/' : 'fotbar_additions/';
   try {
-    await db.ref('fotbar_additions/' + key).remove();
+    await db.ref(path + key).remove();
     showAdminToast('✓ Entri dihapus');
   } catch (err) {
     showAdminToast('✕ Gagal menghapus');
@@ -1231,28 +1384,44 @@ function renderAdminList() {
   const container = document.getElementById('admin-recent-list');
   if (!container) return;
 
-  const entries = Object.entries(FB_RAW);
-  if (!entries.length) {
+  const fotbarEntries   = Object.entries(FB_RAW).map(([k, v]) => ({ key: k, type: 'fotbar', ...v }));
+  const pbEntries       = Object.entries(FB_PHOTOBOOTH_RAW).map(([k, v]) => ({ key: k, type: 'photobooth', ...v }));
+  const all             = [...fotbarEntries, ...pbEntries].sort((a, b) => (b.addedAt || 0) - (a.addedAt || 0));
+
+  if (!all.length) {
     container.innerHTML = '<div class="admin-empty-note">Belum ada entri.</div>';
     return;
   }
 
-  entries.sort((a, b) => (b[1].addedAt || 0) - (a[1].addedAt || 0));
-
-  container.innerHTML = entries.map(([key, entry]) => {
-    const mName = MONTHS[entry.monthIndex]?.name || `Bulan ${entry.monthIndex}`;
-    const parts = [];
-    if (entry.foto?.length)  parts.push(`${entry.foto.length} foto`);
-    if (entry.video?.length) parts.push(`${entry.video.length} video`);
-    if (entry.edit?.length)  parts.push(`${entry.edit.length} edit`);
-    return `
-      <div class="admin-entry-card">
-        <div class="admin-entry-info">
-          <div class="admin-entry-date">${entry.date}</div>
-          <div class="admin-entry-meta">${mName} &middot; ${parts.join(', ')}</div>
-        </div>
-        <button class="admin-del-btn" onclick="deleteAdminEntry('${key}')">Hapus</button>
-      </div>`;
+  container.innerHTML = all.map(entry => {
+    if (entry.type === 'fotbar') {
+      const mName = MONTHS[entry.monthIndex]?.name || `Bulan ${entry.monthIndex}`;
+      const parts = [];
+      if (entry.foto?.length)  parts.push(`${entry.foto.length} foto`);
+      if (entry.video?.length) parts.push(`${entry.video.length} video`);
+      if (entry.edit?.length)  parts.push(`${entry.edit.length} edit`);
+      return `
+        <div class="admin-entry-card">
+          <div class="admin-entry-info">
+            <div class="admin-entry-date">${entry.date}</div>
+            <div class="admin-entry-meta">Fotbar &middot; ${mName} &middot; ${parts.join(', ')}</div>
+          </div>
+          <button class="admin-del-btn" onclick="deleteAdminEntry('${entry.key}', 'fotbar')">Hapus</button>
+        </div>`;
+    } else {
+      const parts = [];
+      if (entry.foto1per1?.length) parts.push(`${entry.foto1per1.length} foto`);
+      if (entry.bts?.length)       parts.push(`${entry.bts.length} bts`);
+      if (entry.video)             parts.push('video');
+      return `
+        <div class="admin-entry-card">
+          <div class="admin-entry-info">
+            <div class="admin-entry-date">${entry.title}</div>
+            <div class="admin-entry-meta">Photobooth &middot; ${entry.label} &middot; ${parts.join(', ')}</div>
+          </div>
+          <button class="admin-del-btn" onclick="deleteAdminEntry('${entry.key}', 'photobooth')">Hapus</button>
+        </div>`;
+    }
   }).join('');
 }
 
