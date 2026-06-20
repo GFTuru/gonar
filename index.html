@@ -167,12 +167,15 @@
       .card-final-title { font-size: 36px !important; }
       .card-final-inner { padding: 28px 24px 24px 28px; }
       #chatBox { right: 15px !important; width: calc(100% - 30px) !important; }
+      /* Penyesuaian agar di HP kolom trackernya berurutan ke bawah */
+      .tracker-columns { flex-direction: column !important; }
     }
 
     /* ── ADMIN PANEL ── */
     .admin-overlay { display: none; position: fixed; inset: 0; background: rgba(43, 20, 30, 0.72); backdrop-filter: blur(8px); z-index: 100000; align-items: center; justify-content: center; padding: 20px; }
     .admin-overlay.open { display: flex; }
-    .admin-panel { background: var(--white); border: 1px solid rgba(201,122,138,0.4); border-radius: 12px; padding: 36px 32px 28px; width: 100%; max-width: 500px; max-height: 90vh; overflow-y: auto; box-shadow: 0 40px 80px rgba(107,45,62,0.25), 0 0 0 1px rgba(201,122,138,0.15); animation: fadeDown 0.4s cubic-bezier(0.23,1,0.32,1); }
+    /* Diperlebar agar cukup untuk 2 kolom */
+    .admin-panel { background: var(--white); border: 1px solid rgba(201,122,138,0.4); border-radius: 12px; padding: 36px 32px 28px; width: 100%; max-width: 680px; max-height: 90vh; overflow-y: auto; box-shadow: 0 40px 80px rgba(107,45,62,0.25), 0 0 0 1px rgba(201,122,138,0.15); animation: fadeDown 0.4s cubic-bezier(0.23,1,0.32,1); }
     .admin-header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 28px; padding-bottom: 16px; border-bottom: 1px solid rgba(201,122,138,0.2); }
     .admin-title { font-family: 'DM Mono', monospace; font-size: 11px; letter-spacing: 0.3em; text-transform: uppercase; color: var(--rose-deep); }
     .admin-close { background: none; border: 1px solid rgba(201,122,138,0.3); border-radius: 50%; width: 30px; height: 30px; cursor: pointer; color: var(--rose); font-size: 16px; display: flex; align-items: center; justify-content: center; transition: background 0.2s, color 0.2s; }
@@ -231,8 +234,11 @@
     .lc-btn:hover { background: var(--burgundy); }
     .lc-error { font-family: 'DM Mono', monospace; font-size: 10px; color: #c97a5a; margin-top: -8px; margin-bottom: 12px; display: none; }
 
-    /* ── TRACKER AREA DI ADMIN PANEL ── */
-    .tracker-area { background: rgba(247,232,232,0.3); border: 1px solid rgba(201,122,138,0.12); border-radius: 8px; padding: 12px; height: 160px; overflow-y: auto; font-family: 'DM Mono', monospace; font-size: 10px; display: none; flex-direction: column; gap: 8px; }
+    /* ── TRACKER AREA DI ADMIN PANEL (UPDATED UNTUK DIBAGI 2) ── */
+    .tracker-columns { display: flex; gap: 16px; margin-bottom: 12px; }
+    .tracker-col { flex: 1; display: flex; flex-direction: column; }
+    .tracker-header { padding: 10px; border-radius: 6px 6px 0 0; text-align: center; font-family: 'DM Mono', monospace; font-size: 11px; font-weight: bold; border: 1px solid; border-bottom: none; }
+    .tracker-area { background: rgba(247,232,232,0.3); border: 1px solid rgba(201,122,138,0.12); border-radius: 0 0 6px 6px; padding: 12px; height: 180px; overflow-y: auto; font-family: 'DM Mono', monospace; font-size: 10px; display: flex; flex-direction: column; gap: 8px; }
     .tracker-area::-webkit-scrollbar { width: 4px; }
     .tracker-area::-webkit-scrollbar-thumb { background: rgba(201,122,138,0.3); border-radius: 4px; }
     .log-item { background: var(--white); padding: 8px; border-radius: 6px; border-left: 2px solid var(--rose); box-shadow: 0 2px 5px rgba(0,0,0,0.02); }
@@ -362,14 +368,10 @@
       <!-- List Parts -->
       <div id="adminRows"></div>
 
-      <!-- AREA TRACKER BARU -->
+      <!-- AREA TRACKER (HANYA LOG KEHADIRAN) -->
       <hr style="border: 0; border-top: 1px dashed rgba(201,122,138,0.3); margin: 24px 0 16px;">
-      <div class="admin-part-label" style="color: var(--burgundy); margin-bottom: 12px;">📡 Radar Tracker (Aktivitas & Device)</div>
-      <div style="display: flex; gap: 8px; margin-bottom: 12px;">
-        <button class="admin-btn" onclick="loadHistoryAdmin()" style="flex:1; background: rgba(74,158,122,0.1); border-color: rgba(74,158,122,0.3); color: var(--code-green);">Log Kehadiran</button>
-        <button class="admin-btn" onclick="loadAktivitasAdmin()" style="flex:1; background: rgba(91,143,201,0.1); border-color: rgba(91,143,201,0.3); color: var(--code-blue);">Log Aktivitas</button>
-      </div>
-      <div id="trackerDataArea" class="tracker-area"></div>
+      <div class="admin-part-label" style="color: var(--burgundy); margin-bottom: 12px; text-align: center;">📡 Log Kehadiran Pengunjung</div>
+      <div id="trackerHistoryArea" class="tracker-area" style="display: flex; height: 180px;"></div>
 
       <div class="admin-footer">
         <button class="admin-btn" id="adminLockAll" style="background: rgba(180,180,180,0.15);">Kunci Semua Bab</button>
@@ -412,61 +414,11 @@
     
     // URL BARU UNTUK RADAR TRACKER
     const HISTORY_URL = 'https://gf9-dn5-default-rtdb.asia-southeast1.firebasedatabase.app/vault/history.json';
-    const ACTIVITY_URL = 'https://gf9-dn5-default-rtdb.asia-southeast1.firebasedatabase.app/vault/activities.json';
 
-    // ── FUNGSI RADAR & DEVICE ──
-    function dapatkanInfoDevice() {
-      const ua = navigator.userAgent;
-      if (/iPhone/i.test(ua)) return "iPhone (iOS)";
-      if (/iPad/i.test(ua)) return "iPad (iOS)";
-      if (/Android/i.test(ua)) return /Mobile/i.test(ua) ? "Android (HP)" : "Android (Tablet)";
-      if (/Windows NT/i.test(ua)) return "Windows (PC/Laptop)";
-      if (/Macintosh/i.test(ua)) return "MacBook/iMac (macOS)";
-      return "Perangkat Tidak Dikenali";
-    }
-
+    // ── FUNGSI WAKTU ──
     function waktuSekarang() {
       return new Date().toLocaleString('id-ID', { dateStyle: 'medium', timeStyle: 'short' });
     }
-
-    // Eksekusi kirim tracker aktivitas diam-diam
-    function catatAktivitas(nama, teksAksi) {
-      if(!nama) return;
-      fetch(ACTIVITY_URL, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ nama: nama, aksi: teksAksi, device: dapatkanInfoDevice(), waktu: waktuSekarang() })
-      }).catch(() => {}); // Abaikan error agar senyap
-    }
-
-    // Global Tracker (Pengintai Klik Seluruh Layar)
-    document.addEventListener('click', function(e) {
-      const nama = localStorage.getItem('vault_chat_name');
-      if (!nama) return; 
-
-      let element = e.target;
-      let aksi = "";
-
-      if (element.closest('.card')) {
-        const title = element.closest('.card').querySelector('.card-title')?.innerText.replace(/\n/g, ' ') || 'Bab';
-        aksi = `Mengklik kartu "${title}"`;
-      } else if (element.id === 'chatBubble' || element.id === 'chatCloseBtn') {
-        aksi = `Membuka/Menutup Pulse Chat`;
-      } else if (element.id === 'chatSend') {
-        return; // Terpisah saat kirimPesan()
-      } else if (element.tagName.toLowerCase() === 'button' || element.closest('button')) {
-        let btnText = (element.innerText || element.closest('button').innerText).trim() || "Tombol";
-        aksi = `Mengklik tombol "${btnText}"`;
-      }
-
-      if (aksi) catatAktivitas(nama, aksi);
-    });
-
-    // Deteksi saat target sedang mau ngetik pesan
-    document.getElementById("chatInput").addEventListener('focus', function() {
-      const nama = localStorage.getItem("vault_chat_name");
-      if (nama) catatAktivitas(nama, "Sedang mengetik pesan di Pulse Chat...");
-    });
 
     // ── MODAL PENYAMARAN SAAT AWAL BUKA WEB ──
     const liveChatModal = document.getElementById('liveChatModal');
@@ -493,18 +445,17 @@
       btn.innerText = "Memproses...";
       btn.disabled = true;
 
-      // Kirim data login/device ke Firebase
+      // Kirim data nama & waktu ke Firebase
       fetch(HISTORY_URL, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ nama: input, device: dapatkanInfoDevice(), waktu: waktuSekarang() })
+        body: JSON.stringify({ nama: input, waktu: waktuSekarang() })
       }).then(() => {
         localStorage.setItem('vault_chat_name', input);
         myName = input;
         
         liveChatModal.classList.remove('open');
         document.body.classList.remove('modal-open');
-        catatAktivitas(myName, "Baru saja masuk & bergabung dengan web");
       }).catch(() => {
         // Fallback kalau error rules tetap bisa jalan ke web
         localStorage.setItem('vault_chat_name', input);
@@ -516,9 +467,8 @@
 
     // ── ADMIN PANEL VIEWER (LOG TRACKER) ──
     function loadHistoryAdmin() {
-      const area = document.getElementById('trackerDataArea');
-      area.style.display = 'flex';
-      area.innerHTML = "<div style='text-align:center; color:var(--muted); margin-top:20px;'>Memuat Log Kehadiran...</div>";
+      const area = document.getElementById('trackerHistoryArea');
+      area.innerHTML = "<div style='text-align:center; color:var(--muted); margin-top:20px;'>Memuat data...</div>";
 
       fetch(HISTORY_URL)
       .then(res => res.json())
@@ -529,33 +479,8 @@
         Object.values(data).reverse().forEach(item => {
           area.innerHTML += `
             <div class="log-item" style="border-left-color: var(--code-green);">
-              <div style="font-weight:bold; color:var(--burgundy); font-size:11px;">${item.nama}</div>
-              <div style="color:var(--text); margin:4px 0;">📱 ${item.device || 'Tidak Diketahui'}</div>
-              <div style="color:var(--muted);">🕒 ${item.waktu}</div>
-            </div>`;
-        });
-      });
-    }
-
-    function loadAktivitasAdmin() {
-      const area = document.getElementById('trackerDataArea');
-      area.style.display = 'flex';
-      area.innerHTML = "<div style='text-align:center; color:var(--muted); margin-top:20px;'>Memuat Log Aktivitas Radar...</div>";
-
-      fetch(ACTIVITY_URL)
-      .then(res => res.json())
-      .then(data => {
-        area.innerHTML = "";
-        if(!data) return area.innerHTML = "<div style='text-align:center; color:var(--muted); margin-top:20px;'>Belum ada data radar aktivitas.</div>";
-
-        Object.values(data).reverse().forEach(item => {
-          area.innerHTML += `
-            <div class="log-item" style="border-left-color: var(--code-blue);">
-              <div style="display:flex; justify-content:space-between;">
-                <span style="font-weight:bold; color:var(--burgundy);">${item.nama}</span>
-                <span style="color:var(--muted);">${item.waktu.split(',')[1]}</span>
-              </div>
-              <div style="color:var(--text); margin-top:4px;">${item.aksi}</div>
+              <div style="font-weight:bold; color:var(--burgundy); font-size:12px;">${item.nama}</div>
+              <div style="color:var(--muted); margin-top:4px;">🕒 Masuk pada: ${item.waktu}</div>
             </div>`;
         });
       });
@@ -731,6 +656,9 @@
       });
       document.body.classList.add('admin-open');
       overlay.classList.add('open');
+      
+      // Load Log Tracker secara otomatis begitu admin dibuka
+      loadHistoryAdmin();
     }
 
     function closeAdmin() { document.body.classList.remove('admin-open'); overlay.classList.remove('open'); }
@@ -860,9 +788,6 @@
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify(msgObj)
         });
-        
-        // Catat di radar admin bahwa pesan sudah dikirim
-        catatAktivitas(myName, `Mengirim pesan chat: "${text}"`);
 
         fetchChat(); 
       } catch(e) {
