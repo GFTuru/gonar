@@ -377,6 +377,8 @@
         <button class="admin-btn" id="adminLockAll" style="background: rgba(180,180,180,0.15);">Kunci Semua Bab</button>
         <!-- Tombol Hapus Chat Baru -->
         <button class="admin-btn" id="adminClearChat" style="background: rgba(201,90,110,0.15); color: var(--rose-deep); border-color: rgba(201,122,138,0.4);">Hapus Chat</button>
+        <!-- Tombol Hapus History Tracker -->
+        <button class="admin-btn" id="adminClearHistory" style="background: rgba(201,90,110,0.15); color: var(--rose-deep); border-color: rgba(201,122,138,0.4);">Hapus Log Masuk</button>
         <div style="flex:1;"></div>
         <span class="admin-status" id="adminStatus"></span>
         <button class="admin-save" id="adminSave">Simpan Perubahan</button>
@@ -422,7 +424,7 @@
 
     // ── MODAL PENYAMARAN SAAT AWAL BUKA WEB ──
     const liveChatModal = document.getElementById('liveChatModal');
-    let myName = localStorage.getItem('vault_chat_name');
+    let myName = localStorage.getItem('vault_chat_name_v2');
 
     // Munculkan popup jika belum pernah isi nama
     window.onload = function() {
@@ -451,14 +453,14 @@
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ nama: input, waktu: waktuSekarang() })
       }).then(() => {
-        localStorage.setItem('vault_chat_name', input);
+        localStorage.setItem('vault_chat_name_v2', input);
         myName = input;
         
         liveChatModal.classList.remove('open');
         document.body.classList.remove('modal-open');
       }).catch(() => {
         // Fallback kalau error rules tetap bisa jalan ke web
-        localStorage.setItem('vault_chat_name', input);
+        localStorage.setItem('vault_chat_name_v2', input);
         myName = input;
         liveChatModal.classList.remove('open');
         document.body.classList.remove('modal-open');
@@ -680,6 +682,20 @@
         fetchChat(); 
       } catch(e) {
         showStatus('✗ Gagal hapus chat', true);
+      }
+    });
+
+    // Fitur Hapus Log Kehadiran Tracker
+    document.getElementById('adminClearHistory').addEventListener('click', async () => {
+      if (!confirm("Yakin ingin menghapus semua riwayat kehadiran pengunjung? Tindakan ini tidak bisa dikembalikan.")) return;
+      showStatus('Menghapus log...', false);
+      try {
+        const res = await fetch(HISTORY_URL, { method: 'DELETE' });
+        if (!res.ok) throw new Error('Gagal hapus');
+        showStatus('✓ Log dibersihkan!', false);
+        loadHistoryAdmin(); // Panggil ulang untuk merefresh tampilan log jadi kosong
+      } catch(e) {
+        showStatus('✗ Gagal hapus log', true);
       }
     });
 
