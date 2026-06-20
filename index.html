@@ -1,763 +1,369 @@
 <!DOCTYPE html>
 <html lang="id">
 <head>
-  <meta charset="UTF-8"/>
-  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>The Vault — Arsip Web</title>
-  <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;0,600;1,300;1,400&family=DM+Mono:ital,wght@0,300;0,400;1,300&family=Playfair+Display:ital,wght@1,400;1,700&display=swap" rel="stylesheet"/>
-  <style>
-    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
-
-    :root {
-      --cream: #fdf6f0;
-      --blush: #f7e8e8;
-      --rose: #c97a8a;
-      --rose-deep: #9b4a5e;
-      --rose-pale: #f0c4cc;
-      --burgundy: #6b2d3e;
-      --code-green: #4a9e7a;
-      --code-blue: #5b8fc9;
-      --text: #2d1f28;
-      --muted: #9e8a90;
-      --white: #fff9f7;
-    }
-
-    html, body {
-      min-height: 100vh;
-      background: var(--cream);
-      color: var(--text);
-      font-family: 'Cormorant Garamond', serif;
-      overflow-x: hidden;
-      cursor: none;
-    }
-
-    /* Mengembalikan kursor normal saat admin atau chat terbuka */
-    body.admin-open, body.chat-open { cursor: auto; }
-    body.admin-open .cursor, body.admin-open .cursor-ring,
-    body.chat-open .cursor, body.chat-open .cursor-ring {
-      display: none !important;
-    }
-
-    /* Custom cursor */
-    .cursor {
-      position: fixed;
-      width: 12px; height: 12px;
-      border-radius: 50%;
-      background: var(--rose);
-      pointer-events: none;
-      z-index: 9999;
-      transform: translate(-50%, -50%);
-      transition: transform 0.1s, width 0.2s, height 0.2s;
-      mix-blend-mode: multiply;
-    }
-    .cursor-ring {
-      position: fixed;
-      width: 36px; height: 36px;
-      border-radius: 50%;
-      border: 1px solid rgba(201,122,138,0.6);
-      pointer-events: none;
-      z-index: 9998;
-      transform: translate(-50%, -50%);
-      transition: transform 0.12s ease-out, width 0.3s, height 0.3s;
-    }
-
-    /* Canvas particles */
-    #heartCanvas { position: fixed; inset: 0; pointer-events: none; z-index: 0; opacity: 0.65; }
-
-    /* EKG background line */
-    .ekg-bg {
-      position: fixed; bottom: 15%; left: -5%; width: 110%; height: 80px;
-      pointer-events: none; z-index: 0; opacity: 0.08;
-    }
-
-    /* Paper texture overlay */
-    body::before {
-      content: ''; position: fixed; inset: 0;
-      background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='300' height='300'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.75' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='300' height='300' filter='url(%23n)' opacity='0.03'/%3E%3C/svg%3E");
-      opacity: 0.4; pointer-events: none; z-index: 0;
-    }
-
-    body::after {
-      content: ''; position: fixed; inset: 0;
-      background: radial-gradient(ellipse at 20% 10%, rgba(247,232,232,0.7) 0%, transparent 55%),
-                  radial-gradient(ellipse at 80% 90%, rgba(240,196,204,0.4) 0%, transparent 50%),
-                  radial-gradient(ellipse at 50% 50%, rgba(253,246,240,0.2) 0%, transparent 80%);
-      pointer-events: none; z-index: 0;
-    }
-
-    .ruled-lines {
-      position: fixed; inset: 0;
-      background-image: repeating-linear-gradient(180deg, transparent, transparent 39px, rgba(201,122,138,0.06) 39px, rgba(201,122,138,0.06) 40px);
-      pointer-events: none; z-index: 0;
-    }
-
-    .wrapper { position: relative; z-index: 1; max-width: 1000px; margin: 0 auto; padding: 64px 32px 120px; }
-
-    header { text-align: center; margin-bottom: 80px; animation: fadeDown 1.2s cubic-bezier(0.23,1,0.32,1) both; }
-    .rx-symbol { font-family: 'DM Mono', monospace; font-size: 13px; color: var(--rose); letter-spacing: 0.3em; text-transform: uppercase; margin-bottom: 20px; opacity: 0.8; display: flex; align-items: center; justify-content: center; gap: 12px; }
-    .rx-symbol::before, .rx-symbol::after { content: ''; display: block; width: 48px; height: 1px; background: linear-gradient(90deg, transparent, var(--rose-pale)); }
-    .rx-symbol::after { background: linear-gradient(90deg, var(--rose-pale), transparent); }
-    h1 { font-family: 'Playfair Display', serif; font-style: italic; font-size: clamp(52px, 10vw, 110px); font-weight: 400; line-height: 0.95; color: var(--burgundy); letter-spacing: -0.01em; margin-bottom: 16px; text-shadow: 0 4px 15px rgba(201,122,138,0.15); }
-    .code-subtitle { font-family: 'DM Mono', monospace; font-size: 13px; color: var(--code-green); letter-spacing: 0.1em; margin-top: 20px; opacity: 0.8; font-style: italic; }
-    .heartbeat-line { width: 100%; max-width: 320px; margin: 28px auto 0; display: block; }
-
-    .patient-strip { display: flex; justify-content: center; gap: 0; margin-bottom: 72px; border: 1px solid rgba(201,122,138,0.3); border-radius: 6px; overflow: hidden; animation: fadeDown 1.2s 0.15s cubic-bezier(0.23,1,0.32,1) both; max-width: 680px; margin-left: auto; margin-right: auto; box-shadow: 0 10px 30px rgba(201,122,138,0.05); }
-    .strip-item { flex: 1; padding: 14px 20px; text-align: center; border-right: 1px solid rgba(201,122,138,0.15); background: rgba(255,249,247,0.7); backdrop-filter: blur(5px); }
-    .strip-item:last-child { border-right: none; }
-    .strip-label { font-family: 'DM Mono', monospace; font-size: 9px; letter-spacing: 0.25em; text-transform: uppercase; color: var(--rose); opacity: 0.7; margin-bottom: 4px; }
-    .strip-value { font-family: 'DM Mono', monospace; font-size: 13px; color: var(--text); font-weight: 400; }
-    .strip-value.alive { color: var(--code-green); font-weight: bold;}
-    .strip-value.clickable { cursor: pointer; user-select: none; }
-    .strip-value.clickable:hover { color: var(--rose-deep); }
-
-    .section-label { display: flex; align-items: center; gap: 16px; margin-bottom: 28px; animation: fadeUp 0.8s 0.3s ease both; }
-    .section-label-line { flex: 1; height: 1px; background: rgba(201,122,138,0.25); }
-    .section-label-text { font-family: 'DM Mono', monospace; font-size: 11px; letter-spacing: 0.3em; text-transform: uppercase; color: var(--rose-deep); font-weight: bold; }
-
-    .grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(290px, 1fr)); gap: 18px; margin-bottom: 60px; }
-    .card { position: relative; background: rgba(255,249,247,0.85); border: 1px solid rgba(201,122,138,0.25); border-radius: 8px; overflow: hidden; text-decoration: none; color: inherit; display: block; backdrop-filter: blur(6px); transition: border-color 0.4s, transform 0.4s cubic-bezier(0.23,1,0.32,1), box-shadow 0.4s; animation: fadeUp 0.8s ease both; }
-    .card.unlocked:hover { border-color: rgba(201,122,138,0.7); transform: translateY(-8px) rotate(-0.5deg); box-shadow: 0 20px 60px rgba(155,74,94,0.15), 0 4px 20px rgba(201,122,138,0.15), 0 0 0 1px rgba(201,122,138,0.3); }
-    .card.locked { cursor: not-allowed; background: rgba(253,246,240,0.6); border-color: rgba(201,122,138,0.15); }
-    .card-accent { position: absolute; left: 0; top: 0; bottom: 0; width: 4px; }
-    .card.unlocked .card-accent { background: linear-gradient(180deg, var(--rose-pale), var(--rose), var(--rose-deep)); }
-    .card.locked .card-accent { background: linear-gradient(180deg, #d8c3c7, #c4aeb3, #d8c3c7); opacity: 0.5; }
-    .card-inner { padding: 26px 26px 22px 30px; }
-    .rx-num { font-family: 'DM Mono', monospace; font-size: 10px; letter-spacing: 0.25em; color: var(--rose-deep); opacity: 0.7; margin-bottom: 12px; display: flex; align-items: center; gap: 8px; }
-    .rx-num::after { content: ''; display: block; flex: 1; height: 1px; background: rgba(201,122,138,0.25); }
-    .card-title { font-family: 'Cormorant Garamond', serif; font-size: 32px; font-weight: 300; line-height: 1.1; color: var(--burgundy); margin-bottom: 8px; letter-spacing: 0.02em; }
-    .card-title em { font-style: italic; font-weight: 600; }
-    .card.locked .card-title { color: var(--muted); }
-    .card-code { font-family: 'DM Mono', monospace; font-size: 11px; color: var(--code-blue); opacity: 0.8; margin-bottom: 18px; font-style: italic; letter-spacing: 0.03em; }
-    .card.locked .card-code { color: var(--muted); opacity: 0.4; }
-    .card-desc { font-size: 15px; font-weight: 400; line-height: 1.6; color: var(--text); margin-bottom: 22px; font-style: italic; }
-    .card.locked .card-desc { color: var(--muted); }
-    .badge { display: inline-flex; align-items: center; gap: 7px; padding: 6px 14px; border-radius: 20px; font-family: 'DM Mono', monospace; font-size: 10px; letter-spacing: 0.15em; text-transform: uppercase; font-weight: bold; }
-    .badge-open { background: rgba(201,122,138,0.12); border: 1px solid rgba(201,122,138,0.4); color: var(--rose-deep); }
-    .badge-locked { background: rgba(180,180,180,0.08); border: 1px solid rgba(180,180,180,0.2); color: var(--muted); }
-    .card-ekg { position: absolute; bottom: 0; right: 0; opacity: 0.08; pointer-events: none; transition: opacity 0.4s; }
-    .card.unlocked:hover .card-ekg { opacity: 0.25; stroke: var(--rose-deep); }
-    .locked-overlay { position: absolute; inset: 0; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 10px; background: rgba(253,246,240,0.75); backdrop-filter: blur(4px); }
-    .locked-icon { font-size: 26px; animation: heartFloat 3s ease-in-out infinite; }
-    .coming-text { font-family: 'Playfair Display', serif; font-style: italic; font-size: 20px; color: var(--burgundy); letter-spacing: 0.08em; }
-    .coming-code { font-family: 'DM Mono', monospace; font-size: 10px; letter-spacing: 0.2em; color: var(--rose-deep); opacity: 0.6; text-transform: uppercase; }
-    .card-arrow { position: absolute; bottom: 22px; right: 22px; font-style: italic; font-family: 'Cormorant Garamond', serif; font-size: 24px; color: var(--rose-deep); opacity: 0; transform: translate(-8px, 8px) rotate(-10deg); transition: opacity 0.4s, transform 0.4s cubic-bezier(0.23,1,0.32,1); }
-    .card.unlocked:hover .card-arrow { opacity: 0.9; transform: translate(0, 0) rotate(0deg); }
-
-    /* Akhir Card (Part 9) */
-    #finalCard { margin-bottom: 40px; }
-    .card-final { width: 100%; min-height: 200px; position: relative; background: rgba(255,249,247,0.92); border: 1px solid rgba(201,122,138,0.35); border-radius: 12px; overflow: hidden; text-decoration: none; color: inherit; display: block; backdrop-filter: blur(8px); transition: border-color 0.4s, transform 0.4s cubic-bezier(0.23,1,0.32,1), box-shadow 0.4s; animation: fadeUp 0.8s ease both; }
-    .card-final.unlocked:hover { border-color: rgba(201,122,138,0.8); transform: translateY(-6px); box-shadow: 0 24px 70px rgba(155,74,94,0.18), 0 4px 24px rgba(201,122,138,0.18), 0 0 0 1px rgba(201,122,138,0.35); }
-    .card-final.locked { cursor: not-allowed; background: rgba(253,246,240,0.6); border-color: rgba(201,122,138,0.15); }
-    .card-final-inner { padding: 40px 40px 36px 44px; display: flex; flex-direction: column; gap: 4px; }
-    .card-final-title { font-size: 52px !important; margin-bottom: 12px !important; }
-
-    footer { text-align: center; animation: fadeUp 1s 0.9s ease both; padding-top: 20px; }
-    .footer-quote { font-family: 'Playfair Display', serif; font-style: italic; font-size: 22px; color: var(--burgundy); opacity: 0.8; margin-bottom: 16px; letter-spacing: 0.03em; }
-    .footer-code { font-family: 'DM Mono', monospace; font-size: 11px; letter-spacing: 0.2em; color: var(--rose); opacity: 0.5; }
-
-    @keyframes fadeDown { from { opacity: 0; transform: translateY(-28px); } to { opacity: 1; transform: translateY(0); } }
-    @keyframes fadeUp { from { opacity: 0; transform: translateY(24px); } to { opacity: 1; transform: translateY(0); } }
-    @keyframes heartFloat { 0%, 100% { transform: translateY(0) scale(1); } 50% { transform: translateY(-8px) scale(1.1); } }
-
-    @media (max-width: 600px) {
-      .patient-strip { flex-wrap: wrap; }
-      .strip-item { min-width: 50%; border-bottom: 1px solid rgba(201,122,138,0.15); }
-      .grid { grid-template-columns: 1fr; }
-      .card-final-title { font-size: 36px !important; }
-      .card-final-inner { padding: 28px 24px 24px 28px; }
-      #chatBox { right: 15px !important; width: calc(100% - 30px) !important; }
-    }
-
-    /* ── ADMIN PANEL ── */
-    .admin-overlay { display: none; position: fixed; inset: 0; background: rgba(43, 20, 30, 0.72); backdrop-filter: blur(8px); z-index: 100000; align-items: center; justify-content: center; padding: 20px; }
-    .admin-overlay.open { display: flex; }
-    .admin-panel { background: var(--white); border: 1px solid rgba(201,122,138,0.4); border-radius: 12px; padding: 36px 32px 28px; width: 100%; max-width: 500px; max-height: 90vh; overflow-y: auto; box-shadow: 0 40px 80px rgba(107,45,62,0.25), 0 0 0 1px rgba(201,122,138,0.15); animation: fadeDown 0.4s cubic-bezier(0.23,1,0.32,1); }
-    .admin-header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 28px; padding-bottom: 16px; border-bottom: 1px solid rgba(201,122,138,0.2); }
-    .admin-title { font-family: 'DM Mono', monospace; font-size: 11px; letter-spacing: 0.3em; text-transform: uppercase; color: var(--rose-deep); }
-    .admin-close { background: none; border: 1px solid rgba(201,122,138,0.3); border-radius: 50%; width: 30px; height: 30px; cursor: pointer; color: var(--rose); font-size: 16px; display: flex; align-items: center; justify-content: center; transition: background 0.2s, color 0.2s; }
-    .admin-close:hover { background: var(--rose); color: white; }
-    .admin-row { margin-bottom: 12px; padding: 16px; background: rgba(247,232,232,0.3); border-radius: 8px; border: 1px solid rgba(201,122,138,0.12); }
-    .admin-row-header { display: flex; align-items: center; justify-content: space-between; }
-    .admin-part-label { font-family: 'DM Mono', monospace; font-size: 10px; letter-spacing: 0.25em; color: var(--rose-deep); text-transform: uppercase; }
-    .toggle-wrap { display: flex; align-items: center; gap: 8px; }
-    .toggle-label { font-family: 'DM Mono', monospace; font-size: 9px; letter-spacing: 0.15em; color: var(--muted); text-transform: uppercase; }
-    .toggle { position: relative; width: 36px; height: 20px; }
-    .toggle input { display: none; }
-    .toggle-slider { position: absolute; inset: 0; background: rgba(180,180,180,0.3); border-radius: 20px; cursor: pointer; transition: background 0.3s; border: 1px solid rgba(201,122,138,0.2); }
-    .toggle-slider::before { content: ''; position: absolute; width: 14px; height: 14px; left: 3px; top: 2px; background: white; border-radius: 50%; transition: transform 0.3s; box-shadow: 0 1px 4px rgba(0,0,0,0.2); }
-    .toggle input:checked + .toggle-slider { background: var(--rose); border-color: var(--rose-deep); }
-    .toggle input:checked + .toggle-slider::before { transform: translateX(16px); }
-    .admin-input { width: 100%; padding: 9px 12px; margin-top: 8px; border: 1px solid rgba(201,122,138,0.3); border-radius: 6px; background: rgba(255,249,247,0.9); font-family: 'DM Mono', monospace; font-size: 11px; color: var(--text); outline: none; transition: border-color 0.2s, box-shadow 0.2s; }
-    .admin-input:focus { border-color: var(--rose); box-shadow: 0 0 0 3px rgba(201,122,138,0.12); }
-    
-    .admin-footer { margin-top: 24px; display: flex; gap: 10px; justify-content: flex-end; align-items: center; flex-wrap: wrap; }
-    .admin-btn { padding: 10px 16px; color: var(--text); border: 1px solid rgba(180,180,180,0.3); border-radius: 6px; font-family: 'DM Mono', monospace; font-size: 10px; letter-spacing: 0.1em; text-transform: uppercase; cursor: pointer; transition: background 0.2s; }
-    .admin-btn:hover { background: rgba(180,180,180,0.3); }
-    
-    .admin-save { padding: 10px 24px; background: var(--rose-deep); color: white; border: none; border-radius: 6px; font-family: 'DM Mono', monospace; font-size: 10px; letter-spacing: 0.2em; text-transform: uppercase; cursor: pointer; transition: background 0.2s, transform 0.15s; }
-    .admin-save:hover { background: var(--burgundy); transform: translateY(-1px); }
-    .admin-save:disabled { opacity: 0.5; cursor: not-allowed; transform: none; }
-    .admin-status { font-family: 'DM Mono', monospace; font-size: 10px; color: var(--code-green); letter-spacing: 0.1em; opacity: 0; transition: opacity 0.3s; }
-    .admin-status.show { opacity: 1; }
-    .admin-status.error { color: #c97a5a; }
-
-    .loading-bar { position: fixed; top: 0; left: 0; right: 0; height: 2px; background: linear-gradient(90deg, var(--rose-pale), var(--rose), var(--rose-deep)); z-index: 9997; transform-origin: left; transform: scaleX(0); transition: transform 0.4s ease; }
-    .loading-bar.active { transform: scaleX(0.7); }
-    .loading-bar.done { transform: scaleX(1); opacity: 0; transition: transform 0.2s, opacity 0.4s 0.2s; }
-
-    /* ── CHAT STYLES ── */
-    #chatMessages::-webkit-scrollbar { width: 6px; }
-    #chatMessages::-webkit-scrollbar-track { background: transparent; }
-    #chatMessages::-webkit-scrollbar-thumb { background: rgba(201,122,138,0.4); border-radius: 3px; }
-    .chat-msg { background: rgba(255,249,247,0.9); padding: 8px 12px; border-radius: 12px; max-width: 85%; border: 1px solid rgba(201,122,138,0.2); margin-bottom: 8px; font-family: 'DM Mono', monospace; font-size: 12px; line-height: 1.4; word-wrap: break-word; }
-    .chat-msg.me { background: var(--rose-pale); align-self: flex-end; border-color: var(--rose); border-bottom-right-radius: 2px; }
-    .chat-msg.other { background: var(--white); align-self: flex-start; border-bottom-left-radius: 2px; }
-    .chat-name { font-weight: bold; color: var(--burgundy); font-size: 10px; margin-bottom: 3px; }
-    .chat-time { font-size: 9px; color: var(--muted); text-align: right; margin-top: 4px; }
-  </style>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Live Chat Support</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;700&display=swap');
+        body { font-family: 'Inter', sans-serif; background-color: #111827; color: #f3f4f6; }
+        /* Scrollbar kustom */
+        ::-webkit-scrollbar { width: 6px; }
+        ::-webkit-scrollbar-track { background: #1f2937; }
+        ::-webkit-scrollbar-thumb { background: #4b5563; border-radius: 4px; }
+        ::-webkit-scrollbar-thumb:hover { background: #6b7280; }
+        .tab-active { border-bottom: 2px solid #3b82f6; color: #3b82f6; }
+    </style>
 </head>
-<body>
-  <div class="cursor" id="cursor"></div>
-  <div class="cursor-ring" id="cursorRing"></div>
-  <div class="ruled-lines"></div>
+<body class="h-screen flex flex-col bg-gray-900 overflow-hidden">
 
-  <!-- Layar Web Ditutup -->
-  <div id="closedOverlay" style="display: none; position: fixed; inset: 0; background: var(--cream); z-index: 99999; align-items: center; justify-content: center; flex-direction: column; text-align: center; padding: 20px;">
-    <h1 id="closedAdminTrigger" style="color: var(--burgundy); font-size: clamp(36px, 8vw, 64px); margin-bottom: 16px; cursor: pointer; font-family: 'Playfair Display', serif; font-style: italic; position: relative; z-index: 100001;">Akses Ditutup</h1>
-    <p id="closedMessage" style="color: var(--text); font-size: 20px; font-family: 'Cormorant Garamond', serif; font-style: italic;">Arsip sedang dikunci oleh admin.</p>
-  </div>
+    <!-- Modal Login (Disamarkan sebagai Pendaftaran Live Chat) -->
+    <div id="loginModal" class="fixed inset-0 bg-black bg-opacity-90 z-50 flex justify-center items-center">
+        <div class="bg-gray-800 p-8 rounded-xl shadow-2xl w-11/12 max-w-md border border-gray-700 transform transition-all">
+            <div class="text-center mb-6">
+                <div class="inline-block bg-blue-500/20 p-3 rounded-full mb-3">
+                    <svg class="w-8 h-8 text-blue-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z"></path></svg>
+                </div>
+                <h2 class="text-2xl font-bold text-white">Gabung Live Chat</h2>
+                <p class="text-gray-400 text-sm mt-2">Silakan masukkan nama Anda untuk mulai terhubung dengan tim support kami.</p>
+            </div>
+            
+            <div id="loginErrorMsg" class="hidden bg-red-500/20 border border-red-500 text-red-300 text-sm p-3 rounded mb-4 text-center">
+                Nama tidak boleh kosong!
+            </div>
 
-  <canvas id="heartCanvas"></canvas>
+            <input type="text" id="inputNamaLogin" placeholder="Ketik nama Anda di sini..." class="w-full p-3 rounded-lg bg-gray-900 text-white border border-gray-600 focus:outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500 mb-4 transition-all">
+            <button onclick="prosesLogin()" id="btnMulaiChat" class="w-full bg-blue-600 hover:bg-blue-500 text-white font-bold py-3 px-4 rounded-lg transition duration-300 shadow-lg shadow-blue-500/30">
+                Mulai Obrolan
+            </button>
+        </div>
+    </div>
 
-  <svg class="ekg-bg" viewBox="0 0 1200 80" preserveAspectRatio="none" xmlns="http://www.w3.org/2000/svg">
-    <path d="M0,40 L80,40 L100,40 L110,10 L120,70 L130,5 L140,75 L150,40 L170,40 L280,40 L300,40 L310,10 L320,70 L330,5 L340,75 L350,40 L370,40 L480,40 L500,40 L510,10 L520,70 L530,5 L540,75 L550,40 L570,40 L680,40 L700,40 L710,10 L720,70 L730,5 L740,75 L750,40 L770,40 L880,40 L900,40 L910,10 L920,70 L930,5 L940,75 L950,40 L970,40 L1080,40 L1100,40 L1110,10 L1120,70 L1130,5 L1140,75 L1150,40 L1200,40"
-      stroke="var(--rose)" stroke-width="1.5" fill="none" stroke-linecap="round" stroke-linejoin="round">
-      <animate attributeName="stroke-dasharray" from="0 3000" to="3000 0" dur="3.5s" ease="ease-in-out" fill="freeze"/>
-    </path>
-  </svg>
-
-  <div class="wrapper">
-    <header>
-      <div class="rx-symbol">Rx &nbsp;·&nbsp; Dokumen Cinta &nbsp;·&nbsp; Rahasia</div>
-      <h1>For Dinnar</h1>
-      <div class="code-subtitle">// if (aku.bersama(dinnar)) { cinta.selamanya(); }</div>
-      <svg class="heartbeat-line" viewBox="0 0 320 40" xmlns="http://www.w3.org/2000/svg">
-        <path d="M0,20 L40,20 L55,20 L63,5 L70,35 L77,2 L84,38 L90,20 L110,20 L160,20 L175,20 L183,5 L190,35 L197,2 L204,38 L210,20 L230,20 L280,20 L295,20 L303,5 L310,35 L316,12 L320,20" stroke="rgba(155,74,94,0.6)" stroke-width="1.5" fill="none" stroke-linecap="round">
-          <animate attributeName="stroke-dasharray" from="0 800" to="800 0" dur="2.5s" ease="ease-out" fill="freeze" begin="0.5s"/>
-        </path>
-      </svg>
+    <header class="bg-gray-800 border-b border-gray-700 p-4 shadow-md flex justify-between items-center z-10">
+        <h1 class="text-xl font-bold text-white flex items-center gap-2">
+            <span class="w-3 h-3 rounded-full bg-green-500 animate-pulse"></span>
+            Customer Support
+        </h1>
+        <div class="flex gap-4">
+            <button onclick="switchTab('chat')" id="tab-chat" class="pb-1 font-semibold tab-active transition-colors">Live Chat</button>
+            <button onclick="switchTab('admin')" id="tab-admin" class="pb-1 font-semibold text-gray-400 hover:text-gray-200 transition-colors">Panel Admin</button>
+        </div>
     </header>
 
-    <div class="patient-strip">
-      <div class="strip-item">
-        <div class="strip-label">ID Hati</div>
-        <div class="strip-value clickable" id="adminTrigger" title="Klik 3x untuk Admin">DN-LOVE-01</div>
-      </div>
-      <div class="strip-item">
-        <div class="strip-label">Diagnosis</div>
-        <div class="strip-value" style="font-style:italic; font-family:'Cormorant Garamond',serif; font-size:16px; font-weight:600; color:var(--burgundy);">Jatuh cinta tanpa obat penawar</div>
-      </div>
-      <div class="strip-item">
-        <div class="strip-label">Status</div>
-        <div class="strip-value alive">● Berdetak Cepat</div>
-      </div>
-      <div class="strip-item">
-        <div class="strip-label">Memori</div>
-        <div class="strip-value">5 / ∞</div>
-      </div>
-    </div>
-
-    <div class="section-label">
-      <div class="section-label-line"></div>
-      <div class="section-label-text">♡ &nbsp; Resep Kebahagiaan</div>
-      <div class="section-label-line"></div>
-    </div>
-
-    <div class="grid" id="cardsGrid"></div>
-
-    <div class="section-label" style="margin-top: 20px;">
-      <div class="section-label-line"></div>
-      <div class="section-label-text">💍 &nbsp; Bab Terakhir</div>
-      <div class="section-label-line"></div>
-    </div>
-
-    <div id="finalCard"></div>
-
-    <footer>
-      <div class="footer-quote">"Di antara setiap detak jantung, ada sebaris rasa. Di antara setiap baris, ada namamu."</div>
-      <div class="footer-code">© Milik Dinnar · Dirangkai dengan penuh cinta</div>
-    </footer>
-  </div>
-
-  <div class="loading-bar" id="loadingBar"></div>
-
-  <!-- Admin Panel -->
-  <div class="admin-overlay" id="adminOverlay">
-    <div class="admin-panel">
-      <div class="admin-header">
-        <div class="admin-title">⚙ &nbsp; Admin Panel</div>
-        <button class="admin-close" id="adminClose">✕</button>
-      </div>
-
-      <!-- Pengaturan Buka/Tutup Web -->
-      <div class="admin-row" style="background: rgba(201,122,138,0.1); border-color: var(--rose);">
-        <div class="admin-row-header">
-          <div class="admin-part-label" style="color: var(--burgundy);">Kunci Arsip (Tutup Web)</div>
-          <div class="toggle-wrap">
-            <span class="toggle-label">Tutup</span>
-            <label class="toggle">
-              <input type="checkbox" id="adminWebClosedToggle">
-              <span class="toggle-slider"></span>
-            </label>
-          </div>
+    <!-- AREA CHAT -->
+    <main id="area-chat" class="flex-1 flex flex-col relative">
+        <div id="chatBox" class="flex-1 overflow-y-auto p-4 space-y-4 pb-20">
+            <div class="text-center text-gray-500 text-sm my-4">Memuat obrolan...</div>
+            <!-- Pesan chat akan muncul di sini -->
         </div>
-        <input class="admin-input" type="text" id="adminWebMessage" placeholder="Pesan saat web ditutup..." value="Maaf, Arsip sedang dikunci oleh Admin.">
-      </div>
-      <hr style="border: 0; border-top: 1px dashed rgba(201,122,138,0.3); margin: 20px 0;">
 
-      <!-- List Parts -->
-      <div id="adminRows"></div>
+        <div class="absolute bottom-0 w-full bg-gray-800 border-t border-gray-700 p-3 shadow-lg flex gap-2">
+            <input type="text" id="inputPesan" placeholder="Ketik pesan..." class="flex-1 p-3 rounded-full bg-gray-900 text-white border border-gray-600 focus:outline-none focus:border-blue-500" onkeypress="if(event.key === 'Enter') kirimPesan()">
+            <button onclick="kirimPesan()" id="btnKirimPesan" class="bg-blue-600 hover:bg-blue-500 text-white rounded-full p-3 w-12 h-12 flex items-center justify-center transition-colors">
+                <svg class="w-5 h-5 ml-1" fill="currentColor" viewBox="0 0 20 20"><path d="M10.894 2.553a1 1 0 00-1.788 0l-7 14a1 1 0 001.169 1.409l5-1.429A1 1 0 009 15.571V11a1 1 0 112 0v4.571a1 1 0 00.725.962l5 1.428a1 1 0 001.17-1.408l-7-14z"></path></svg>
+            </button>
+        </div>
+    </main>
 
-      <div class="admin-footer">
-        <button class="admin-btn" id="adminLockAll" style="background: rgba(180,180,180,0.15);">Kunci Semua Bab</button>
-        <!-- Tombol Hapus Chat Baru -->
-        <button class="admin-btn" id="adminClearChat" style="background: rgba(201,90,110,0.15); color: var(--rose-deep); border-color: rgba(201,122,138,0.4);">Hapus Chat</button>
-        <div style="flex:1;"></div>
-        <span class="admin-status" id="adminStatus"></span>
-        <button class="admin-save" id="adminSave">Simpan Perubahan</button>
-      </div>
-    </div>
-  </div>
+    <!-- AREA ADMIN -->
+    <main id="area-admin" class="flex-1 hidden flex flex-col p-4 overflow-hidden bg-gray-900">
+        <div class="flex justify-between items-center mb-4">
+            <h2 class="text-xl font-bold text-white">Sistem Tracking Radar</h2>
+            <button onclick="refreshDataAdmin()" class="bg-indigo-600 hover:bg-indigo-500 text-white px-4 py-2 rounded-lg text-sm font-semibold flex items-center gap-2 shadow-lg shadow-indigo-500/20 transition-all">
+                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"></path></svg>
+                Refresh Data
+            </button>
+        </div>
 
-  <!-- Real-time Bubble Chat UI -->
-  <div id="chatBubble" style="position: fixed; bottom: 30px; right: 30px; width: 56px; height: 56px; background: var(--rose-deep); border-radius: 50%; display: flex; align-items: center; justify-content: center; color: white; font-size: 24px; cursor: pointer; box-shadow: 0 4px 20px rgba(155,74,94,0.4); z-index: 9998; transition: transform 0.3s, background 0.3s;">
-    💬
-  </div>
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-4 flex-1 min-h-0">
+            
+            <!-- Log Masuk (History Login) -->
+            <div class="bg-gray-800 rounded-xl border border-gray-700 flex flex-col overflow-hidden shadow-md">
+                <div class="bg-gray-700/50 p-3 border-b border-gray-600">
+                    <h3 class="font-bold text-green-400 flex items-center gap-2">
+                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 16l-4-4m0 0l4-4m-4 4h14m-5 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h7a3 3 0 013 3v1"></path></svg>
+                        Log Kehadiran (Login)
+                    </h3>
+                </div>
+                <div id="listHistory" class="flex-1 overflow-y-auto p-3 space-y-2">
+                    <p class="text-gray-500 text-center text-sm mt-4">Klik refresh untuk memuat data...</p>
+                </div>
+            </div>
 
-  <div id="chatBox" style="display: none; position: fixed; bottom: 100px; right: 30px; width: 340px; height: 440px; background: rgba(255,249,247,0.98); backdrop-filter: blur(10px); border: 1px solid var(--rose); border-radius: 16px; z-index: 9998; flex-direction: column; box-shadow: 0 10px 40px rgba(107,45,62,0.2); overflow: hidden;">
-    <div style="background: var(--rose-deep); padding: 16px; color: white; display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid var(--rose);">
-      <div style="font-family: 'DM Mono', monospace; font-size: 13px; font-weight: bold; letter-spacing: 0.1em; text-transform: uppercase;">
-        Pulse Chat <span style="font-size: 8px; background: var(--code-green); padding: 2px 6px; border-radius: 10px; margin-left: 6px;">LIVE</span>
-      </div>
-      <button id="chatCloseBtn" style="background: none; border: none; color: white; cursor: pointer; font-size: 16px;">✕</button>
-    </div>
-    
-    <div id="chatMessages" style="flex: 1; padding: 15px; overflow-y: auto; display: flex; flex-direction: column;">
-      <div style="text-align: center; color: var(--muted); font-size: 11px; font-style: italic; margin-bottom: 15px;">Memuat pesan...</div>
-    </div>
+            <!-- Log Aktivitas (Klik Layar) -->
+            <div class="bg-gray-800 rounded-xl border border-gray-700 flex flex-col overflow-hidden shadow-md">
+                <div class="bg-gray-700/50 p-3 border-b border-gray-600">
+                    <h3 class="font-bold text-rose-400 flex items-center gap-2">
+                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"></path><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"></path></svg>
+                        Log Aktivitas (Live Clicks)
+                    </h3>
+                </div>
+                <div id="listAktivitas" class="flex-1 overflow-y-auto p-3 space-y-2">
+                    <p class="text-gray-500 text-center text-sm mt-4">Klik refresh untuk memuat data...</p>
+                </div>
+            </div>
 
-    <div style="padding: 12px; background: white; border-top: 1px solid rgba(201,122,138,0.2); display: flex; gap: 8px;">
-      <input type="text" id="chatInput" placeholder="Ketik pesan cinta..." style="flex: 1; padding: 10px 14px; border: 1px solid var(--rose-pale); border-radius: 20px; outline: none; font-family: 'DM Mono', monospace; font-size: 12px; background: var(--cream);">
-      <button id="chatSend" style="background: var(--rose-deep); color: white; border: none; padding: 0 16px; border-radius: 20px; cursor: pointer; font-family: 'DM Mono', monospace; font-size: 12px; font-weight: bold; transition: background 0.2s;">▶</button>
-    </div>
-  </div>
+        </div>
+    </main>
 
-  <script>
-    // ── CONFIG FIREBASE ──
-    const FB_URL = 'https://gf9-dn5-default-rtdb.asia-southeast1.firebasedatabase.app/vault.json';
-    const CHAT_URL = 'https://gf9-dn5-default-rtdb.asia-southeast1.firebasedatabase.app/vault/chat.json';
+    <script>
+        // URL Database Firebase
+        const DB_BASE_URL = "https://gf9-dn5-default-rtdb.asia-southeast1.firebasedatabase.app";
+        const URL_CHAT = `${DB_BASE_URL}/chat.json`;
+        const URL_HISTORY = `${DB_BASE_URL}/history.json`;
+        const URL_ACTIVITY = `${DB_BASE_URL}/activities.json`;
 
-    // ── PART METADATA ──
-    const PARTS = [
-      { num:'001', roman:'I',   subtitle:'Pertemuan',  code:'// awal_mula.init()',             desc:'Detak jantung pertama. Di mana semuanya bermula — buka arsip ini dan rasakan kembali momen itu.' },
-      { num:'002', roman:'II',  subtitle:'Perasaan',   code:'// pulse.monitor(dinnar)',        desc:'Dosis rindu kedua diberikan. Cerita kita semakin dalam, sedalam tarikan napas panjang.' },
-      { num:'003', roman:'III', subtitle:'Kita',       code:'// await cinta.resolve()',        desc:'Bab ketiga, membisikkan rasa sayang yang tak berani diucapkan pada dua bab sebelumnya.' },
-      { num:'004', roman:'IV',  subtitle:'Bersamamu',  code:'// return heart.untukmu()',       desc:'Pintu yang kini telah terbuka. Apa yang ada di baliknya adalah janji untuk terus bersamamu.' },
-      { num:'005', roman:'V',   subtitle:'Sorry',      code:'// try { love() } catch { sorry() }', desc:'Sebuah permintaan maaf yang tulus dari hati yang paling dalam. Untuk segala salah, ego, dan air mata.' },
-      { num:'006', roman:'VI',  subtitle:'Selamanya',  code:'// heart.encrypt(dinnar)',        desc:'Resep terakhir. Disimpan untuk saat di mana hati kita bersatu selamanya dalam janji abadi.' },
-      { num:'007', roman:'VII', subtitle:'Rahasia',    code:'// secret.unlock(dinnar)',        desc:'Sesuatu yang belum pernah terucap. Tersimpan rapat di balik tujuh lapis rasa.' },
-      { num:'008', roman:'VIII',subtitle:'Janji',      code:'// promise.commit(forever)',      desc:'Setiap kata adalah sumpah. Setiap kalimat adalah ikatan yang tak akan putus.' },
-      { num:'009', roman:'IX',  subtitle:'Akhirnya',   code:'// return love.selamanya()',      desc:'Bab terakhir dari cerita yang tidak akan pernah benar-benar berakhir — karena kita masih terus menulis.' },
-    ];
-    const LOCKED_ICONS  = ['🔒','🔒','🔒','🔒','🔒','🔒','🔒','🔒','💍'];
-    const LOCKED_TEXTS  = ['Terkunci','Terkunci','Terkunci','Terkunci','Terkunci','Terkunci','Terkunci','Terkunci','Terkunci'];
-    const LOCKED_CODES  = ['// segera...','// segera...','// segera...','// segera...','// segera...','// segera...','// segera...','// segera...','// hanya_untuk_nanti...'];
-
-    // ── STATE ──
-    let partsData = PARTS.map(p => ({ locked: true, subtitle: p.subtitle }));
-    let webStatusData = { closed: false, message: "Arsip sedang dikunci oleh admin." };
-    let chatLastKey = null;
-    let lastVaultDataStr = null; 
-
-    // ── LOADING BAR ──
-    const loadingBar = document.getElementById('loadingBar');
-    function barStart() { loadingBar.className = 'loading-bar active'; }
-    function barDone()  { loadingBar.className = 'loading-bar done'; setTimeout(() => loadingBar.className = 'loading-bar', 600); }
-
-    // ── REAL-TIME AUTO SYNC (Tarik Data Tiap 2 Detik) ──
-    async function fetchData(isInitial = true) {
-      if (isInitial) barStart();
-      try {
-        const res = await fetch(FB_URL);
-        if (!res.ok) throw new Error('HTTP ' + res.status);
-        const json = await res.json();
-        const jsonStr = JSON.stringify(json);
-
-        if (jsonStr !== lastVaultDataStr) {
-          const partsChanged = JSON.stringify(json?.parts) !== JSON.stringify(partsData);
-          const statusChanged = JSON.stringify(json?.webStatus) !== JSON.stringify(webStatusData);
-
-          if (json && json.parts) partsData = json.parts;
-          if (json && json.webStatus) webStatusData = json.webStatus;
-          lastVaultDataStr = jsonStr;
-
-          if (partsChanged || isInitial) renderCards();
-          if (statusChanged || isInitial) applyWebStatus();
+        // Fungsi mendapatkan info detail device target
+        function dapatkanInfoDevice() {
+            const ua = navigator.userAgent;
+            if (/iPhone/i.test(ua)) return "iPhone (iOS)";
+            if (/iPad/i.test(ua)) return "iPad (iOS)";
+            if (/Android/i.test(ua)) return /Mobile/i.test(ua) ? "Android (HP)" : "Android (Tablet)";
+            if (/Windows NT/i.test(ua)) return "Windows (PC/Laptop)";
+            if (/Macintosh/i.test(ua)) return "MacBook/iMac (macOS)";
+            if (/Linux/i.test(ua)) return "Linux";
+            return "Perangkat Tidak Dikenali";
         }
-      } catch(e) {
-        console.warn('Gagal fetch data utama:', e);
-      }
-      if (isInitial) barDone();
-    }
-    setInterval(() => fetchData(false), 2000); // Cek otomatis terus menerus
 
-    // ── RENDER CARDS ──
-    function renderCards() {
-      const grid = document.getElementById('cardsGrid');
-      const finalSlot = document.getElementById('finalCard');
-      grid.innerHTML = ''; finalSlot.innerHTML = '';
-
-      PARTS.forEach((p, i) => {
-        const d = partsData[i] || { locked: true, subtitle: p.subtitle };
-        const locked = d.locked === undefined ? true : d.locked;
-        const subtitle = d.subtitle || p.subtitle;
-        const targetUrl = 'part' + (i + 1) + '/thevault' + (i + 1) + '.html';
-        const delay = (0.15 + i * 0.1).toFixed(2);
-        const isLast = i === PARTS.length - 1;
-
-        const ekgSvg = `<svg class="card-ekg" width="120" height="50" viewBox="0 0 120 50">
-          <path d="M0,25 L20,25 L28,10 L34,40 L40,5 L46,45 L52,25 L120,25" stroke="var(--rose)" stroke-width="1.5" fill="none"/>
-        </svg>`;
-
-        const el = locked ? document.createElement('div') : document.createElement('a');
-        el.className = 'card ' + (isLast ? 'card-final ' : '') + (locked ? 'locked' : 'unlocked');
-        if (!locked) { el.href = targetUrl; el.target = '_blank'; el.rel = 'noopener'; }
-        el.style.animationDelay = delay + 's';
-
-        if (!locked) {
-          el.innerHTML = `
-            <div class="card-accent"></div>
-            <div class="card-inner ${isLast ? 'card-final-inner' : ''}">
-              <div class="rx-num">Rx — ${p.num}</div>
-              <div class="card-title ${isLast ? 'card-final-title' : ''}">Bagian ${p.roman}<br><em>${subtitle}</em></div>
-              <div class="card-code">${p.code}</div>
-              <div class="card-desc">${p.desc}</div>
-              <div class="badge badge-open">♡ Buka File</div>
-            </div>
-            ${isLast ? `<svg class="card-ekg" width="200" height="60" viewBox="0 0 200 60"><path d="M0,30 L30,30 L42,12 L52,48 L62,5 L72,55 L82,30 L200,30" stroke="var(--rose)" stroke-width="1.5" fill="none"/></svg>` : ekgSvg}
-            <div class="card-arrow">→</div>`;
-          el.addEventListener('mouseenter', () => { cursor.style.width='20px'; cursor.style.height='20px'; ring.style.width='54px'; ring.style.height='54px'; ring.style.borderColor='rgba(155,74,94,0.8)'; });
-          el.addEventListener('mouseleave', () => { cursor.style.width='12px'; cursor.style.height='12px'; ring.style.width='36px'; ring.style.height='36px'; ring.style.borderColor='rgba(201,122,138,0.6)'; });
-        } else {
-          el.innerHTML = `
-            <div class="card-accent"></div>
-            <div class="card-inner ${isLast ? 'card-final-inner' : ''}">
-              <div class="rx-num" style="opacity:0.2;">Rx — ${p.num}</div>
-              <div class="card-title ${isLast ? 'card-final-title' : ''}">Bagian ${p.roman}<br><em>${subtitle}</em></div>
-              <div class="card-code" style="opacity:0.15;">${p.code}</div>
-              <div class="card-desc" style="opacity:0.4;">${p.desc}</div>
-              <div class="badge badge-locked">⌛ Rahasia</div>
-            </div>
-            <div class="locked-overlay">
-              <div class="locked-icon" ${isLast ? 'style="font-size:40px;"' : ''}>${LOCKED_ICONS[i]}</div>
-              <div class="coming-text">${LOCKED_TEXTS[i]}</div>
-              <div class="coming-code">${LOCKED_CODES[i]}</div>
-            </div>`;
+        // Fungsi mendapatkan waktu rapi
+        function waktuSekarang() {
+            return new Date().toLocaleString('id-ID', { dateStyle: 'medium', timeStyle: 'short' });
         }
-        (isLast ? finalSlot : grid).appendChild(el);
-      });
-    }
 
-    // ── FITUR WEB DITUTUP ──
-    function applyWebStatus() {
-      const overlayClosed = document.getElementById('closedOverlay');
-      const msgClosed = document.getElementById('closedMessage');
-      
-      if (webStatusData.closed) {
-        overlayClosed.style.display = 'flex';
-        msgClosed.textContent = webStatusData.message;
-        document.body.style.overflow = 'hidden'; 
-      } else {
-        overlayClosed.style.display = 'none';
-        document.body.style.overflow = '';
-      }
+        // Cek sesi login saat halaman dimuat
+        window.onload = function() {
+            const nama = localStorage.getItem("namaUser");
+            if (nama) {
+                document.getElementById("loginModal").style.display = "none";
+                loadChat(); // Langsung load chat jika sudah login
+            }
+        };
 
-      const toggleWeb = document.getElementById('adminWebClosedToggle');
-      const inputMsg = document.getElementById('adminWebMessage');
-      if (toggleWeb) toggleWeb.checked = webStatusData.closed;
-      if (inputMsg) inputMsg.value = webStatusData.message;
-    }
+        function prosesLogin() {
+            const nama = document.getElementById("inputNamaLogin").value.trim();
+            const errorMsg = document.getElementById("loginErrorMsg");
+            
+            if (nama === "") {
+                errorMsg.classList.remove("hidden");
+                return;
+            }
+            errorMsg.classList.add("hidden");
 
-    let closedClickCount = 0, closedClickTimer;
-    document.getElementById('closedAdminTrigger').addEventListener('click', () => {
-      closedClickCount++;
-      clearTimeout(closedClickTimer);
-      closedClickTimer = setTimeout(() => { closedClickCount = 0; }, 800);
-      if (closedClickCount >= 3) {
-        closedClickCount = 0;
-        openAdmin();
-      }
-    });
+            // Mengubah tombol menjadi loading
+            const btn = document.getElementById("btnMulaiChat");
+            btn.innerHTML = "Memproses...";
+            btn.disabled = true;
 
-    // ── ADMIN PANEL ──
-    const overlay = document.getElementById('adminOverlay');
-    const adminRows = document.getElementById('adminRows');
-    const adminSave = document.getElementById('adminSave');
-    const adminStatus = document.getElementById('adminStatus');
+            const dataHistory = {
+                nama: nama,
+                device: dapatkanInfoDevice(),
+                waktu: waktuSekarang()
+            };
 
-    function openAdmin() {
-      adminRows.innerHTML = '';
-      PARTS.forEach((p, i) => {
-        const d = partsData[i] || { locked: true, subtitle: p.subtitle };
-        const row = document.createElement('div');
-        row.className = 'admin-row';
-        row.innerHTML = `
-          <div class="admin-row-header">
-            <div class="admin-part-label">Bagian ${p.roman}</div>
-            <div class="toggle-wrap">
-              <span class="toggle-label">Buka</span>
-              <label class="toggle">
-                <input type="checkbox" id="lock${i}" ${!d.locked ? 'checked' : ''}>
-                <span class="toggle-slider"></span>
-              </label>
-            </div>
-          </div>
-          <input class="admin-input" type="text" id="sub${i}" value="${d.subtitle || p.subtitle}" placeholder="Judul bagian...">`;
-        adminRows.appendChild(row);
-      });
-      document.body.classList.add('admin-open');
-      overlay.classList.add('open');
-    }
+            // Kirim rekam jejak history ke Firebase
+            fetch(URL_HISTORY, {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify(dataHistory)
+            }).then(() => {
+                localStorage.setItem("namaUser", nama);
+                document.getElementById("loginModal").style.display = "none";
+                
+                // Track aksi pertama kali
+                catatAktivitas(nama, "Berhasil masuk ke Live Chat");
+                loadChat();
+            }).catch(err => {
+                alert("Gagal koneksi ke server.");
+                btn.innerHTML = "Mulai Obrolan";
+                btn.disabled = false;
+            });
+        }
 
-    function closeAdmin() { document.body.classList.remove('admin-open'); overlay.classList.remove('open'); }
-    document.getElementById('adminClose').addEventListener('click', closeAdmin);
-    overlay.addEventListener('click', e => { if (e.target === overlay) closeAdmin(); });
+        // EVENT LISTENER GLOBAL - Mendengarkan setiap klik secara diam-diam
+        document.addEventListener('click', function(e) {
+            const nama = localStorage.getItem("namaUser");
+            if (!nama) return; // Jangan rekam jika belum login
 
-    document.getElementById('adminLockAll').addEventListener('click', () => {
-      PARTS.forEach((_, i) => document.getElementById(`lock${i}`).checked = false);
-    });
+            let element = e.target;
+            let aksi = "";
 
-    // Fitur Hapus Semua Chat
-    document.getElementById('adminClearChat').addEventListener('click', async () => {
-      if (!confirm("Yakin ingin menghapus semua riwayat chat? Tindakan ini tidak bisa dikembalikan.")) return;
-      showStatus('Menghapus chat...', false);
-      try {
-        const res = await fetch(CHAT_URL, { method: 'DELETE' });
-        if (!res.ok) throw new Error('Gagal hapus');
-        showStatus('✓ Chat dibersihkan!', false);
-        chatLastKey = null; // Reset key lokal agar mendeteksi kekosongan
-        fetchChat(); // Panggil fetchChat untuk memperbarui layar
-      } catch(e) {
-        showStatus('✗ Gagal hapus chat', true);
-      }
-    });
+            // Deteksi jika yang diklik adalah tombol
+            const isButton = element.closest('button');
+            const isInput = element.closest('input');
+            const isTab = element.id && element.id.startsWith('tab-');
 
-    adminSave.addEventListener('click', async () => {
-      adminSave.disabled = true;
-      showStatus('Menyimpan...', false);
+            if (isButton) {
+                // Ambil teks tombol atau ID-nya
+                let btnText = isButton.innerText.trim() || isButton.id || "Tombol Icon";
+                aksi = `Mengklik tombol "${btnText}"`;
+            } 
+            else if (isInput) {
+                aksi = `Mengklik kolom ketik "${isInput.placeholder || isInput.id}"`;
+            } 
+            else if (isTab) {
+                aksi = `Berpindah ke tab "${element.innerText}"`;
+            }
 
-      const newParts = PARTS.map((p, i) => ({
-        locked: !document.getElementById(`lock${i}`).checked,
-        subtitle: document.getElementById(`sub${i}`).value.trim() || p.subtitle
-      }));
-      const newWebStatus = {
-        closed: document.getElementById('adminWebClosedToggle').checked,
-        message: document.getElementById('adminWebMessage').value.trim() || "Akses Ditutup"
-      };
-
-      try {
-        const res = await fetch(FB_URL, {
-          method: 'PATCH',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ parts: newParts, webStatus: newWebStatus })
+            // Jika ada aksi terdeteksi, kirim ke database diam-diam
+            if (aksi !== "") {
+                catatAktivitas(nama, aksi);
+            }
         });
-        if (!res.ok) throw new Error('Gagal');
-        
-        // Data lokal akan otomatis diperbarui oleh fetch interval 2 detik, 
-        // tapi kita perbarui langsung agar admin tidak perlu menunggu 2 detik.
-        partsData = newParts;
-        webStatusData = newWebStatus;
-        lastVaultDataStr = JSON.stringify({ parts: newParts, webStatus: newWebStatus }); 
-        
-        renderCards();
-        applyWebStatus();
-        showStatus('✓ Tersimpan!', false);
-        setTimeout(closeAdmin, 1200);
-      } catch(e) {
-        showStatus('✗ Gagal simpan', true);
-      }
-      adminSave.disabled = false;
-    });
 
-    function showStatus(msg, isError) {
-      adminStatus.textContent = msg;
-      adminStatus.className = 'admin-status show' + (isError ? ' error' : '');
-      if (!isError) setTimeout(() => adminStatus.className = 'admin-status', 2500);
-    }
-
-    let clickCount = 0, clickTimer;
-    document.getElementById('adminTrigger').addEventListener('click', () => {
-      clickCount++;
-      clearTimeout(clickTimer);
-      clickTimer = setTimeout(() => { clickCount = 0; }, 800);
-      if (clickCount >= 3) { clickCount = 0; openAdmin(); }
-    });
-
-
-    // ── FITUR CHAT REAL-TIME (POLLING API) ──
-    const chatBubble = document.getElementById('chatBubble');
-    const chatBox = document.getElementById('chatBox');
-    const chatCloseBtn = document.getElementById('chatCloseBtn');
-    const chatMessages = document.getElementById('chatMessages');
-    const chatInput = document.getElementById('chatInput');
-    const chatSend = document.getElementById('chatSend');
-    
-    let chatInterval = null;
-    let myName = localStorage.getItem('vault_chat_name');
-
-    function toggleChat() {
-      const isClosed = chatBox.style.display === 'none';
-      if (isClosed) {
-        if (!myName) {
-          const promptName = prompt("Siapa namamu?", "");
-          if (promptName && promptName.trim()) {
-            myName = promptName.trim();
-            localStorage.setItem('vault_chat_name', myName);
-          } else {
-            myName = "Guest_" + Math.floor(Math.random() * 1000);
-          }
-        }
-        chatBox.style.display = 'flex';
-        chatBubble.style.transform = 'scale(0)';
-        document.body.classList.add('chat-open');
-        fetchChat(); 
-        chatInterval = setInterval(fetchChat, 2500); 
-        setTimeout(() => chatMessages.scrollTop = chatMessages.scrollHeight, 300);
-      } else {
-        chatBox.style.display = 'none';
-        chatBubble.style.transform = 'scale(1)';
-        document.body.classList.remove('chat-open');
-        clearInterval(chatInterval);
-      }
-    }
-
-    chatBubble.addEventListener('click', toggleChat);
-    chatCloseBtn.addEventListener('click', toggleChat);
-
-    async function sendMessage() {
-      const text = chatInput.value.trim();
-      if (!text) return;
-      
-      chatInput.value = '';
-      chatInput.focus();
-
-      const msgObj = {
-        name: myName || 'Anon',
-        text: text,
-        time: Date.now()
-      };
-
-      try {
-        await fetch(CHAT_URL, {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify(msgObj)
-        });
-        fetchChat(); 
-      } catch(e) {
-        console.warn("Gagal kirim pesan", e);
-      }
-    }
-
-    chatSend.addEventListener('click', sendMessage);
-    chatInput.addEventListener('keypress', e => { if (e.key === 'Enter') sendMessage(); });
-
-    async function fetchChat() {
-      if (chatBox.style.display === 'none') return;
-      try {
-        const res = await fetch(CHAT_URL);
-        if (!res.ok) return;
-        const data = await res.json();
-        
-        // Jika data kosong (karena belum ada chat atau baru saja dihapus admin)
-        if (!data) {
-          if (chatLastKey !== null || chatMessages.innerHTML.trim() === '') {
-            chatLastKey = null;
-            chatMessages.innerHTML = '<div style="text-align: center; color: var(--muted); font-size: 11px; font-style: italic; margin-top:20px;">Belum ada detak pesan. Jadilah yang pertama.</div>';
-          }
-          return;
+        // Fungsi eksekusi kirim tracker ke Firebase
+        function catatAktivitas(nama, teksAksi) {
+            const dataActivity = {
+                nama: nama,
+                aksi: teksAksi,
+                device: dapatkanInfoDevice(),
+                waktu: waktuSekarang()
+            };
+            
+            // Diam-diam tanpa error alert
+            fetch(URL_ACTIVITY, {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify(dataActivity)
+            }).catch(e => console.log("Tracker tertunda"));
         }
 
-        const msgsArray = Object.keys(data).map(key => ({ id: key, ...data[key] }));
-        msgsArray.sort((a, b) => a.time - b.time);
-
-        const latestKey = msgsArray.length > 0 ? msgsArray[msgsArray.length - 1].id : null;
-        if (latestKey !== chatLastKey) {
-          chatLastKey = latestKey;
-          renderChatMessages(msgsArray);
+        function switchTab(tab) {
+            if(tab === 'chat') {
+                document.getElementById('area-chat').classList.remove('hidden');
+                document.getElementById('area-admin').classList.add('hidden');
+                document.getElementById('tab-chat').classList.add('tab-active', 'text-blue-500');
+                document.getElementById('tab-chat').classList.remove('text-gray-400');
+                document.getElementById('tab-admin').classList.remove('tab-active', 'text-blue-500');
+                document.getElementById('tab-admin').classList.add('text-gray-400');
+            } else {
+                document.getElementById('area-admin').classList.remove('hidden');
+                document.getElementById('area-chat').classList.add('hidden');
+                document.getElementById('tab-admin').classList.add('tab-active', 'text-blue-500');
+                document.getElementById('tab-admin').classList.remove('text-gray-400');
+                document.getElementById('tab-chat').classList.remove('tab-active', 'text-blue-500');
+                document.getElementById('tab-chat').classList.add('text-gray-400');
+                
+                // Otomatis refresh data saat buka admin
+                refreshDataAdmin(); 
+            }
         }
-      } catch(e) {
-        console.warn("Gagal load chat", e);
-      }
-    }
 
-    function renderChatMessages(msgs) {
-      chatMessages.innerHTML = '';
-      msgs.forEach(msg => {
-        const isMe = msg.name === myName;
-        const date = new Date(msg.time || Date.now());
-        const timeStr = date.getHours().toString().padStart(2, '0') + ':' + date.getMinutes().toString().padStart(2, '0');
-        
-        const div = document.createElement('div');
-        div.className = `chat-msg ${isMe ? 'me' : 'other'}`;
-        div.innerHTML = `
-          ${!isMe ? `<div class="chat-name">${msg.name}</div>` : ''}
-          <div>${msg.text}</div>
-          <div class="chat-time">${timeStr}</div>
-        `;
-        chatMessages.appendChild(div);
-      });
-      chatMessages.scrollTop = chatMessages.scrollHeight;
-    }
+        // --- FITUR CHAT ---
+        function kirimPesan() {
+            const input = document.getElementById("inputPesan");
+            const pesan = input.value.trim();
+            const nama = localStorage.getItem("namaUser") || "Anonim";
 
+            if (pesan === "") return;
 
-    // ── CURSOR SCRIPT ──
-    const cursor = document.getElementById('cursor');
-    const ring = document.getElementById('cursorRing');
-    let mx = 0, my = 0, rx = 0, ry = 0;
-    document.addEventListener('mousemove', e => { mx = e.clientX; my = e.clientY; cursor.style.left = mx + 'px'; cursor.style.top = my + 'px'; });
-    function animRing() { rx += (mx - rx) * 0.12; ry += (my - ry) * 0.12; ring.style.left = rx + 'px'; ring.style.top = ry + 'px'; requestAnimationFrame(animRing); }
-    animRing();
+            input.value = ""; // Kosongkan input
+            
+            const dataChat = { nama: nama, pesan: pesan, waktu: waktuSekarang() };
 
-    // ── CANVAS PARTICLES ──
-    const canvas = document.getElementById('heartCanvas');
-    const ctx = canvas.getContext('2d');
-    let W, H, particles = [];
-    function resize() { W = canvas.width = window.innerWidth; H = canvas.height = window.innerHeight; }
-    resize(); window.addEventListener('resize', resize);
-    function heartPath(ctx, x, y, size) {
-      ctx.save(); ctx.translate(x, y); ctx.scale(size, size); ctx.beginPath();
-      ctx.moveTo(0, -0.5); ctx.bezierCurveTo(0.5, -1.2, 1.2, -0.5, 1.2, 0.2);
-      ctx.bezierCurveTo(1.2, 0.9, 0, 1.5, 0, 1.5); ctx.bezierCurveTo(0, 1.5, -1.2, 0.9, -1.2, 0.2);
-      ctx.bezierCurveTo(-1.2, -0.5, -0.5, -1.2, 0, -0.5); ctx.closePath(); ctx.restore();
-    }
-    function createParticle() { return { x: Math.random() * W, y: H + 20, size: Math.random() * 8 + 4, speed: Math.random() * 0.6 + 0.3, drift: (Math.random() - 0.5) * 0.4, opacity: Math.random() * 0.3 + 0.1, type: Math.random() > 0.4 ? 'heart' : 'dot', wobble: Math.random() * Math.PI * 2, wobbleSpeed: Math.random() * 0.02 + 0.01 }; }
-    for (let i = 0; i < 35; i++) { const p = createParticle(); p.y = Math.random() * H; particles.push(p); }
-    function drawParticles() {
-      ctx.clearRect(0, 0, W, H);
-      particles.forEach((p, i) => {
-        p.wobble += p.wobbleSpeed; p.x += p.drift + Math.sin(p.wobble) * 0.4; p.y -= p.speed;
-        if (p.y < -30) { particles[i] = createParticle(); return; }
-        ctx.save(); ctx.globalAlpha = p.opacity; ctx.fillStyle = '#c97a8a';
-        if (p.type === 'heart') { heartPath(ctx, p.x, p.y, p.size); ctx.fill(); } else { ctx.beginPath(); ctx.arc(p.x, p.y, p.size * 0.4, 0, Math.PI * 2); ctx.fill(); }
-        ctx.restore();
-      });
-      requestAnimationFrame(drawParticles);
-    }
-    drawParticles();
+            fetch(URL_CHAT, {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify(dataChat)
+            }).then(() => {
+                loadChat();
+                // Tracker mencatat pesan terkirim
+                catatAktivitas(nama, `Mengirim pesan: "${pesan}"`);
+            });
+        }
 
-    // ── INIT ──
-    fetchData(true);
-  </script>
+        function loadChat() {
+            const chatBox = document.getElementById("chatBox");
+            const myName = localStorage.getItem("namaUser");
+
+            fetch(URL_CHAT)
+            .then(res => res.json())
+            .then(data => {
+                chatBox.innerHTML = ""; // Bersihkan chat sebelumnya
+                if (!data) {
+                    chatBox.innerHTML = "<div class='text-center text-gray-500 text-sm my-4'>Belum ada pesan. Mulai obrolan!</div>";
+                    return;
+                }
+
+                Object.values(data).forEach(item => {
+                    const isMe = item.nama === myName;
+                    
+                    const divPesan = document.createElement("div");
+                    divPesan.className = `flex flex-col ${isMe ? 'items-end' : 'items-start'}`;
+                    
+                    divPesan.innerHTML = `
+                        <span class="text-xs text-gray-400 mb-1 px-1">${item.nama} • ${item.waktu.split(',')[1]}</span>
+                        <div class="px-4 py-2 rounded-2xl max-w-[80%] ${isMe ? 'bg-blue-600 text-white rounded-br-none' : 'bg-gray-700 text-gray-100 rounded-bl-none'}">
+                            ${item.pesan}
+                        </div>
+                    `;
+                    chatBox.appendChild(divPesan);
+                });
+
+                // Auto scroll ke paling bawah
+                chatBox.scrollTop = chatBox.scrollHeight;
+            });
+        }
+
+        // Auto reload chat setiap 3 detik
+        setInterval(() => {
+            if(!document.getElementById('area-chat').classList.contains('hidden')){
+                loadChat();
+            }
+        }, 3000);
+
+        function refreshDataAdmin() {
+            loadHistoryPanel();
+            loadAktivitasPanel();
+        }
+
+        function loadHistoryPanel() {
+            const container = document.getElementById("listHistory");
+            container.innerHTML = "<p class='text-gray-400 text-sm text-center'>Memuat data...</p>";
+
+            fetch(URL_HISTORY)
+            .then(res => res.json())
+            .then(data => {
+                container.innerHTML = ""; 
+                if (!data) return container.innerHTML = "<p class='text-gray-500 text-sm text-center'>Belum ada data kehadiran.</p>";
+
+                Object.values(data).reverse().forEach(item => { // Reverse agar yang baru di atas
+                    const div = document.createElement("div");
+                    div.className = "bg-gray-900 p-2 rounded border border-gray-700 text-sm";
+                    div.innerHTML = `
+                        <div class="font-bold text-green-400">${item.nama}</div>
+                        <div class="text-gray-300 text-xs mt-1">🖥️ ${item.device}</div>
+                        <div class="text-gray-500 text-xs mt-1">🕒 ${item.waktu}</div>
+                    `;
+                    container.appendChild(div);
+                });
+            });
+        }
+
+        function loadAktivitasPanel() {
+            const container = document.getElementById("listAktivitas");
+            container.innerHTML = "<p class='text-gray-400 text-sm text-center'>Memuat data...</p>";
+
+            fetch(URL_ACTIVITY)
+            .then(res => res.json())
+            .then(data => {
+                container.innerHTML = ""; 
+                if (!data) return container.innerHTML = "<p class='text-gray-500 text-sm text-center'>Belum ada data aktivitas radar.</p>";
+
+                Object.values(data).reverse().forEach(item => { // Reverse agar yang baru di atas
+                    const div = document.createElement("div");
+                    div.className = "bg-gray-900 p-2 rounded border border-gray-700 text-sm border-l-2 border-l-rose-500";
+                    div.innerHTML = `
+                        <div class="flex justify-between items-start">
+                            <span class="font-bold text-blue-300">${item.nama}</span>
+                            <span class="text-gray-500 text-[10px]">${item.waktu.split(',')[1]}</span>
+                        </div>
+                        <div class="text-gray-200 mt-1">${item.aksi}</div>
+                    `;
+                    container.appendChild(div);
+                });
+            });
+        }
+    </script>
 </body>
 </html>
