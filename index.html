@@ -5,6 +5,9 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
   <title>The Vault — Arsip Web</title>
   <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;0,600;1,300;1,400&family=DM+Mono:ital,wght@0,300;0,400;1,300&family=Playfair+Display:ital,wght@1,400;1,700&display=swap" rel="stylesheet"/>
+  <!-- Tambahan: Library PeerJS untuk fitur Panggilan Video Asli -->
+  <script src="https://unpkg.com/peerjs@1.5.2/dist/peerjs.min.js"></script>
+  
   <style>
     *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
 
@@ -144,7 +147,6 @@
     .card-arrow { position: absolute; bottom: 22px; right: 22px; font-style: italic; font-family: 'Cormorant Garamond', serif; font-size: 24px; color: var(--rose-deep); opacity: 0; transform: translate(-8px, 8px) rotate(-10deg); transition: opacity 0.4s, transform 0.4s cubic-bezier(0.23,1,0.32,1); }
     .card.unlocked:hover .card-arrow { opacity: 0.9; transform: translate(0, 0) rotate(0deg); }
 
-    /* Akhir Card (Part 9) */
     #finalCard { margin-bottom: 40px; }
     .card-final { width: 100%; min-height: 200px; position: relative; background: rgba(255,249,247,0.92); border: 1px solid rgba(201,122,138,0.35); border-radius: 12px; overflow: hidden; text-decoration: none; color: inherit; display: block; backdrop-filter: blur(8px); transition: border-color 0.4s, transform 0.4s cubic-bezier(0.23,1,0.32,1), box-shadow 0.4s; animation: fadeUp 0.8s ease both; }
     .card-final.unlocked:hover { border-color: rgba(201,122,138,0.8); transform: translateY(-6px); box-shadow: 0 24px 70px rgba(155,74,94,0.18), 0 4px 24px rgba(201,122,138,0.18), 0 0 0 1px rgba(201,122,138,0.35); }
@@ -167,14 +169,12 @@
       .card-final-title { font-size: 36px !important; }
       .card-final-inner { padding: 28px 24px 24px 28px; }
       #chatBox { right: 15px !important; width: calc(100% - 30px) !important; }
-      /* Penyesuaian agar di HP kolom trackernya berurutan ke bawah */
       .tracker-columns { flex-direction: column !important; }
     }
 
     /* ── ADMIN PANEL ── */
     .admin-overlay { display: none; position: fixed; inset: 0; background: rgba(43, 20, 30, 0.72); backdrop-filter: blur(8px); z-index: 100000; align-items: center; justify-content: center; padding: 20px; }
     .admin-overlay.open { display: flex; }
-    /* Diperlebar agar cukup untuk 2 kolom */
     .admin-panel { background: var(--white); border: 1px solid rgba(201,122,138,0.4); border-radius: 12px; padding: 36px 32px 28px; width: 100%; max-width: 680px; max-height: 90vh; overflow-y: auto; box-shadow: 0 40px 80px rgba(107,45,62,0.25), 0 0 0 1px rgba(201,122,138,0.15); animation: fadeDown 0.4s cubic-bezier(0.23,1,0.32,1); }
     .admin-header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 28px; padding-bottom: 16px; border-bottom: 1px solid rgba(201,122,138,0.2); }
     .admin-title { font-family: 'DM Mono', monospace; font-size: 11px; letter-spacing: 0.3em; text-transform: uppercase; color: var(--rose-deep); }
@@ -188,7 +188,7 @@
     .toggle { position: relative; width: 36px; height: 20px; }
     .toggle input { display: none; }
     .toggle-slider { position: absolute; inset: 0; background: rgba(180,180,180,0.3); border-radius: 20px; cursor: pointer; transition: background 0.3s; border: 1px solid rgba(201,122,138,0.2); }
-    .toggle-slider::before { content: ''; position: absolute; width: 14px; height: 14px; left: 3px; top: 2px; background: white; border-radius: 50%; transition: transform 0.3s; box-shadow: 0 1px 4px rgba(0,0,0,0.2); }
+    .toggle-slider::before { content: absolute; width: 14px; height: 14px; left: 3px; top: 2px; background: white; border-radius: 50%; transition: transform 0.3s; box-shadow: 0 1px 4px rgba(0,0,0,0.2); }
     .toggle input:checked + .toggle-slider { background: var(--rose); border-color: var(--rose-deep); }
     .toggle input:checked + .toggle-slider::before { transform: translateX(16px); }
     .admin-input { width: 100%; padding: 9px 12px; margin-top: 8px; border: 1px solid rgba(201,122,138,0.3); border-radius: 6px; background: rgba(255,249,247,0.9); font-family: 'DM Mono', monospace; font-size: 11px; color: var(--text); outline: none; transition: border-color 0.2s, box-shadow 0.2s; }
@@ -234,7 +234,7 @@
     .lc-btn:hover { background: var(--burgundy); }
     .lc-error { font-family: 'DM Mono', monospace; font-size: 10px; color: #c97a5a; margin-top: -8px; margin-bottom: 12px; display: none; }
 
-    /* ── TRACKER AREA DI ADMIN PANEL (UPDATED UNTUK DIBAGI 2) ── */
+    /* ── TRACKER AREA DI ADMIN PANEL ── */
     .tracker-columns { display: flex; gap: 16px; margin-bottom: 12px; }
     .tracker-col { flex: 1; display: flex; flex-direction: column; }
     .tracker-header { padding: 10px; border-radius: 6px 6px 0 0; text-align: center; font-family: 'DM Mono', monospace; font-size: 11px; font-weight: bold; border: 1px solid; border-bottom: none; }
@@ -252,6 +252,40 @@
     .chat-msg.other { background: var(--white); align-self: flex-start; border-bottom-left-radius: 2px; }
     .chat-name { font-weight: bold; color: var(--burgundy); font-size: 10px; margin-bottom: 3px; }
     .chat-time { font-size: 9px; color: var(--muted); text-align: right; margin-top: 4px; }
+
+    /* ── VIDEO CALL STYLES ── */
+    #videoCallArea {
+      display: none; height: 160px; background: #111; position: relative; border-bottom: 1px solid var(--rose);
+      overflow: hidden;
+    }
+    .video-remote { width: 100%; height: 100%; object-fit: cover; }
+    .video-local {
+      width: 70px; height: 90px; position: absolute; bottom: 10px; right: 10px; 
+      border-radius: 8px; border: 2px solid var(--rose); object-fit: cover; background: #333; z-index: 10;
+    }
+    .vc-controls {
+      position: absolute; bottom: 10px; left: 50%; transform: translateX(-50%);
+      display: flex; gap: 10px; z-index: 10;
+    }
+    .vc-btn {
+      width: 36px; height: 36px; border-radius: 50%; border: none; background: rgba(0,0,0,0.6);
+      color: white; cursor: pointer; display: flex; align-items: center; justify-content: center;
+      transition: 0.2s; font-size: 14px;
+    }
+    .vc-btn:hover { background: rgba(0,0,0,0.8); }
+    .vc-btn.off { background: rgba(201,90,110,0.9); }
+    .vc-btn.end { background: #d93838; }
+    .vc-btn.end:hover { background: #b82626; }
+    .vc-status {
+      position: absolute; top: 10px; left: 10px; color: white; font-size: 10px; 
+      background: rgba(0,0,0,0.5); padding: 4px 8px; border-radius: 4px; font-family: 'DM Mono', monospace; z-index: 10;
+    }
+    .join-call-btn {
+      background: var(--code-green); color: white; border: none; padding: 6px 10px;
+      border-radius: 6px; font-family: 'DM Mono', monospace; font-size: 10px; cursor: pointer;
+      margin-top: 8px; width: 100%; display: block; text-transform: uppercase; letter-spacing: 0.1em;
+    }
+    .join-call-btn:hover { background: #3e8a69; }
   </style>
 </head>
 <body>
@@ -259,7 +293,7 @@
   <div class="cursor-ring" id="cursorRing"></div>
   <div class="ruled-lines"></div>
 
-  <!-- POPUP PENYAMARAN (MUNCUL OTOMATIS SAAT WEB DIBUKA JIKA BELUM ADA NAMA) -->
+  <!-- POPUP PENYAMARAN -->
   <div id="liveChatModal">
     <div class="lc-box">
       <div class="lc-icon">💌</div>
@@ -349,7 +383,6 @@
         <button class="admin-close" id="adminClose">✕</button>
       </div>
 
-      <!-- Pengaturan Buka/Tutup Web -->
       <div class="admin-row" style="background: rgba(201,122,138,0.1); border-color: var(--rose);">
         <div class="admin-row-header">
           <div class="admin-part-label" style="color: var(--burgundy);">Kunci Arsip (Tutup Web)</div>
@@ -365,19 +398,15 @@
       </div>
       <hr style="border: 0; border-top: 1px dashed rgba(201,122,138,0.3); margin: 20px 0;">
 
-      <!-- List Parts -->
       <div id="adminRows"></div>
 
-      <!-- AREA TRACKER (HANYA LOG KEHADIRAN) -->
       <hr style="border: 0; border-top: 1px dashed rgba(201,122,138,0.3); margin: 24px 0 16px;">
       <div class="admin-part-label" style="color: var(--burgundy); margin-bottom: 12px; text-align: center;">📡 Log Kehadiran Pengunjung</div>
       <div id="trackerHistoryArea" class="tracker-area" style="display: flex; height: 180px;"></div>
 
       <div class="admin-footer">
         <button class="admin-btn" id="adminLockAll" style="background: rgba(180,180,180,0.15);">Kunci Semua Bab</button>
-        <!-- Tombol Hapus Chat Baru -->
         <button class="admin-btn" id="adminClearChat" style="background: rgba(201,90,110,0.15); color: var(--rose-deep); border-color: rgba(201,122,138,0.4);">Hapus Chat</button>
-        <!-- Tombol Hapus History Tracker -->
         <button class="admin-btn" id="adminClearHistory" style="background: rgba(201,90,110,0.15); color: var(--rose-deep); border-color: rgba(201,122,138,0.4);">Hapus Log Masuk</button>
         <div style="flex:1;"></div>
         <span class="admin-status" id="adminStatus"></span>
@@ -391,18 +420,42 @@
     💬
   </div>
 
-  <div id="chatBox" style="display: none; position: fixed; bottom: 100px; right: 30px; width: 340px; height: 440px; background: rgba(255,249,247,0.98); backdrop-filter: blur(10px); border: 1px solid var(--rose); border-radius: 16px; z-index: 9998; flex-direction: column; box-shadow: 0 10px 40px rgba(107,45,62,0.2); overflow: hidden;">
+  <div id="chatBox" style="display: none; position: fixed; bottom: 100px; right: 30px; width: 340px; height: 480px; background: rgba(255,249,247,0.98); backdrop-filter: blur(10px); border: 1px solid var(--rose); border-radius: 16px; z-index: 9998; flex-direction: column; box-shadow: 0 10px 40px rgba(107,45,62,0.2); overflow: hidden;">
+    
+    <!-- Header Chat dengan Tombol VC -->
     <div style="background: var(--rose-deep); padding: 16px; color: white; display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid var(--rose);">
       <div style="font-family: 'DM Mono', monospace; font-size: 13px; font-weight: bold; letter-spacing: 0.1em; text-transform: uppercase;">
         Pulse Chat <span style="font-size: 8px; background: var(--code-green); padding: 2px 6px; border-radius: 10px; margin-left: 6px;">LIVE</span>
       </div>
-      <button id="chatCloseBtn" style="background: none; border: none; color: white; cursor: pointer; font-size: 16px;">✕</button>
+      <div style="display: flex; gap: 12px; align-items: center;">
+        <!-- Tombol Video Call -->
+        <button id="startVcBtn" style="background: rgba(255,255,255,0.2); border: none; color: white; cursor: pointer; font-size: 14px; padding: 4px 8px; border-radius: 6px; transition: background 0.2s;" title="Mulai Video Call">📹</button>
+        <button id="chatCloseBtn" style="background: none; border: none; color: white; cursor: pointer; font-size: 16px;">✕</button>
+      </div>
     </div>
     
+    <!-- Area Video Call -->
+    <div id="videoCallArea">
+      <div class="vc-status" id="vcStatus">Standby...</div>
+      <!-- Video Teman -->
+      <video id="remoteVideo" class="video-remote" autoplay playsinline></video>
+      <!-- Video Sendiri -->
+      <video id="localVideo" class="video-local" autoplay muted playsinline></video>
+      
+      <!-- Kontrol Video -->
+      <div class="vc-controls">
+        <button id="btnMic" class="vc-btn" title="Toggle Mic">🎤</button>
+        <button id="btnCam" class="vc-btn" title="Toggle Camera">📷</button>
+        <button id="btnEnd" class="vc-btn end" title="Akhiri Panggilan">✖</button>
+      </div>
+    </div>
+
+    <!-- Area Pesan -->
     <div id="chatMessages" style="flex: 1; padding: 15px; overflow-y: auto; display: flex; flex-direction: column;">
       <div style="text-align: center; color: var(--muted); font-size: 11px; font-style: italic; margin-bottom: 15px;">Memuat pesan...</div>
     </div>
 
+    <!-- Input Area -->
     <div style="padding: 12px; background: white; border-top: 1px solid rgba(201,122,138,0.2); display: flex; gap: 8px;">
       <input type="text" id="chatInput" placeholder="Ketik pesan cinta..." style="flex: 1; padding: 10px 14px; border: 1px solid var(--rose-pale); border-radius: 20px; outline: none; font-family: 'DM Mono', monospace; font-size: 12px; background: var(--cream);">
       <button id="chatSend" style="background: var(--rose-deep); color: white; border: none; padding: 0 16px; border-radius: 20px; cursor: pointer; font-family: 'DM Mono', monospace; font-size: 12px; font-weight: bold; transition: background 0.2s;">▶</button>
@@ -413,8 +466,6 @@
     // ── CONFIG FIREBASE ──
     const FB_URL = 'https://gf9-dn5-default-rtdb.asia-southeast1.firebasedatabase.app/vault.json';
     const CHAT_URL = 'https://gf9-dn5-default-rtdb.asia-southeast1.firebasedatabase.app/vault/chat.json';
-    
-    // URL BARU UNTUK RADAR TRACKER
     const HISTORY_URL = 'https://gf9-dn5-default-rtdb.asia-southeast1.firebasedatabase.app/vault/history.json';
 
     // ── FUNGSI WAKTU ──
@@ -426,11 +477,12 @@
     const liveChatModal = document.getElementById('liveChatModal');
     let myName = localStorage.getItem('vault_chat_name_v2');
 
-    // Munculkan popup jika belum pernah isi nama
     window.onload = function() {
       if (!myName) {
         liveChatModal.classList.add('open');
         document.body.classList.add('modal-open');
+      } else {
+        initPeerJS(); // Inisiasi sistem video call jika nama sudah ada
       }
     };
 
@@ -447,7 +499,6 @@
       btn.innerText = "Memproses...";
       btn.disabled = true;
 
-      // Kirim data nama & waktu ke Firebase
       fetch(HISTORY_URL, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
@@ -455,29 +506,167 @@
       }).then(() => {
         localStorage.setItem('vault_chat_name_v2', input);
         myName = input;
-        
         liveChatModal.classList.remove('open');
         document.body.classList.remove('modal-open');
+        initPeerJS(); // Inisiasi setelah login
       }).catch(() => {
-        // Fallback kalau error rules tetap bisa jalan ke web
         localStorage.setItem('vault_chat_name_v2', input);
         myName = input;
         liveChatModal.classList.remove('open');
         document.body.classList.remove('modal-open');
+        initPeerJS();
       });
     }
+
+    // ── VIDEO CALL LOGIC (PEER.JS) ──
+    let peer = null;
+    let myPeerId = null;
+    let localStream = null;
+    let currentCall = null;
+    let isAudioMuted = false;
+    let isVideoMuted = false;
+
+    const videoArea = document.getElementById('videoCallArea');
+    const localVideo = document.getElementById('localVideo');
+    const remoteVideo = document.getElementById('remoteVideo');
+    const vcStatus = document.getElementById('vcStatus');
+
+    function initPeerJS() {
+      // Menggunakan free cloud server PeerJS
+      peer = new Peer({
+        config: {'iceServers': [
+          { url: 'stun:stun.l.google.com:19302' },
+          { url: 'stun:stun1.l.google.com:19302' }
+        ]}
+      });
+      
+      peer.on('open', (id) => {
+        myPeerId = id;
+        console.log('My Peer ID is: ' + id);
+      });
+
+      // Menerima Panggilan Masuk
+      peer.on('call', (call) => {
+        if (confirm("Panggilan Video masuk dari " + (call.metadata?.callerName || "seseorang") + ". Terima?")) {
+          navigator.mediaDevices.getUserMedia({ video: true, audio: true })
+            .then((stream) => {
+              localStream = stream;
+              localVideo.srcObject = stream;
+              videoArea.style.display = 'block';
+              vcStatus.innerText = "Terhubung...";
+              
+              call.answer(stream);
+              currentCall = call;
+              setupCallEvents(call);
+            })
+            .catch((err) => {
+              alert("Gagal mengakses kamera/mikrofon.");
+            });
+        }
+      });
+    }
+
+    function setupCallEvents(call) {
+      call.on('stream', (remoteStream) => {
+        remoteVideo.srcObject = remoteStream;
+      });
+      call.on('close', endVideoCall);
+    }
+
+    // Mulai panggilan (Kirim pesan dengan link)
+    document.getElementById('startVcBtn').addEventListener('click', () => {
+      if (!myPeerId) return alert("Sistem video call sedang menghubungkan, tunggu sebentar.");
+      
+      navigator.mediaDevices.getUserMedia({ video: true, audio: true })
+        .then((stream) => {
+          localStream = stream;
+          localVideo.srcObject = stream;
+          videoArea.style.display = 'block';
+          vcStatus.innerText = "Menunggu teman bergabung...";
+          
+          // Kirim pesan otomatis ke chat
+          const inviteText = `📞 Saya memulai Video Call! ||VCALL:${myPeerId}||`;
+          sendSystemMessage(inviteText);
+        })
+        .catch((err) => {
+          alert("Gagal mengakses kamera/mikrofon. Pastikan izin telah diberikan.");
+        });
+    });
+
+    // Bergabung ke panggilan teman (Dipanggil dari tombol di dalam chat)
+    window.joinVideoCall = function(targetPeerId) {
+      if (currentCall) return alert("Kamu sudah berada dalam panggilan.");
+      
+      navigator.mediaDevices.getUserMedia({ video: true, audio: true })
+        .then((stream) => {
+          localStream = stream;
+          localVideo.srcObject = stream;
+          videoArea.style.display = 'block';
+          vcStatus.innerText = "Menghubungkan...";
+          
+          const call = peer.call(targetPeerId, stream, { metadata: { callerName: myName } });
+          currentCall = call;
+          setupCallEvents(call);
+        })
+        .catch((err) => alert("Gagal mengakses kamera/mikrofon."));
+    };
+
+    // Matikan/Nyalakan Mic
+    document.getElementById('btnMic').addEventListener('click', (e) => {
+      if (localStream) {
+        isAudioMuted = !isAudioMuted;
+        localStream.getAudioTracks()[0].enabled = !isAudioMuted;
+        e.target.classList.toggle('off', isAudioMuted);
+      }
+    });
+
+    // Matikan/Nyalakan Kamera
+    document.getElementById('btnCam').addEventListener('click', (e) => {
+      if (localStream) {
+        isVideoMuted = !isVideoMuted;
+        localStream.getVideoTracks()[0].enabled = !isVideoMuted;
+        e.target.classList.toggle('off', isVideoMuted);
+      }
+    });
+
+    // Akhiri Panggilan
+    document.getElementById('btnEnd').addEventListener('click', endVideoCall);
+
+    function endVideoCall() {
+      if (currentCall) currentCall.close();
+      if (localStream) {
+        localStream.getTracks().forEach(track => track.stop());
+      }
+      localVideo.srcObject = null;
+      remoteVideo.srcObject = null;
+      videoArea.style.display = 'none';
+      currentCall = null;
+      localStream = null;
+      document.getElementById('btnMic').classList.remove('off');
+      document.getElementById('btnCam').classList.remove('off');
+      isAudioMuted = false;
+      isVideoMuted = false;
+    }
+
+    function sendSystemMessage(text) {
+      const msgObj = { name: myName || 'Anon', text: text, time: Date.now() };
+      fetch(CHAT_URL, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(msgObj)
+      }).then(fetchChat).catch(console.warn);
+    }
+
 
     // ── ADMIN PANEL VIEWER (LOG TRACKER) ──
     function loadHistoryAdmin() {
       const area = document.getElementById('trackerHistoryArea');
       area.innerHTML = "<div style='text-align:center; color:var(--muted); margin-top:20px;'>Memuat data...</div>";
-
       fetch(HISTORY_URL)
       .then(res => res.json())
       .then(data => {
         area.innerHTML = "";
         if(!data) return area.innerHTML = "<div style='text-align:center; color:var(--muted); margin-top:20px;'>Belum ada data kehadiran.</div>";
-
         Object.values(data).reverse().forEach(item => {
           area.innerHTML += `
             <div class="log-item" style="border-left-color: var(--code-green);">
@@ -515,7 +704,6 @@
     function barStart() { loadingBar.className = 'loading-bar active'; }
     function barDone()  { loadingBar.className = 'loading-bar done'; setTimeout(() => loadingBar.className = 'loading-bar', 600); }
 
-    // ── REAL-TIME AUTO SYNC (Tarik Data Tiap 2 Detik) ──
     async function fetchData(isInitial = true) {
       if (isInitial) barStart();
       try {
@@ -540,9 +728,8 @@
       }
       if (isInitial) barDone();
     }
-    setInterval(() => fetchData(false), 2000); // Cek otomatis terus menerus
+    setInterval(() => fetchData(false), 2000); 
 
-    // ── RENDER CARDS ──
     function renderCards() {
       const grid = document.getElementById('cardsGrid');
       const finalSlot = document.getElementById('finalCard');
@@ -599,11 +786,9 @@
       });
     }
 
-    // ── FITUR WEB DITUTUP ──
     function applyWebStatus() {
       const overlayClosed = document.getElementById('closedOverlay');
       const msgClosed = document.getElementById('closedMessage');
-      
       if (webStatusData.closed) {
         overlayClosed.style.display = 'flex';
         msgClosed.textContent = webStatusData.message;
@@ -612,7 +797,6 @@
         overlayClosed.style.display = 'none';
         document.body.style.overflow = '';
       }
-
       const toggleWeb = document.getElementById('adminWebClosedToggle');
       const inputMsg = document.getElementById('adminWebMessage');
       if (toggleWeb) toggleWeb.checked = webStatusData.closed;
@@ -630,7 +814,6 @@
       }
     });
 
-    // ── ADMIN PANEL BASE ──
     const overlay = document.getElementById('adminOverlay');
     const adminRows = document.getElementById('adminRows');
     const adminSave = document.getElementById('adminSave');
@@ -658,8 +841,6 @@
       });
       document.body.classList.add('admin-open');
       overlay.classList.add('open');
-      
-      // Load Log Tracker secara otomatis begitu admin dibuka
       loadHistoryAdmin();
     }
 
@@ -685,7 +866,6 @@
       }
     });
 
-    // Fitur Hapus Log Kehadiran Tracker
     document.getElementById('adminClearHistory').addEventListener('click', async () => {
       if (!confirm("Yakin ingin menghapus semua riwayat kehadiran pengunjung? Tindakan ini tidak bisa dikembalikan.")) return;
       showStatus('Menghapus log...', false);
@@ -693,7 +873,7 @@
         const res = await fetch(HISTORY_URL, { method: 'DELETE' });
         if (!res.ok) throw new Error('Gagal hapus');
         showStatus('✓ Log dibersihkan!', false);
-        loadHistoryAdmin(); // Panggil ulang untuk merefresh tampilan log jadi kosong
+        loadHistoryAdmin(); 
       } catch(e) {
         showStatus('✗ Gagal hapus log', true);
       }
@@ -748,7 +928,6 @@
       if (clickCount >= 3) { clickCount = 0; openAdmin(); }
     });
 
-    // ── FITUR CHAT REAL-TIME (POLLING API) ──
     const chatBubble = document.getElementById('chatBubble');
     const chatBox = document.getElementById('chatBox');
     const chatCloseBtn = document.getElementById('chatCloseBtn');
@@ -759,7 +938,6 @@
     let chatInterval = null;
 
     function toggleChat() {
-      // Jika belum masukin nama dari awal, jangan kasih buka chat
       if (!myName) {
         liveChatModal.classList.add('open');
         document.body.classList.add('modal-open');
@@ -788,27 +966,9 @@
     async function sendMessage() {
       const text = chatInput.value.trim();
       if (!text) return;
-      
       chatInput.value = '';
       chatInput.focus();
-
-      const msgObj = {
-        name: myName || 'Anon',
-        text: text,
-        time: Date.now()
-      };
-
-      try {
-        await fetch(CHAT_URL, {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify(msgObj)
-        });
-
-        fetchChat(); 
-      } catch(e) {
-        console.warn("Gagal kirim pesan", e);
-      }
+      sendSystemMessage(text);
     }
 
     chatSend.addEventListener('click', sendMessage);
@@ -849,11 +1009,26 @@
         const date = new Date(msg.time || Date.now());
         const timeStr = date.getHours().toString().padStart(2, '0') + ':' + date.getMinutes().toString().padStart(2, '0');
         
+        let messageText = msg.text;
+
+        // Cek jika pesannya adalah ajakan Video Call (men-generate tombol gabung khusus)
+        if (messageText.includes("||VCALL:")) {
+          const parts = messageText.split("||VCALL:");
+          const textPart = parts[0];
+          const peerId = parts[1].replace("||", "").trim();
+          
+          if (!isMe) {
+            messageText = `${textPart} <button class="join-call-btn" onclick="joinVideoCall('${peerId}')">📞 Gabung Video Call</button>`;
+          } else {
+            messageText = textPart + "<br><small style='color:var(--muted);'>(Menunggu teman bergabung...)</small>";
+          }
+        }
+
         const div = document.createElement('div');
         div.className = `chat-msg ${isMe ? 'me' : 'other'}`;
         div.innerHTML = `
           ${!isMe ? `<div class="chat-name">${msg.name}</div>` : ''}
-          <div>${msg.text}</div>
+          <div>${messageText}</div>
           <div class="chat-time">${timeStr}</div>
         `;
         chatMessages.appendChild(div);
